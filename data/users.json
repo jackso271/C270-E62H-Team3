@@ -1,0 +1,12 @@
+[
+    {
+        "studentId": "23012345",
+        "email": "23012345@myrp.edu.sg",
+        "password": "123456"
+    },
+    {
+        "studentId": "24056789",
+        "email": "24056789@myrp.edu.sg",
+        "password": "abcdef"
+    }
+]
