@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RP Marketplace Login</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+    }
+
+    .header {
+      background: #b00020;
+      padding: 20px;
+      text-align: center;
+      color: white;
+    }
+
+    .header img {
+      width: 80px;
+      display: block;
+      margin: 0 auto 10px;
+    }
+
+    .login-box {
+      background: white;
+      width: 350px;
+      margin: 60px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+
+    .login-box h2 {
+      color: #b00020;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 95%;
+      padding: 12px;
+      background: #b00020;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background: #8c001a;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <img src="images/rp-logo.png" alt="RP Logo">
+    <h1>RP Peer Marketplace</h1>
+  </div>
+
+  <div class="login-box">
+    <h2>Student Login</h2>
+    <p class="subtitle">Use your RP email to access the marketplace</p>
+
+    <input type="text" id="email" placeholder="RP Email">
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+
+    <p id="message"></p>
+
+    <p style="margin-top:20px; font-size:13px; color:#555;">
+      New RP student? Registration coming soon.
+    </p>
+  </div>
+
+  <div class="footer">
+    Republic Polytechnic Marketplace Demo
+  </div>
+
+  <script>
+    async function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const message = document.getElementById("message");
+
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      message.innerText = data.message;
+
+      if (response.ok) {
+        message.className = "success";
+      } else {
+        message.className = "error";
+      }
+    }
+  </script>
+
+</body>
+</html>

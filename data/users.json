@@ -8,5 +8,10 @@
         "studentId": "24056789",
         "email": "24056789@myrp.edu.sg",
         "password": "abcdef"
+    },
+    {
+        "studentId": "25044459",
+        "email": "25044459@myrp.edu.sg",
+        "password": "1234"
     }
 ]
