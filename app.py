@@ -58,23 +58,31 @@ def save_json(file, data):
 def create_admin():
     users = load_json(USERS_FILE)
 
-    admin_exists = any(
-        user.get("username") == "admin"
-        for user in users
-    )
+    admin_exists = False
+
+    for user in users:
+        if user.get("username") == "admin":
+            admin_exists = True
+
+            user["name"] = user.get("name") or "Admin"
+            user["email"] = user.get("email") or "admin@rp.edu.sg"
+            user["student_id"] = user.get("student_id") or "admin"
+            user["role"] = "admin"
+            user["blocked"] = user.get("blocked", False)
 
     if not admin_exists:
         users.append({
             "id": 1,
             "name": "Admin",
             "username": "admin",
+            "email": "admin@rp.edu.sg",
             "student_id": "admin",
             "password": "admin123",
             "role": "admin",
             "blocked": False
         })
 
-        save_json(USERS_FILE, users)
+    save_json(USERS_FILE, users)
 
 
 # =========================
@@ -85,7 +93,7 @@ def log_success(user):
     logs = load_json(SUCCESS_LOG_FILE)
 
     logs.append({
-        "name": user.get("name"),
+        "name": user.get("name") or user.get("username") or "Unknown",
         "username": user.get("username"),
         "role": user.get("role"),
         "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -165,14 +173,27 @@ def register():
 
     name = request.form.get("name")
     username = request.form.get("username")
+    email = request.form.get("email")
     student_id = request.form.get("student_id")
+    school = request.form.get("school")
     password = request.form.get("password")
 
     users = load_json(USERS_FILE)
 
     # RP student verification
-    if not student_id.startswith("23") and not student_id.startswith("24"):
-        return "Only RP student IDs are allowed."
+    if not email.endswith("@myrp.edu.sg"):
+        return redirect(
+            "/error?title=Invalid RP Email"
+            "&message=Only RP students using official RP emails are allowed to register."
+            "&back_url=/register"
+        )
+    
+    if not email.endswith("@myrp.edu.sg"):
+        return redirect(
+            "/error?title=Invalid RP Email"
+            "&message=Please register using your RP school email ending with @myrp.edu.sg."
+            "&back_url=/register"
+        )
 
     # Check duplicate account
     for user in users:
@@ -180,17 +201,24 @@ def register():
             user.get("username") == username
             or user.get("student_id") == student_id
         ):
-            return "Account already exists."
+            return redirect(
+                "/error?title=Account Already Exists"
+                "&message=This username, student ID, or email is already registered."
+                "&back_url=/register"
+            )
 
     new_user = {
-        "id": len(users) + 1,
-        "name": name,
-        "username": username,
-        "student_id": student_id,
-        "password": password,
-        "role": "student",
-        "blocked": False
-    }
+    "id": len(users) + 1,
+    "name": name,
+    "username": username,
+    "email": email,
+    "student_id": student_id,
+    "school": school,
+    "password": password,
+    "role": "student",
+    "blocked": False,
+    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+}
 
     users.append(new_user)
 
@@ -206,60 +234,62 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
-    # Prevent browser direct access to /login
     if request.method == "GET":
         return redirect("/")
 
-    username = (
-    request.form.get("login_id")
-    or request.form.get("username")
-    or request.form.get("student_id")
-    or request.form.get("email")
-)
+    login_id = (
+        request.form.get("login_id", "").strip().lower()
+    )
 
-    password = request.form.get("password")
+    password = request.form.get("password", "").strip()
 
-    if not username or not password:
-        return "Missing username or password."
+    if not login_id or not password:
+        return redirect(
+            "/error?title=Missing Login Details"
+            "&message=Please enter your login ID and password."
+            "&back_url=/"
+        )
 
     users = load_json(USERS_FILE)
 
     for user in users:
 
-        user_login = (
-            user.get("username")
-            or user.get("student_id")
-        )
+        username = str(user.get("username", "")).strip().lower()
+        email = str(user.get("email", "")).strip().lower()
+        student_id = str(user.get("student_id", "")).strip().lower()
+        saved_password = str(user.get("password", "")).strip()
+        name = str(user.get("name", "")).strip().lower()
 
         if (
-            user_login == username
-            and user.get("password") == password
-        ):
+            login_id == username
+            or login_id == email
+            or login_id == student_id
+            or login_id == name
+        ) and password == saved_password:
 
-            # Check blocked account
             if user.get("blocked") == True:
-                log_failed(username, "Blocked account")
-                return "Your account has been blocked."
+                log_failed(login_id, "Blocked account")
 
-            # Session
+                return redirect(
+                    "/error?title=Account Blocked"
+                    "&message=Your account has been blocked. Please contact the administrator."
+                    "&back_url=/"
+                )
+
             session["user_id"] = user.get("id")
             session["name"] = user.get("name")
             session["role"] = user.get("role")
 
-            # Save success log
             log_success(user)
 
-            # Redirect based on role
             if user.get("role") == "admin":
                 return redirect("/admin/dashboard")
 
             return redirect("/homepage")
 
-    # Failed login
-    log_failed(username, "Invalid login")
+    log_failed(login_id, "Invalid login")
 
-    return "Invalid username or password."
-
+    return render_template("user/login_error.html")
 
 # =========================
 # HOMEPAGE
@@ -508,7 +538,7 @@ def edit_user(user_id):
 
     save_json(USERS_FILE, users)
 
-    return redirect("/admin/dashboard")
+    return redirect("/admin/users")
 
 
 # =========================
@@ -530,7 +560,7 @@ def delete_user(user_id):
 
     save_json(USERS_FILE, users)
 
-    return redirect("/admin/dashboard")
+    return redirect("/admin/users")
 
 
 # =========================
@@ -555,7 +585,21 @@ def block_user(user_id):
 
     save_json(USERS_FILE, users)
 
-    return redirect("/admin/dashboard")
+    return redirect("/admin/users")
+
+
+@app.route("/error")
+def error_page():
+    title = request.args.get("title", "Error")
+    message = request.args.get("message", "Something went wrong.")
+    back_url = request.args.get("back_url", "/")
+
+    return render_template(
+        "user/error.html",
+        title=title,
+        message=message,
+        back_url=back_url
+    )
 
 
 # =========================
@@ -568,6 +612,7 @@ def logout():
     session.clear()
 
     return redirect("/")
+
 
 
 # =========================

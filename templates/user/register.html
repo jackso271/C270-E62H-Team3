@@ -3,7 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Create Account - RP Marketplace</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -15,43 +17,68 @@
 
         <div class="login-card">
 
-            <img
-                src="{{ url_for('static', filename='images/rp-logo.png') }}"
-                alt="RP Logo"
-                class="rp-logo"
-            >
+            <!-- RP Logo -->
+
+            <img src="{{ url_for('static', filename='images/rp-logo.png') }}" alt="RP Logo" class="rp-logo">
+
+            <!-- Title -->
 
             <h1>Create Account</h1>
 
             <p class="subtitle">
-                Register using your RP Student ID and RP email
+                Register using your official RP email
             </p>
+
+            <!-- Register Form -->
 
             <form action="/register" method="POST">
 
+                <!-- Name -->
+
+                <label>Full Name</label>
+
+                <input type="text" name="name" placeholder="Enter your full name" required>
+
+                <!-- Username -->
+
+                <label>Username</label>
+
+                <input type="text" name="username" placeholder="Create a username" required>
+
+                <!-- Student ID -->
+
                 <label>RP Student ID</label>
-                <input
-                    type="text"
-                    name="student_id"
-                    placeholder="Enter your student ID"
-                    required
-                >
+
+                <input type="text" name="student_id" placeholder="Enter your student ID" required>
+
+                <!-- Email -->
 
                 <label>RP Email</label>
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Enter your RP email"
-                    required
-                >
+
+                <input type="email" name="email" placeholder="Enter your RP email" required>
+
+                <!-- School -->
+
+                <label>School</label>
+
+                <select name="school" required>
+                    <option value="">Select your school</option>
+                    <option value="School of Infocomm">School of Infocomm</option>
+                    <option value="School of Applied Science">School of Applied Science</option>
+                    <option value="School of Business">School of Business</option>
+                    <option value="School of Engineering">School of Engineering</option>
+                    <option value="School of Hospitality">School of Hospitality</option>
+                    <option value="School of Sports, Health and Leisure">School of Sports, Health and Leisure</option>
+                    <option value="School of Technology for the Arts">School of Technology for the Arts</option>
+                </select>
+
+                <!-- Password -->
 
                 <label>Password</label>
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Create a password"
-                    required
-                >
+
+                <input type="password" name="password" placeholder="Create a password" required>
+
+                <!-- Submit Button -->
 
                 <button type="submit">
                     Create Account
@@ -59,9 +86,16 @@
 
             </form>
 
+            <!-- Footer -->
+
             <p class="footer-text">
+
                 Already have an account?
-                <a href="/">Back to Login</a>
+
+                <a href="/">
+                    Back to Login
+                </a>
+
             </p>
 
         </div>

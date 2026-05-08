@@ -12,7 +12,10 @@
         "username": "admin",
         "password": "admin123",
         "role": "admin",
-        "blocked": false
+        "blocked": false,
+        "name": "Admin",
+        "email": "admin@rp.edu.sg",
+        "student_id": "admin"
     },
     {
         "id": 3,
@@ -23,5 +26,17 @@
         "blocked": false,
         "created_at": "2026-05-08 13:24:56",
         "terms_acknowledged": false
+    },
+    {
+        "id": 4,
+        "name": "test1",
+        "username": "testuser1",
+        "email": "12345@myrp.edu.sg",
+        "student_id": "12345",
+        "school": "School of Engineering",
+        "password": "12345",
+        "role": "student",
+        "blocked": false,
+        "created_at": "2026-05-08 16:42:39"
     }
 ]
