@@ -1,138 +1,163 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect
 import json
-import time
-from collections import defaultdict
-from datetime import datetime
+import os
 
 app = Flask(__name__)
-app.secret_key = "rp_marketplace_secret_key"
 
-
-@app.after_request
-def add_no_cache_headers(response):
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
-# Rate limiter settings
-request_log = defaultdict(list)
-RATE_LIMIT = 10
-TIME_WINDOW = 60
-
-
-def is_rate_limited(ip_address):
-    current_time = time.time()
-
-    request_log[ip_address] = [
-        t for t in request_log[ip_address]
-        if current_time - t < TIME_WINDOW
-    ]
-
-    if len(request_log[ip_address]) >= RATE_LIMIT:
-        return True
-
-    request_log[ip_address].append(current_time)
-    return False
+USERS_FILE = 'data/users.json'
 
 
 def load_users():
-    with open("data/users.json", "r") as file:
-        return json.load(file)
+    if not os.path.exists(USERS_FILE):
+        return []
+
+    try:
+        with open(USERS_FILE, 'r') as file:
+            return json.load(file)
+    except:
+        return []
 
 
-def save_successful_login(name, login_input):
-    with open("data/successful_logins.json", "r") as file:
-        logs = json.load(file)
-
-    logs.append({
-        "name": name,
-        "login_input": login_input,
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    })
-
-    with open("data/successful_logins.json", "w") as file:
-        json.dump(logs, file, indent=4)
+def save_users(users):
+    with open(USERS_FILE, 'w') as file:
+        json.dump(users, file, indent=4)
 
 
-def save_failed_login(login_input, reason):
-    with open("data/failed_logins.json", "r") as file:
-        logs = json.load(file)
+def create_admin():
+    users = load_users()
 
-    logs.append({
-        "login_input": login_input,
-        "reason": reason,
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    })
+    admin_exists = any(
+        user.get('username') == 'admin'
+        for user in users
+    )
 
-    with open("data/failed_logins.json", "w") as file:
-        json.dump(logs, file, indent=4)
+    if not admin_exists:
+        users.append({
+            "id": len(users) + 1,
+            "username": "admin",
+            "password": "admin123",
+            "role": "admin",
+            "blocked": False
+        })
 
-
-def is_rp_login(login_input):
-    return login_input.endswith("@myrp.edu.sg") or login_input.isdigit()
-
-
-@app.route("/")
-def index():
-    return redirect(url_for("login"))
+        save_users(users)
 
 
-@app.route("/login", methods=["GET", "POST"])
+create_admin()
+
+
+@app.route('/')
 def login():
-    error = ""
-
-    if request.method == "POST":
-        ip_address = request.remote_addr
-
-        if is_rate_limited(ip_address):
-            error = "Too many login attempts. Please wait before trying again."
-            return render_template("login.html", error=error)
-
-        login_input = request.form["login_input"].strip()
-        password = request.form["password"].strip()
-
-        if not is_rp_login(login_input):
-            error = "Only RP student email or student ID is allowed."
-            save_failed_login(login_input, "Non-RP login blocked")
-            return render_template("login.html", error=error)
-
-        users = load_users()
-
-        for user in users:
-            valid_email = login_input == user["email"]
-            valid_student_id = login_input == user["student_id"]
-            valid_password = password == user["password"]
-
-            if (valid_email or valid_student_id) and valid_password:
-                session.clear()
-                session["user_id"] = user["id"]
-                session["name"] = user["name"]
-
-                save_successful_login(user["name"], login_input)
-
-                return redirect(url_for("home"))
-
-        error = "Invalid RP student login details."
-        save_failed_login(login_input, "Invalid credentials")
-
-    return render_template("login.html", error=error)
+    return render_template('user/login.html')
 
 
-@app.route("/home")
+@app.route('/login', methods=['POST'])
+def login_post():
+    login_id = request.form.get('login_id')
+    password = request.form.get('password')
+
+    users = load_users()
+
+    for user in users:
+        is_admin = (
+            user.get('role') == 'admin' and
+            user.get('username') == login_id and
+            user.get('password') == password
+        )
+
+        is_student = (
+            user.get('role') == 'user' and
+            (
+                user.get('student_id') == login_id or
+                user.get('email') == login_id
+            ) and
+            user.get('password') == password
+        )
+
+        if is_admin or is_student:
+            if user.get('blocked') == True:
+                return "Your account has been blocked"
+
+            if user.get('role') == 'admin':
+                return redirect('/admin/dashboard')
+
+            return redirect('/home')
+
+    return "Invalid login details"
+
+
+@app.route('/register')
+def register():
+    return render_template('user/register.html')
+
+
+@app.route('/register', methods=['POST'])
+def register_post():
+    student_id = request.form.get('student_id')
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    users = load_users()
+
+    for user in users:
+        if user.get('student_id') == student_id or user.get('email') == email:
+            return "Account already exists"
+
+    new_user = {
+        "id": len(users) + 1,
+        "student_id": student_id,
+        "email": email,
+        "password": password,
+        "role": "user",
+        "blocked": False
+    }
+
+    users.append(new_user)
+    save_users(users)
+
+    return redirect('/')
+
+
+@app.route('/home')
 def home():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-    return render_template("home.html", name=session["name"])
+    return render_template('user/home.html')
 
 
-@app.route("/logout")
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    users = load_users()
+    return render_template('admin/admin_dashboard.html', users=users)
+
+
+@app.route('/admin/delete/<int:user_id>')
+def delete_user(user_id):
+    users = load_users()
+
+    users = [
+        user for user in users
+        if user.get('id') != user_id
+    ]
+
+    save_users(users)
+    return redirect('/admin/dashboard')
+
+
+@app.route('/admin/block/<int:user_id>')
+def block_user(user_id):
+    users = load_users()
+
+    for user in users:
+        if user.get('id') == user_id:
+            user['blocked'] = not user.get('blocked', False)
+
+    save_users(users)
+    return redirect('/admin/dashboard')
+
+
+@app.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for("login"))
+    return redirect('/')
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
+    

@@ -1,9 +1,17 @@
 [
-  {
-    "id": 1,
-    "name": "Jason",
-    "student_id": "25044459",
-    "email": "25044459@myrp.edu.sg",
-    "password": "password123"
-  }
+    {
+        "id": 1,
+        "student_id": "25044459",
+        "email": "25044459@myrp.edu.sg",
+        "password": "password123",
+        "role": "user",
+        "blocked": false
+    },
+    {
+        "id": 2,
+        "username": "admin",
+        "password": "admin123",
+        "role": "admin",
+        "blocked": false
+    }
 ]
