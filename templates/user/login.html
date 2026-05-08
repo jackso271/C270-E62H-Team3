@@ -16,11 +16,7 @@
         <div class="login-card">
 
             <!-- RP Logo -->
-            <img
-                src="{{ url_for('static', filename='images/rp-logo.png') }}"
-                alt="RP Logo"
-                class="rp-logo"
-            >
+            <img src="{{ url_for('static', filename='images/rp-logo.png') }}" alt="RP Logo" class="rp-logo">
 
             <!-- Title -->
             <h1>RP Marketplace</h1>
@@ -37,29 +33,23 @@
                     RP Student ID / RP Email / Admin
                 </label>
 
-                <input
-                    type="text"
-                    name="login_id"
-                    placeholder="Enter your ID, email or admin"
-                    required
-                >
+                <input type="text" name="login_id" placeholder="Enter your ID, email or admin" required>
 
                 <label>
                     Password
                 </label>
 
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Enter password"
-                    required
-                >
+                <input type="password" name="password" placeholder="Enter password" required>
 
                 <button type="submit">
                     Login
                 </button>
 
             </form>
+            
+            {% if error %}
+            <p class="error">{{ error }}</p>
+            {% endif %}
 
             <!-- Footer -->
             <p class="footer-text">

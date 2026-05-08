@@ -47,11 +47,9 @@ body {
     top: -180px;
 
     background:
-        linear-gradient(
-            135deg,
+        linear-gradient(135deg,
             rgba(82, 183, 136, 0.35),
-            rgba(0, 0, 0, 0.1)
-        );
+            rgba(0, 0, 0, 0.1));
 
     transform: rotate(35deg);
 
@@ -73,11 +71,9 @@ body {
     bottom: -250px;
 
     background:
-        linear-gradient(
-            135deg,
+        linear-gradient(135deg,
             rgba(0, 0, 0, 0.1),
-            rgba(82, 183, 136, 0.25)
-        );
+            rgba(82, 183, 136, 0.25));
 
     transform: rotate(35deg);
 
@@ -199,11 +195,9 @@ button {
     padding: 18px;
 
     background:
-        linear-gradient(
-            135deg,
+        linear-gradient(135deg,
             #0b6b3a,
-            #064d2a
-        );
+            #064d2a);
 
     color: white;
 
@@ -222,11 +216,9 @@ button {
 
 button:hover {
     background:
-        linear-gradient(
-            135deg,
+        linear-gradient(135deg,
             #0f7f45,
-            #063f24
-        );
+            #063f24);
 }
 
 
@@ -310,11 +302,9 @@ button:hover {
     max-width: 1000px;
 
     background:
-        linear-gradient(
-            135deg,
+        linear-gradient(135deg,
             #0b6b3a,
-            #000000
-        );
+            #000000);
 
     color: white;
 
@@ -375,4 +365,485 @@ button:hover {
     color: #0b6b3a;
 
     margin-bottom: 10px;
+}
+
+/* =========================
+   ADMIN DASHBOARD
+========================= */
+
+.admin-container {
+    max-width: 1200px;
+
+    margin: 50px auto;
+
+    padding: 20px;
+}
+
+.admin-container h1 {
+    color: #0b6b3a;
+
+    margin-bottom: 10px;
+
+    font-size: 40px;
+}
+
+.admin-container p {
+    color: #555;
+
+    margin-bottom: 30px;
+
+    font-size: 18px;
+}
+
+
+/* Table */
+
+.admin-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    background: white;
+
+    border-radius: 15px;
+
+    overflow: hidden;
+
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.admin-table th {
+    background: #0b6b3a;
+
+    color: white;
+
+    padding: 18px;
+
+    text-align: left;
+
+    font-size: 16px;
+}
+
+.admin-table td {
+    padding: 18px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    font-size: 15px;
+}
+
+
+/* Status */
+
+.status-active {
+    color: green;
+
+    font-weight: bold;
+}
+
+.status-blocked {
+    color: red;
+
+    font-weight: bold;
+}
+
+
+/* Buttons */
+
+.action-btn {
+    padding: 10px 15px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-weight: bold;
+
+    color: white;
+
+    margin-right: 8px;
+}
+
+.block-btn {
+    background: #d97706;
+}
+
+.delete-btn {
+    background: #dc2626;
+}
+
+.block-btn:hover {
+    background: #b45309;
+}
+
+.delete-btn:hover {
+    background: #b91c1c;
+}
+
+/* =========================
+   GLOBAL ADMIN STYLING
+========================= */
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    background: linear-gradient(to bottom, #001f1f, #003d33);
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+/* =========================
+   PAGE CONTAINER
+========================= */
+
+.container {
+    width: 95%;
+    margin: 40px auto;
+}
+
+/* =========================
+   TITLES
+========================= */
+
+h1 {
+    font-size: 48px;
+    margin-bottom: 30px;
+    color: #66ff99;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+button,
+.btn,
+input[type="submit"] {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Back button */
+.back-btn {
+    background-color: #7dff9b;
+    color: black;
+}
+
+/* Edit button */
+.edit-btn {
+    background-color: #0f9d58;
+    color: white;
+}
+
+/* Block button */
+.block-btn {
+    background-color: orange;
+    color: white;
+}
+
+/* Delete button */
+.delete-btn {
+    background-color: #e53935;
+    color: white;
+}
+
+/* Filter button */
+.filter-btn {
+    background-color: #008f39;
+    color: white;
+}
+
+/* Clear button */
+.clear-btn {
+    background-color: #333;
+    color: white;
+}
+
+/* =========================
+   TABLE STYLING
+========================= */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    background-color: white;
+    color: black;
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 18px;
+}
+
+th {
+    background-color: #004d40;
+    color: white;
+    padding: 18px;
+    text-align: center;
+    font-size: 18px;
+}
+
+td {
+    padding: 18px;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+}
+
+/* =========================
+   FILTER SECTION
+========================= */
+
+.filter-box {
+    background: #f2f2f2;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.filter-box input {
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #aaa;
+    margin-right: 10px;
+    width: 120px;
+}
+
+/* =========================
+   CHECKBOX SIZE
+========================= */
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+/* =========================
+   USER ACCOUNT PAGE
+========================= */
+
+.admin-table {
+    font-size: 20px;
+}
+
+.admin-table th {
+    padding: 26px;
+
+    font-size: 20px;
+}
+
+.admin-table td {
+    padding: 24px;
+
+    font-size: 19px;
+}
+
+.action-btn,
+.edit-btn,
+.block-btn,
+.delete-btn {
+    padding: 14px 20px;
+
+    font-size: 16px;
+
+    border-radius: 10px;
+}
+
+.admin-container h1 {
+    font-size: 64px;
+}
+
+/* =========================
+   USER SEARCH + PAGINATION
+========================= */
+
+.search-box {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    background: #f3f4f6;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+.search-box input {
+    width: 420px;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 0;
+}
+
+.clear-search-btn {
+    background: #333;
+    color: white;
+    padding: 13px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.pagination-box {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    color: white;
+    font-size: 20px;
+}
+
+.page-btn {
+    background: #86efac;
+    color: black;
+    padding: 13px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.admin-table th {
+    font-size: 19px;
+    padding: 22px;
+}
+
+.admin-table td {
+    font-size: 18px;
+    padding: 22px;
+}
+
+/* =========================
+   FIX USER ACCOUNT ADMIN PAGE
+========================= */
+
+.admin-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #001a1a, #003d33, #001a1a);
+    padding: 40px;
+}
+
+.admin-container {
+    width: 95%;
+    max-width: 1700px;
+    margin: 0 auto;
+}
+
+.back-btn {
+    display: inline-block;
+    background: #86efac;
+    color: black;
+    padding: 14px 22px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 35px;
+}
+
+.back-btn:hover {
+    background: #4ade80;
+}
+
+.admin-container h1 {
+    font-size: 48px;
+    color: #66ff99;
+    margin-bottom: 30px;
+}
+
+.search-box {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    background: #f3f4f6;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 0;
+}
+
+.clear-search-btn {
+    background: #333;
+    color: white;
+    padding: 14px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    background: white;
+    color: black;
+    border-radius: 16px;
+    overflow: hidden;
+    font-size: 18px;
+}
+
+.admin-table th {
+    background: #004d40;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.admin-table td {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #d1d5db;
+    font-size: 18px;
+}
+
+.action-btn {
+    display: inline-block;
+    padding: 12px 18px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    color: white;
+    margin: 3px;
+}
+
+.edit-btn {
+    background: #008f39;
+}
+
+.block-btn {
+    background: #f59e0b;
+}
+
+.delete-btn {
+    background: #dc2626;
+}
+
+.pagination-box {
+    margin-top: 25px;
+    text-align: center;
+    color: white;
+    font-size: 20px;
+}
+
+.page-btn {
+    background: #86efac;
+    color: black;
+    padding: 13px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 10px;
 }

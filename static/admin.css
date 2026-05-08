@@ -1,0 +1,194 @@
+body.admin-body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #001f1a, #003d2e, #000000);
+    color: white;
+    min-height: 100vh;
+}
+
+.admin-container {
+    width: 80%;
+    margin: auto;
+    padding-top: 120px;
+    text-align: center;
+}
+
+.admin-container h1,
+.admin-page h1 {
+    color: #7CFF9B;
+    font-size: 42px;
+}
+
+.subtitle {
+    color: #d0d0d0;
+    margin-bottom: 40px;
+}
+
+.admin-menu {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    max-width: 800px;
+    margin: auto;
+}
+
+.admin-menu a {
+    background: #ffffff;
+    color: #003d2e;
+    text-decoration: none;
+    padding: 35px;
+    border-radius: 18px;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.admin-menu a:hover {
+    background: #7CFF9B;
+    color: black;
+}
+
+.admin-menu .logout {
+    background: #ff4d4d;
+    color: white;
+}
+
+.admin-page {
+    width: 90%;
+    margin: auto;
+    padding-top: 40px;
+}
+
+.back {
+    color: #7CFF9B;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+    margin-top: 25px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+th {
+    background: #003d2e;
+    color: white;
+    padding: 14px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+td a {
+    color: #007a3d;
+    margin: 0 6px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+td a.danger {
+    color: red;
+}
+
+.back-btn {
+    display: inline-block;
+    background: #7CFF9B;
+    color: #002b20;
+    padding: 12px 22px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.back-btn:hover {
+    background: white;
+    color: black;
+}
+
+.action-btn {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 3px;
+    font-size: 13px;
+}
+
+.action-btn.edit {
+    background: #007a3d;
+}
+
+.action-btn.block {
+    background: #ff9900;
+}
+
+.action-btn.delete {
+    background: #d62828;
+}
+
+.action-btn:hover {
+    opacity: 0.8;
+}
+
+.filter-box {
+    background: white;
+    padding: 18px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-box input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+}
+
+.filter-box button {
+    background: #007a3d;
+    color: white;
+    border: none;
+    padding: 11px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.clear-btn {
+    background: #333;
+    color: white;
+    text-decoration: none;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.delete-selected-btn {
+    background: #d62828;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.delete-selected-btn:hover,
+.filter-box button:hover,
+.clear-btn:hover {
+    opacity: 0.8;
+}

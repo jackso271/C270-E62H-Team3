@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+
+<body class="admin-body">
+
+    <div class="admin-container">
+        <h1>RP Marketplace Admin</h1>
+        <p class="subtitle">Manage accounts and login activity</p>
+
+        <div class="admin-menu">
+            <a href="/admin/users">User Accounts</a>
+            <a href="/admin/success-logs">Successful Login Logs</a>
+            <a href="/admin/failed-logs">Failed Login Logs</a>
+            <a href="/logout" class="logout">Logout</a>
+        </div>
+    </div>
+
+</body>
+</html>

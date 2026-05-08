@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - RP Marketplace</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-body">
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <img
+                src="{{ url_for('static', filename='images/rp-logo.png') }}"
+                alt="RP Logo"
+                class="rp-logo"
+            >
+
+            <h1>Create Account</h1>
+
+            <p class="subtitle">
+                Register using your RP Student ID and RP email
+            </p>
+
+            <form action="/register" method="POST">
+
+                <label>RP Student ID</label>
+                <input
+                    type="text"
+                    name="student_id"
+                    placeholder="Enter your student ID"
+                    required
+                >
+
+                <label>RP Email</label>
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your RP email"
+                    required
+                >
+
+                <label>Password</label>
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Create a password"
+                    required
+                >
+
+                <button type="submit">
+                    Create Account
+                </button>
+
+            </form>
+
+            <p class="footer-text">
+                Already have an account?
+                <a href="/">Back to Login</a>
+            </p>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

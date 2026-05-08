@@ -8,5 +8,11 @@
         "login_input": "25044459@myrp.edu.sg",
         "reason": "Invalid credentials",
         "time": "2026-05-07 15:26:57"
+    },
+    {
+        "login_id": "123456",
+        "status": "Failed",
+        "reason": "Invalid login details",
+        "time": "2026-05-08 13:24:42"
     }
 ]
