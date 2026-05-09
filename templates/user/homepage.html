@@ -4,37 +4,64 @@
     <title>RP Marketplace Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
 
-    <nav class="navbar">
-        <div class="nav-logo">RP Marketplace</div>
-        <a href="/logout" class="logout-btn">Logout</a>
-    </nav>
+<body class="login-body">
 
-    <section class="hero">
-        <div>
-            <h1>Welcome, {{ name }}</h1>
-            <p>Discover items listed by RP students around campus.</p>
-            <a href="#" class="primary-btn">Browse Marketplace</a>
-        </div>
-    </section>
+    <div class="home-page">
 
-    <section class="features">
-        <div class="feature-card">
-            <h3>Verified RP Users</h3>
-            <p>Only RP students can access the marketplace.</p>
-        </div>
+        <nav class="home-navbar">
+            <div class="home-logo">RP Marketplace</div>
 
-        <div class="feature-card">
-            <h3>Campus Deals</h3>
-            <p>Find affordable items from students nearby.</p>
-        </div>
+            <div class="home-nav-links">
+                <a href="/marketplace">Marketplace</a>
+                <a href="/seller_requests">Requests</a>
+                <a href="/logout" class="logout-link">Logout</a>
+            </div>
+        </nav>
 
-        <div class="feature-card">
-            <h3>Safe Requests</h3>
-            <p>Send purchase requests before buying.</p>
-        </div>
-    </section>
+        <main class="home-content">
+
+            <section class="home-hero">
+                <h1>Welcome, {{ name }}</h1>
+
+                <p>
+                    Discover affordable items listed by RP students.
+                    Send purchase requests and manage deals safely within the RP community.
+                </p>
+
+                <div class="home-actions">
+                    <a href="/marketplace">Browse Marketplace</a>
+                    <a href="/seller_requests">View Requests</a>
+                </div>
+            </section>
+
+            <section class="home-features">
+
+                <div class="home-feature-card">
+                    <h3>Verified RP Users</h3>
+                    <p>Only RP students can access the marketplace.</p>
+                </div>
+
+                <div class="home-feature-card">
+                    <h3>Campus Deals</h3>
+                    <p>Find affordable second-hand items from students nearby.</p>
+                </div>
+
+                <div class="home-feature-card">
+                    <h3>Safe Requests</h3>
+                    <p>Send purchase requests before confirming a transaction.</p>
+                </div>
+
+                <div class="home-feature-card">
+                    <h3>Quick Access</h3>
+                    <p>Browse listings and manage requests from one dashboard.</p>
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
 
 </body>
 </html>

@@ -50,5 +50,17 @@
         "role": "student",
         "blocked": false,
         "created_at": "2026-05-08 18:51:58"
+    },
+    {
+        "id": 6,
+        "name": "Jack",
+        "username": "Jack Bay",
+        "email": "122@myrp.edu.sg",
+        "student_id": "122",
+        "school": "School of Infocomm",
+        "password": "1234",
+        "role": "student",
+        "blocked": false,
+        "created_at": "2026-05-09 15:31:08"
     }
 ]

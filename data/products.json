@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "title": "Used Laptop",
+        "price": 450,
+        "seller": "seller1",
+        "status": "Reserved"
+    },
+    {
+        "id": 2,
+        "title": "Keyboard",
+        "price": 25,
+        "seller": "seller1",
+        "status": "Available"
+    },
+    {
+        "id": 3,
+        "title": "iPad Case",
+        "price": 10,
+        "seller": "seller2",
+        "status": "Available"
+    }
+]

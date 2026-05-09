@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RP Marketplace</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="marketplace-body">
+
+    <div class="marketplace-header">
+        <div>
+            <h1>RP Marketplace</h1>
+            <p>Buy and request items from other RP students</p>
+        </div>
+
+        <div>
+            <a href="/homepage" class="nav-btn">Home</a>
+            <a href="/seller_requests" class="nav-btn">Seller Requests</a>
+        </div>
+    </div>
+
+    <div class="marketplace-grid">
+        {% for product in products %}
+            <div class="product-card">
+                <div class="product-img">RP</div>
+
+                <h3>{{ product.title }}</h3>
+                <p class="price">${{ product.price }}</p>
+                <p><strong>Seller:</strong> {{ product.seller }}</p>
+
+                {% if product.status == "Available" %}
+                    <span class="status available">{{ product.status }}</span>
+
+                    <form action="/request_buy/{{ product.id }}" method="POST">
+                        <button type="submit" class="request-btn">Request to Buy</button>
+                    </form>
+                {% else %}
+                    <span class="status reserved">{{ product.status }}</span>
+                    <button disabled class="disabled-btn">Not Available</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

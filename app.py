@@ -14,6 +14,9 @@ USERS_FILE = "data/users.json"
 SUCCESS_LOG_FILE = "data/success_logins.json"
 FAILED_LOG_FILE = "data/failed_logins.json"
 
+# ADD THESE
+PRODUCTS_FILE = "data/products.json"
+REQUESTS_FILE = "data/requests.json"
 
 # =========================
 # CREATE DATA FILES
@@ -25,7 +28,9 @@ def ensure_data_files():
     files = [
         USERS_FILE,
         SUCCESS_LOG_FILE,
-        FAILED_LOG_FILE
+        FAILED_LOG_FILE,
+        PRODUCTS_FILE,
+        REQUESTS_FILE
     ]
 
     for file in files:
@@ -602,6 +607,7 @@ def error_page():
     )
 
 
+
 # =========================
 # LOGOUT
 # =========================
@@ -613,7 +619,102 @@ def logout():
 
     return redirect("/")
 
+@app.route('/marketplace')
+def marketplace():
+    products = load_json(PRODUCTS_FILE)
+    return render_template(
+        'user/marketplace.html',
+        products=products
+    )
 
+
+@app.route('/request_buy/<int:product_id>', methods=['POST'])
+def request_buy(product_id):
+
+    products = load_json(PRODUCTS_FILE)
+    requests_list = load_json(REQUESTS_FILE)
+
+    product = None
+
+    for item in products:
+        if item.get('id') == product_id:
+            product = item
+            break
+
+    if product is None:
+        return redirect('/marketplace')
+
+    if product.get('status') != 'Available':
+        return redirect('/marketplace')
+
+    new_request = {
+        "id": len(requests_list) + 1,
+        "product_id": product["id"],
+        "product_title": product["title"],
+        "buyer": "buyer_demo",
+        "seller": product["seller"],
+        "status": "Pending",
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    requests_list.append(new_request)
+
+    save_json(REQUESTS_FILE, requests_list)
+
+    return redirect('/marketplace')
+
+
+@app.route('/seller_requests')
+def seller_requests():
+
+    requests_list = load_json(REQUESTS_FILE)
+
+    return render_template(
+        'user/seller_requests.html',
+        requests_list=requests_list
+    )
+
+
+@app.route('/accept_request/<int:request_id>', methods=['POST'])
+def accept_request(request_id):
+
+    requests_list = load_json(REQUESTS_FILE)
+    products = load_json(PRODUCTS_FILE)
+
+    for req in requests_list:
+
+        if req.get('id') == request_id:
+
+            req['status'] = 'Accepted'
+
+            for product in products:
+
+                if product.get('id') == req.get('product_id'):
+                    product['status'] = 'Reserved'
+                    break
+
+            break
+
+    save_json(REQUESTS_FILE, requests_list)
+    save_json(PRODUCTS_FILE, products)
+
+    return redirect('/seller_requests')
+
+
+@app.route('/reject_request/<int:request_id>', methods=['POST'])
+def reject_request(request_id):
+
+    requests_list = load_json(REQUESTS_FILE)
+
+    for req in requests_list:
+
+        if req.get('id') == request_id:
+            req['status'] = 'Rejected'
+            break
+
+    save_json(REQUESTS_FILE, requests_list)
+
+    return redirect('/seller_requests')
 
 # =========================
 # RUN APP

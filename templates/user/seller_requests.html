@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seller Requests</title>
+</head>
+<body>
+    <h1>Incoming Purchase Requests</h1>
+
+    <a href="/marketplace">Back to Marketplace</a>
+    <hr>
+
+    {% for request in requests_list %}
+        <div style="border: 1px solid black; padding: 15px; margin-bottom: 10px;">
+            <h3>{{ request.product_title }}</h3>
+            <p>Buyer: {{ request.buyer }}</p>
+            <p>Seller: {{ request.seller }}</p>
+            <p>Status: {{ request.status }}</p>
+            <p>Time: {{ request.time }}</p>
+
+            {% if request.status == "Pending" %}
+                <form action="/accept_request/{{ request.id }}" method="POST" style="display:inline;">
+                    <button type="submit">Accept</button>
+                </form>
+
+                <form action="/reject_request/{{ request.id }}" method="POST" style="display:inline;">
+                    <button type="submit">Reject</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+</body>
+</html>

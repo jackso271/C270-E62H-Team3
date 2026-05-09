@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "product_id": 1,
+        "product_title": "Used Laptop",
+        "buyer": "buyer_demo",
+        "seller": "seller1",
+        "status": "Accepted",
+        "time": "2026-05-09 15:21:30"
+    },
+    {
+        "id": 2,
+        "product_id": 1,
+        "product_title": "Used Laptop",
+        "buyer": "buyer_demo",
+        "seller": "seller1",
+        "status": "Accepted",
+        "time": "2026-05-09 15:21:32"
+    },
+    {
+        "id": 3,
+        "product_id": 1,
+        "product_title": "Used Laptop",
+        "buyer": "buyer_demo",
+        "seller": "seller1",
+        "status": "Accepted",
+        "time": "2026-05-09 15:29:27"
+    },
+    {
+        "id": 4,
+        "product_id": 2,
+        "product_title": "Keyboard",
+        "buyer": "buyer_demo",
+        "seller": "seller1",
+        "status": "Pending",
+        "time": "2026-05-09 15:34:22"
+    }
+]
