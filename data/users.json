@@ -28,15 +28,27 @@
         "terms_acknowledged": false
     },
     {
-        "id": 4,
-        "name": "test1",
-        "username": "testuser1",
-        "email": "12345@myrp.edu.sg",
-        "student_id": "12345",
-        "school": "School of Engineering",
-        "password": "12345",
+        "id": 5,
+        "name": "aa",
+        "username": "er",
+        "email": "aaa@myrp.edu.sg",
+        "student_id": "56",
+        "school": "School of Infocomm",
+        "password": "123",
         "role": "student",
         "blocked": false,
-        "created_at": "2026-05-08 16:42:39"
+        "created_at": "2026-05-08 18:43:55"
+    },
+    {
+        "id": 6,
+        "name": "ang",
+        "username": "ang123",
+        "email": "221275@myrp.edu.sg",
+        "student_id": "221275",
+        "school": "School of Business",
+        "password": "1234",
+        "role": "student",
+        "blocked": false,
+        "created_at": "2026-05-08 18:51:58"
     }
 ]
