@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RP Marketspace Chat</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial, sans-serif;
+        }
+
+        body{
+            background:#ece5dd;
+            height:100vh;
+            overflow:hidden;
+        }
+
+        .app{
+            display:flex;
+            height:100vh;
+        }
+
+        /* LEFT SIDE */
+
+        .sidebar{
+            width:30%;
+            background:white;
+            border-right:1px solid #ccc;
+            overflow-y:auto;
+        }
+
+        .sidebar-header{
+            background:#128c7e;
+            color:white;
+            padding:20px;
+            font-size:28px;
+            font-weight:bold;
+        }
+
+        .section{
+            padding:15px;
+            border-bottom:1px solid #eee;
+        }
+
+        input,
+        textarea,
+        button{
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+            border-radius:8px;
+            border:1px solid #ccc;
+        }
+
+        textarea{
+            resize:none;
+            height:70px;
+        }
+
+        button{
+            background:#25d366;
+            color:white;
+            border:none;
+            cursor:pointer;
+            font-size:16px;
+        }
+
+        button:hover{
+            background:#1ebc59;
+        }
+
+        .logout-btn{
+            background:red;
+        }
+
+        .logout-btn:hover{
+            background:darkred;
+        }
+
+        .status{
+            margin-top:10px;
+            color:#128c7e;
+            font-weight:bold;
+        }
+
+        .user{
+            padding:15px;
+            border-bottom:1px solid #eee;
+            cursor:pointer;
+            transition:0.2s;
+        }
+
+        .user:hover{
+            background:#f5f5f5;
+        }
+
+        .active-user{
+            background:#d9fdd3;
+        }
+
+        .user-name{
+            font-weight:bold;
+            font-size:18px;
+        }
+
+        .user-email{
+            color:gray;
+            margin-top:5px;
+            font-size:14px;
+        }
+
+        /* RIGHT SIDE */
+
+        .chat-area{
+            width:70%;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .chat-header{
+            background:#075e54;
+            color:white;
+            padding:20px;
+            font-size:28px;
+            font-weight:bold;
+        }
+
+        .chat-box{
+            flex:1;
+            padding:20px;
+            overflow-y:auto;
+            background:#d9dbd5;
+        }
+
+        .message{
+            max-width:60%;
+            padding:12px;
+            border-radius:10px;
+            margin-bottom:15px;
+            clear:both;
+            word-wrap:break-word;
+        }
+
+        .sent{
+            background:#dcf8c6;
+            float:right;
+        }
+
+        .received{
+            background:white;
+            float:left;
+        }
+
+        .message-name{
+            font-weight:bold;
+            margin-bottom:5px;
+        }
+
+        .message-time{
+            font-size:12px;
+            color:gray;
+            margin-top:5px;
+        }
+
+        .send-box{
+            background:white;
+            padding:15px;
+            border-top:1px solid #ccc;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- LEFT PANEL -->
+
+    <div class="sidebar">
+
+        <div class="sidebar-header">
+            RP Marketspace Chat
+        </div>
+
+        <!-- REGISTER -->
+
+        <div class="section">
+
+            <h2>Register</h2>
+
+            <input
+                type="text"
+                id="regName"
+                placeholder="Full Name"
+            >
+
+            <input
+                type="email"
+                id="regEmail"
+                placeholder="8digits@myrp.edu.sg"
+            >
+
+            <input
+                type="password"
+                id="regPass"
+                placeholder="Password"
+            >
+
+            <button
+                type="button"
+                onclick="registerUser()"
+            >
+                Register
+            </button>
+
+            <p id="registerResult" class="status"></p>
+
+        </div>
+
+        <!-- LOGIN -->
+
+        <div class="section">
+
+            <h2>Login</h2>
+
+            <input
+                type="email"
+                id="loginEmail"
+                placeholder="Email"
+            >
+
+            <input
+                type="password"
+                id="loginPass"
+                placeholder="Password"
+            >
+
+            <button
+                type="button"
+                onclick="loginUser()"
+            >
+                Login
+            </button>
+
+            <button
+                type="button"
+                class="logout-btn"
+                onclick="logoutUser()"
+            >
+                Logout
+            </button>
+
+            <p id="loginResult" class="status"></p>
+
+        </div>
+
+        <!-- USERS -->
+
+        <div class="section">
+
+            <button
+                type="button"
+                onclick="loadUsers()"
+            >
+                Load Users
+            </button>
+
+            <div id="usersList"></div>
+
+        </div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+
+    <div class="chat-area">
+
+        <div class="chat-header" id="chatHeader">
+            Select a user
+        </div>
+
+        <div class="chat-box" id="chatBox"></div>
+
+        <div class="send-box">
+
+            <textarea
+                id="messageText"
+                placeholder="Type your message..."
+            ></textarea>
+
+            <button
+                type="button"
+                onclick="sendMessage()"
+            >
+                Send Message
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const API_URL = "http://127.0.0.1:3000";
+
+let token = localStorage.getItem("token") || "";
+
+let currentUserId = null;
+
+let currentChatUser = localStorage.getItem("currentChatUser") || null;
+
+let currentChatName = localStorage.getItem("currentChatName") || null;
+
+// =========================
+// RESTORE LOGIN
+// =========================
+
+window.onload = async function(){
+
+    if(token){
+
+        try{
+
+            const payload = JSON.parse(
+                atob(token.split(".")[1])
+            );
+
+            currentUserId = payload.id;
+
+            document.getElementById(
+                "loginResult"
+            ).innerText = "Still logged in";
+
+            await loadUsers();
+
+            // restore chat automatically
+
+            if(currentChatUser && currentChatName){
+
+                document.getElementById(
+                    "chatHeader"
+                ).innerText = currentChatName;
+
+                loadConversation();
+
+            }
+
+        }
+        catch(error){
+
+            console.log(error);
+
+        }
+
+    }
+
+};
+
+// =========================
+// REGISTER
+// =========================
+
+async function registerUser(){
+
+    const name =
+        document.getElementById(
+            "regName"
+        ).value;
+
+    const email =
+        document.getElementById(
+            "regEmail"
+        ).value;
+
+    const password =
+        document.getElementById(
+            "regPass"
+        ).value;
+
+    const response = await fetch(
+        `${API_URL}/register`,
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                name,
+                email,
+                password
+            })
+        }
+    );
+
+    const result = await response.text();
+
+    document.getElementById(
+        "registerResult"
+    ).innerText = result;
+
+}
+
+// =========================
+// LOGIN
+// =========================
+
+async function loginUser(){
+
+    const email =
+        document.getElementById(
+            "loginEmail"
+        ).value;
+
+    const password =
+        document.getElementById(
+            "loginPass"
+        ).value;
+
+    const response = await fetch(
+        `${API_URL}/login`,
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                email,
+                password
+            })
+        }
+    );
+
+    if(!response.ok){
+
+        document.getElementById(
+            "loginResult"
+        ).innerText = "Invalid Login";
+
+        return;
+
+    }
+
+    const data = await response.json();
+
+    token = data.token;
+
+    localStorage.setItem(
+        "token",
+        token
+    );
+
+    const payload = JSON.parse(
+        atob(token.split(".")[1])
+    );
+
+    currentUserId = payload.id;
+
+    document.getElementById(
+        "loginResult"
+    ).innerText = "Login Successful";
+
+    loadUsers();
+
+}
+
+// =========================
+// LOGOUT
+// =========================
+
+function logoutUser(){
+
+    localStorage.removeItem("token");
+
+    localStorage.removeItem(
+        "currentChatUser"
+    );
+
+    localStorage.removeItem(
+        "currentChatName"
+    );
+
+    token = "";
+
+    currentUserId = null;
+
+    currentChatUser = null;
+
+    currentChatName = null;
+
+    document.getElementById(
+        "chatHeader"
+    ).innerText = "Select a user";
+
+    document.getElementById(
+        "chatBox"
+    ).innerHTML = "";
+
+    document.getElementById(
+        "usersList"
+    ).innerHTML = "";
+
+    document.getElementById(
+        "loginResult"
+    ).innerText = "Logged out";
+
+}
+
+// =========================
+// LOAD USERS
+// =========================
+
+async function loadUsers(){
+
+    const response = await fetch(
+        `${API_URL}/users`,
+        {
+            headers:{
+                "Authorization":
+                `Bearer ${token}`
+            }
+        }
+    );
+
+    const users = await response.json();
+
+    let output = "";
+
+    users.forEach(user => {
+
+        if(user.id !== currentUserId){
+
+            const activeClass =
+                user.id == currentChatUser
+                ? "active-user"
+                : "";
+
+            output += `
+                <div
+                    class="user ${activeClass}"
+                    onclick="openChat(
+                        ${user.id},
+                        '${user.name}'
+                    )"
+                >
+
+                    <div class="user-name">
+                        ${user.name}
+                    </div>
+
+                    <div class="user-email">
+                        ${user.email}
+                    </div>
+
+                </div>
+            `;
+
+        }
+
+    });
+
+    document.getElementById(
+        "usersList"
+    ).innerHTML = output;
+
+}
+
+// =========================
+// OPEN CHAT
+// =========================
+
+function openChat(id, name){
+
+    currentChatUser = id;
+
+    currentChatName = name;
+
+    localStorage.setItem(
+        "currentChatUser",
+        id
+    );
+
+    localStorage.setItem(
+        "currentChatName",
+        name
+    );
+
+    document.getElementById(
+        "chatHeader"
+    ).innerText = name;
+
+    loadUsers();
+
+    loadConversation();
+
+}
+
+// =========================
+// SEND MESSAGE
+// =========================
+
+async function sendMessage(){
+
+    if(!currentChatUser){
+
+        alert("Select a user first");
+
+        return;
+
+    }
+
+    const message =
+        document.getElementById(
+            "messageText"
+        ).value.trim();
+
+    if(!message) return;
+
+    const response = await fetch(
+        `${API_URL}/send`,
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization":
+                `Bearer ${token}`
+            },
+            body:JSON.stringify({
+                receiver_id: currentChatUser,
+                message
+            })
+        }
+    );
+
+    if(!response.ok){
+
+        alert("Failed to send");
+
+        return;
+
+    }
+
+    document.getElementById(
+        "messageText"
+    ).value = "";
+
+    // KEEP CHAT OPEN
+    await loadConversation();
+
+}
+
+// =========================
+// LOAD CONVERSATION
+// =========================
+
+async function loadConversation(){
+
+    if(!currentChatUser) return;
+
+    const response = await fetch(
+        `${API_URL}/conversation/${currentChatUser}`,
+        {
+            headers:{
+                "Authorization":
+                `Bearer ${token}`
+            }
+        }
+    );
+
+    const messages = await response.json();
+
+    let output = "";
+
+    messages.forEach(msg => {
+
+        const msgClass =
+            msg.sender_id == currentUserId
+            ? "sent"
+            : "received";
+
+        output += `
+            <div class="message ${msgClass}">
+
+                <div class="message-name">
+                    ${msg.sender_name}
+                </div>
+
+                <div>
+                    ${msg.message}
+                </div>
+
+                <div class="message-time">
+                    ${msg.timestamp}
+                </div>
+
+            </div>
+        `;
+
+    });
+
+    document.getElementById(
+        "chatBox"
+    ).innerHTML = output;
+
+    const chatBox =
+        document.getElementById(
+            "chatBox"
+        );
+
+    chatBox.scrollTop =
+        chatBox.scrollHeight;
+
+}
+
+</script>
+
+</body>
+</html>
