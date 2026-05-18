@@ -105,7 +105,7 @@ def wishlist():
     user_id = session["user_id"]
     saved_ids = wishlists.get(user_id, [])
     saved_products = [p for p in products if p["id"] in saved_ids]
-    return render_template("wishlist.html", name=session["name"], products=saved_products)
+    return render_template("wishlist.html", name=session["name"], wishlist_items=saved_products)
 
 @app.route("/logout")
 def logout():
