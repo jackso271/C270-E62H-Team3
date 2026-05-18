@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 import json
 import time
+import os
 from collections import defaultdict
 from datetime import datetime
 
@@ -40,6 +41,23 @@ def is_rate_limited(ip_address):
 def load_users():
     with open("data/users.json", "r") as file:
         return json.load(file)
+
+
+def load_products():
+    with open("data/products.json", "r") as file:
+        return json.load(file)
+
+
+def load_wishlists():
+    if not os.path.exists("data/wishlists.json"):
+        return {}
+    with open("data/wishlists.json", "r") as file:
+        return json.load(file)
+
+
+def save_wishlists(wishlists):
+    with open("data/wishlists.json", "w") as file:
+        json.dump(wishlists, file, indent=4)
 
 
 def save_successful_login(name, login_input):
@@ -125,7 +143,65 @@ def home():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    return render_template("home.html", name=session["name"])
+    products = load_products()
+    wishlists = load_wishlists()
+    user_wishlist = wishlists.get(str(session["user_id"]), [])
+
+    return render_template("home.html", name=session["name"], products=products, user_wishlist=user_wishlist)
+
+
+@app.route("/wishlist")
+def wishlist():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    products = load_products()
+    wishlists = load_wishlists()
+    user_wishlist_ids = wishlists.get(str(session["user_id"]), [])
+    
+    # Get full product details for wishlist items
+    wishlist_items = [p for p in products if p["id"] in user_wishlist_ids]
+
+    return render_template("wishlist.html", name=session["name"], wishlist_items=wishlist_items)
+
+
+@app.route("/api/wishlist/add", methods=["POST"])
+def add_to_wishlist():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json()
+    product_id = data.get("product_id")
+
+    wishlists = load_wishlists()
+    user_id = str(session["user_id"])
+
+    if user_id not in wishlists:
+        wishlists[user_id] = []
+
+    if product_id not in wishlists[user_id]:
+        wishlists[user_id].append(product_id)
+        save_wishlists(wishlists)
+
+    return jsonify({"success": True})
+
+
+@app.route("/api/wishlist/remove", methods=["POST"])
+def remove_from_wishlist():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json()
+    product_id = data.get("product_id")
+
+    wishlists = load_wishlists()
+    user_id = str(session["user_id"])
+
+    if user_id in wishlists and product_id in wishlists[user_id]:
+        wishlists[user_id].remove(product_id)
+        save_wishlists(wishlists)
+
+    return jsonify({"success": True})
 
 
 @app.route("/logout")
