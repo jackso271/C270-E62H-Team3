@@ -21,62 +21,32 @@
         <div class="hero-content">
             <h1>Welcome, {{ name }}!</h1>
             <p>Discover items listed by RP students around campus.</p>
+            <a href="{{ url_for('marketplace') }}" class="primary-btn">Browse Marketplace</a>
         </div>
     </div>
 
-    <!-- Products Section -->
+    <!-- Feature Cards -->
     <div class="container">
-        <h2 class="section-title">Browse Marketplace</h2>
         <div class="products-grid">
-            {% for product in products %}
             <div class="product-card">
-                <div class="product-image">
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 3rem;">
-                        {% if product.id == 1 %}📱{% elif product.id == 2 %}💻{% elif product.id == 3 %}🎧{% elif product.id == 4 %}📱{% elif product.id == 5 %}⌚{% elif product.id == 6 %}🎮{% elif product.id == 7 %}⌨️{% elif product.id == 8 %}📹{% endif %}
-                    </div>
-                </div>
                 <div class="product-info">
-                    <h4>{{ product.name }}</h4>
-                    <p class="product-seller">by {{ product.seller }}</p>
-                    <p class="product-price">${{ product.price }}</p>
-                    <p class="product-description">{{ product.description }}</p>
-                    <button class="btn-wishlist {% if product.id in user_wishlist %}saved{% endif %}" 
-                            onclick="toggleWishlist({{ product.id }}, this)" 
-                            data-product-id="{{ product.id }}">
-                        {% if product.id in user_wishlist %}❤️ Saved{% else %}🤍 Save{% endif %}
-                    </button>
+                    <h4>✅ Verified RP Users</h4>
+                    <p>Only RP students can access the marketplace.</p>
                 </div>
             </div>
-            {% endfor %}
+            <div class="product-card">
+                <div class="product-info">
+                    <h4>🏷️ Campus Deals</h4>
+                    <p>Find affordable items from students nearby.</p>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-info">
+                    <h4>🔒 Safe Requests</h4>
+                    <p>Send purchase requests before buying.</p>
+                </div>
+            </div>
         </div>
     </div>
-
-    <script>
-        function toggleWishlist(productId, button) {
-            const isSaved = button.classList.contains('saved');
-            const url = isSaved ? '/api/wishlist/remove' : '/api/wishlist/add';
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ product_id: productId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (isSaved) {
-                        button.classList.remove('saved');
-                        button.innerHTML = '🤍 Save';
-                    } else {
-                        button.classList.add('saved');
-                        button.innerHTML = '❤️ Saved';
-                    }
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        }
-    </script>
 </body>
 </html>
