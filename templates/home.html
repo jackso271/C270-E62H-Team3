@@ -1,40 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>RP Marketplace Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RP Marketplace - Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
-    <nav class="navbar">
+    <!-- Navbar -->
+    <div class="navbar">
         <div class="nav-logo">RP Marketplace</div>
-        <a href="/logout" class="logout-btn">Logout</a>
-    </nav>
+        <div class="nav-links">
+            <a href="{{ url_for('wishlist') }}" class="nav-link">💚 My Wishlist</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+    </div>
 
-    <section class="hero">
-        <div>
-            <h1>Welcome, {{ name }}</h1>
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Welcome, {{ name }}!</h1>
             <p>Discover items listed by RP students around campus.</p>
-            <a href="#" class="primary-btn">Browse Marketplace</a>
         </div>
-    </section>
+    </div>
 
-    <section class="features">
-        <div class="feature-card">
-            <h3>Verified RP Users</h3>
-            <p>Only RP students can access the marketplace.</p>
+    <!-- Products Section -->
+    <div class="container">
+        <h2 class="section-title">Browse Marketplace</h2>
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 3rem;">
+                        {% if product.id == 1 %}📱{% elif product.id == 2 %}💻{% elif product.id == 3 %}🎧{% elif product.id == 4 %}📱{% elif product.id == 5 %}⌚{% elif product.id == 6 %}🎮{% elif product.id == 7 %}⌨️{% elif product.id == 8 %}📹{% endif %}
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h4>{{ product.name }}</h4>
+                    <p class="product-seller">by {{ product.seller }}</p>
+                    <p class="product-price">${{ product.price }}</p>
+                    <p class="product-description">{{ product.description }}</p>
+                    <button class="btn-wishlist {% if product.id in user_wishlist %}saved{% endif %}" 
+                            onclick="toggleWishlist({{ product.id }}, this)" 
+                            data-product-id="{{ product.id }}">
+                        {% if product.id in user_wishlist %}❤️ Saved{% else %}🤍 Save{% endif %}
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
         </div>
+    </div>
 
-        <div class="feature-card">
-            <h3>Campus Deals</h3>
-            <p>Find affordable items from students nearby.</p>
-        </div>
+    <script>
+        function toggleWishlist(productId, button) {
+            const isSaved = button.classList.contains('saved');
+            const url = isSaved ? '/api/wishlist/remove' : '/api/wishlist/add';
 
-        <div class="feature-card">
-            <h3>Safe Requests</h3>
-            <p>Send purchase requests before buying.</p>
-        </div>
-    </section>
-
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (isSaved) {
+                        button.classList.remove('saved');
+                        button.innerHTML = '🤍 Save';
+                    } else {
+                        button.classList.add('saved');
+                        button.innerHTML = '❤️ Saved';
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>
