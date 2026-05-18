@@ -94,9 +94,15 @@ def login():
 def home():
     if "user_id" not in session:
         return redirect(url_for("login"))
+    return render_template("home.html", name=session["name"])
+
+@app.route("/marketplace")
+def marketplace():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
     user_id = session["user_id"]
     user_wishlist = wishlists.get(user_id, [])
-    return render_template("home.html", name=session["name"], products=products, user_wishlist=user_wishlist)
+    return render_template("marketplace.html", name=session["name"], products=products, user_wishlist=user_wishlist)
 
 @app.route("/wishlist")
 def wishlist():
