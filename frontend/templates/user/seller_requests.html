@@ -14,10 +14,11 @@
         <div class="request-header">
             <div>
                 <a href="/marketplace" class="back-btn">&larr; Back to Marketplace</a>
+                <a href="/notifications" class="back-btn secondary-link">Notifications</a>
                 <h1>Product Request Review</h1>
                 <p>
-                    Review incoming product requests, approve available items, or reject
-                    requests with a short reason for demo tracking.
+                    Review submitted product requests. Pending requests appear first,
+                    while approved and rejected requests remain available through the filters.
                 </p>
             </div>
         </div>
@@ -39,12 +40,30 @@
 
         <section class="workflow-note">
             <h2>Verification Progress</h2>
+            <p class="workflow-copy">
+                Submit Request &rarr; Admin Review &rarr; Approved / Rejected
+            </p>
             <div class="progress-steps">
                 <span>Submit Request</span>
                 <span>Admin Review</span>
                 <span>Approved / Rejected</span>
             </div>
         </section>
+
+        <nav class="filter-tabs" aria-label="Product request filters">
+            <a href="/seller_requests?status=all" class="{% if status_filter == 'all' %}active{% endif %}">
+                All
+            </a>
+            <a href="/seller_requests?status=pending" class="{% if status_filter == 'pending' %}active{% endif %}">
+                Pending
+            </a>
+            <a href="/seller_requests?status=approved" class="{% if status_filter == 'approved' %}active{% endif %}">
+                Approved
+            </a>
+            <a href="/seller_requests?status=rejected" class="{% if status_filter == 'rejected' %}active{% endif %}">
+                Rejected
+            </a>
+        </nav>
 
         {% if requests_list %}
             <section class="request-list">
@@ -96,16 +115,19 @@
                                     <button type="submit" class="reject-btn">Reject</button>
                                 </form>
                             </div>
+                        {% else %}
+                            <div class="review-complete">
+                                Review completed. Actions are disabled for this request.
+                            </div>
                         {% endif %}
                     </article>
                 {% endfor %}
             </section>
         {% else %}
             <section class="empty-panel">
-                <h2>No product requests yet</h2>
+                <h2>{{ empty_message }}</h2>
                 <p>
-                    Product requests will appear here after a buyer submits a request
-                    from the marketplace.
+                    Requests will appear here when matching records are available.
                 </p>
             </section>
         {% endif %}

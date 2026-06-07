@@ -11,6 +11,7 @@ DATA_FILES = {
     "failed_logs": "failed_logins.json",
     "products": "products.json",
     "requests": "requests.json",
+    "notifications": "notifications.json",
     "account_creation_logs": "account_creation_logs.json",
     "successful_logins": "successful_logins.json",
 }

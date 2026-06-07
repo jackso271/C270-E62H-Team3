@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from backend.services.notification_service import add_notification
 from backend.utils.json_storage import data_file, load_json, save_json
 
 
@@ -63,6 +64,11 @@ def log_failed(username, reason):
 
 def log_password_reset_request(login_id):
     log_failed(login_id or "Unknown", "Password reset requested")
+    add_notification(
+        "Password reset requested",
+        f"Password reset requested for {login_id or 'Unknown login ID'}.",
+        "Info",
+    )
 
 
 def find_user_by_login_id(login_id):

@@ -43,6 +43,7 @@ def app(tmp_path):
             }
         ],
         "requests.json": [],
+        "notifications.json": [],
         "success_logins.json": [],
         "failed_logins.json": [],
     }
@@ -71,6 +72,8 @@ def test_main_routes_render(client):
     assert client.get("/").status_code == 200
     assert client.get("/register").status_code == 200
     assert client.get("/marketplace").status_code == 200
+    assert client.get("/seller_requests").status_code == 200
+    assert client.get("/notifications").status_code == 200
 
 
 def test_student_login_redirects_to_homepage(client):
@@ -142,3 +145,34 @@ def test_forgot_password_logs_reset_request(client, app):
 
     assert response.status_code == 302
     assert logs[-1]["reason"] == "Password reset requested"
+
+    notifications_path = app.config["DATA_DIR"] + "/notifications.json"
+    with open(notifications_path, "r", encoding="utf-8") as file:
+        notifications = json.load(file)
+
+    assert notifications[-1]["status"] == "Info"
+
+
+def test_product_request_filter_empty_state(client):
+    response = client.get("/seller_requests?status=pending")
+
+    assert response.status_code == 200
+    assert b"No pending product requests." in response.data
+
+
+def test_product_request_route_still_creates_request(client, app):
+    response = client.post("/request_buy/1")
+
+    requests_path = app.config["DATA_DIR"] + "/requests.json"
+    notifications_path = app.config["DATA_DIR"] + "/notifications.json"
+
+    with open(requests_path, "r", encoding="utf-8") as file:
+        requests = json.load(file)
+
+    with open(notifications_path, "r", encoding="utf-8") as file:
+        notifications = json.load(file)
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/marketplace")
+    assert requests[-1]["status"] == "Pending"
+    assert notifications[-1]["status"] == "Pending"

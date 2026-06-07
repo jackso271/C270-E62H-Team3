@@ -7,6 +7,7 @@ from backend.services.marketplace_service import (
     reject_request,
     request_buy,
 )
+from backend.services.notification_service import get_notifications
 
 
 marketplace_bp = Blueprint("marketplace", __name__)
@@ -26,6 +27,7 @@ def request_buy_route(product_id):
 @marketplace_bp.route("/seller_requests")
 def seller_requests():
     requests_list = get_requests()
+    status_filter = request.args.get("status", "all")
     pending_count = 0
     approved_count = 0
     rejected_count = 0
@@ -39,12 +41,49 @@ def seller_requests():
         elif status == "Rejected":
             rejected_count += 1
 
+    def status_rank(item):
+        status = item.get("status")
+        if status == "Pending":
+            return 0
+        if status in ["Accepted", "Approved"]:
+            return 1
+        if status == "Rejected":
+            return 2
+        return 3
+
+    requests_list = sorted(requests_list, key=status_rank)
+
+    if status_filter == "pending":
+        requests_list = [item for item in requests_list if item.get("status") == "Pending"]
+        empty_message = "No pending product requests."
+    elif status_filter == "approved":
+        requests_list = [
+            item for item in requests_list
+            if item.get("status") in ["Accepted", "Approved"]
+        ]
+        empty_message = "No approved product requests."
+    elif status_filter == "rejected":
+        requests_list = [item for item in requests_list if item.get("status") == "Rejected"]
+        empty_message = "No rejected product requests."
+    else:
+        empty_message = "No product requests yet."
+
     return render_template(
         "user/seller_requests.html",
         requests_list=requests_list,
+        status_filter=status_filter,
+        empty_message=empty_message,
         pending_count=pending_count,
         approved_count=approved_count,
         rejected_count=rejected_count,
+    )
+
+
+@marketplace_bp.route("/notifications")
+def notifications():
+    return render_template(
+        "user/notifications.html",
+        notifications=get_notifications(),
     )
 
 

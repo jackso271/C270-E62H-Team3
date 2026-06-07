@@ -134,6 +134,15 @@ def recent_activity(limit=8):
                 "detail": user.get("username") or user.get("email") or "Unknown user",
             })
 
+        status_updated_at = parse_time(user.get("status_updated_at", ""))
+        if status_updated_at:
+            status = "blocked" if user.get("blocked", False) else "unblocked"
+            activities.append({
+                "time": status_updated_at,
+                "label": f"User {status}",
+                "detail": user.get("username") or user.get("email") or "Unknown user",
+            })
+
     for log in load_json(data_file("failed_logs")):
         log_time = parse_time(log.get("time", ""))
         if log_time:
@@ -151,6 +160,15 @@ def recent_activity(limit=8):
                 "time": request_time,
                 "label": f"Product request {status.lower()}",
                 "detail": request_item.get("product_title") or "Marketplace item",
+            })
+
+    for notification in load_json(data_file("notifications")):
+        notification_time = parse_time(notification.get("time", ""))
+        if notification_time:
+            activities.append({
+                "time": notification_time,
+                "label": notification.get("title") or "Notification",
+                "detail": notification.get("message") or notification.get("status") or "Info",
             })
 
     activities.sort(key=lambda item: item["time"], reverse=True)

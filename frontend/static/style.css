@@ -995,6 +995,7 @@ select {
     display: flex;
     flex-direction: column;
     min-height: 360px;
+    border: 1px solid rgba(57, 217, 138, 0.18);
 }
 
 .product-card:hover {
@@ -1063,6 +1064,7 @@ select {
     border-radius: 10px;
     font-weight: bold;
     cursor: pointer;
+    margin-top: 6px;
 }
 
 .request-btn:hover {
@@ -1446,6 +1448,12 @@ select {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.secondary-link {
+    margin-left: 10px;
+    background: white;
+    color: #004d40;
+}
+
 .workflow-note,
 .request-card,
 .empty-panel {
@@ -1464,6 +1472,34 @@ select {
 .empty-panel h2 {
     color: #004d40;
     margin-bottom: 14px;
+}
+
+.workflow-copy {
+    color: #40534b;
+    margin-bottom: 14px;
+}
+
+.filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.filter-tabs a {
+    background: rgba(255, 255, 255, 0.92);
+    color: #004d40;
+    border: 1px solid rgba(57, 217, 138, 0.35);
+    border-radius: 999px;
+    padding: 11px 18px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.filter-tabs a.active,
+.filter-tabs a:hover {
+    background: #66ff99;
+    color: #002b20;
 }
 
 .progress-steps {
@@ -1553,11 +1589,54 @@ select {
     color: #991b1b;
 }
 
+.review-complete {
+    margin-top: 16px;
+    padding: 12px;
+    background: #edf7f1;
+    border-radius: 12px;
+    color: #24483a;
+    font-weight: bold;
+}
+
+.notification-list {
+    display: grid;
+    gap: 16px;
+}
+
+.notification-card {
+    background: white;
+    color: #10231c;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.notification-card h2 {
+    color: #004d40;
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.notification-card p {
+    color: #40534b;
+    margin-bottom: 10px;
+}
+
+.notification-card time {
+    color: #64746d;
+    font-size: 14px;
+}
+
 @media (max-width: 760px) {
     .search-box,
     .request-card-header,
     .request-actions,
-    .progress-steps {
+    .progress-steps,
+    .notification-card {
         grid-template-columns: 1fr;
     }
 
@@ -1583,5 +1662,18 @@ select {
 
     .nav-btn {
         text-align: center;
+    }
+
+    .secondary-link {
+        margin-left: 0;
+    }
+
+    .filter-tabs a {
+        flex: 1;
+        text-align: center;
+    }
+
+    .notification-card {
+        flex-direction: column;
     }
 }
