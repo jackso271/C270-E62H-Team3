@@ -1,0 +1,7 @@
+[
+  "tests/test_app.py::test_admin_login_redirects_to_dashboard",
+  "tests/test_app.py::test_application_startup",
+  "tests/test_app.py::test_invalid_login_shows_error_page",
+  "tests/test_app.py::test_main_routes_render",
+  "tests/test_app.py::test_student_login_redirects_to_homepage"
+]

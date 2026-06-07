@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "student_id": "25044459",
+        "email": "25044459@myrp.edu.sg",
+        "password": "password123",
+        "role": "user",
+        "blocked": false
+    },
+    {
+        "id": 2,
+        "username": "admin",
+        "password": "admin123",
+        "role": "admin",
+        "blocked": false,
+        "name": "Admin",
+        "email": "admin@rp.edu.sg",
+        "student_id": "admin"
+    },
+    {
+        "id": 7,
+        "name": "testuser01",
+        "username": "testuser1",
+        "email": "12345@myrp.edu.sg",
+        "student_id": "12345",
+        "school": "School of Sports, Health and Leisure",
+        "password": "1234",
+        "role": "student",
+        "blocked": false,
+        "created_at": "2026-06-07 19:16:05"
+    }
+]
