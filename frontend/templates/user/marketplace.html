@@ -1,31 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RP Marketplace</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="marketplace-body">
 
-    <div class="marketplace-header">
+    <header class="marketplace-header">
         <div>
             <h1>RP Marketplace</h1>
             <p>Buy and request items from other RP students</p>
         </div>
 
-        <div>
+        <nav class="marketplace-nav">
             <a href="/homepage" class="nav-btn">Home</a>
             <a href="/seller_requests" class="nav-btn">Seller Requests</a>
-        </div>
-    </div>
+        </nav>
+    </header>
 
-    <div class="marketplace-grid">
+    <main class="marketplace-shell">
+        <section class="marketplace-intro">
+            <h2>Available Items</h2>
+            <p>Browse listed items and submit a request when something fits what you need.</p>
+        </section>
+
+        <section class="marketplace-grid">
         {% for product in products %}
             <div class="product-card">
-                <div class="product-img">RP</div>
+                <div class="product-img" aria-hidden="true">RP</div>
 
-                <h3>{{ product.title }}</h3>
-                <p class="price">${{ product.price }}</p>
-                <p><strong>Seller:</strong> {{ product.seller }}</p>
+                <div class="product-info">
+                    <h3>{{ product.title }}</h3>
+                    <p class="price">${{ product.price }}</p>
+                    <p class="seller-line"><strong>Seller:</strong> {{ product.seller }}</p>
+                </div>
 
                 {% if product.status == "Available" %}
                     <span class="status available">{{ product.status }}</span>
@@ -38,8 +48,14 @@
                     <button disabled class="disabled-btn">Not Available</button>
                 {% endif %}
             </div>
+        {% else %}
+            <div class="marketplace-empty">
+                <h3>No products listed yet</h3>
+                <p>Items added by teammates will appear here automatically.</p>
+            </div>
         {% endfor %}
-    </div>
+        </section>
+    </main>
 
 </body>
 </html>

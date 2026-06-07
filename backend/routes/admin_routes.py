@@ -1,10 +1,12 @@
 from flask import Blueprint, redirect, render_template, request, session
 
 from backend.services.admin_service import (
+    account_summary,
     delete_logs,
     delete_user_by_id,
     get_user,
     list_users,
+    recent_activity,
     toggle_user_block,
     update_user,
 )
@@ -30,6 +32,7 @@ def admin_dashboard():
         users=load_json(data_file("users")),
         success_logs=load_json(data_file("success_logs")),
         failed_logs=load_json(data_file("failed_logs")),
+        recent_activities=recent_activity(),
     )
 
 
@@ -39,13 +42,23 @@ def admin_users():
         return redirect("/")
 
     search = request.args.get("search", "").lower()
+    status_filter = request.args.get("status", "")
+    role_filter = request.args.get("role", "")
     page = int(request.args.get("page", 1))
-    users, total_pages = list_users(search=search, page=page)
+    users, total_pages = list_users(
+        search=search,
+        page=page,
+        status_filter=status_filter,
+        role_filter=role_filter,
+    )
 
     return render_template(
         "admin/users.html",
         users=users,
+        summary=account_summary(),
         search=search,
+        status_filter=status_filter,
+        role_filter=role_filter,
         page=page,
         total_pages=total_pages,
     )

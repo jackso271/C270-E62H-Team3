@@ -909,7 +909,9 @@ select {
 .marketplace-body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #031f13, #0b3d2e);
+    background:
+        radial-gradient(circle at top left, rgba(57, 217, 138, 0.16), transparent 28%),
+        linear-gradient(135deg, #031f13, #0b3d2e);
     min-height: 100vh;
     color: white;
 }
@@ -918,9 +920,10 @@ select {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 30px 60px;
+    padding: 26px clamp(22px, 5vw, 64px);
     background: rgba(0, 0, 0, 0.35);
     border-bottom: 2px solid #39d98a;
+    gap: 18px;
 }
 
 .marketplace-header h1 {
@@ -934,13 +937,19 @@ select {
     color: #d6f5e3;
 }
 
+.marketplace-nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .nav-btn {
     text-decoration: none;
     color: white;
     background: #0f9d58;
-    padding: 10px 16px;
-    border-radius: 8px;
-    margin-left: 10px;
+    padding: 11px 16px;
+    border-radius: 10px;
     font-weight: bold;
 }
 
@@ -948,20 +957,44 @@ select {
     background: #13c76b;
 }
 
+.marketplace-shell {
+    width: min(1180px, calc(100% - 36px));
+    margin: 0 auto;
+    padding: 34px 0 54px;
+}
+
+.marketplace-intro {
+    margin-bottom: 22px;
+}
+
+.marketplace-intro h2 {
+    color: #66ff99;
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.marketplace-intro p {
+    color: #d6f5e3;
+    max-width: 680px;
+    line-height: 1.5;
+}
+
 .marketplace-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 25px;
-    padding: 40px 60px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 22px;
 }
 
 .product-card {
     background: white;
     color: #111;
-    border-radius: 18px;
-    padding: 25px;
+    border-radius: 16px;
+    padding: 18px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
     transition: 0.2s;
+    display: flex;
+    flex-direction: column;
+    min-height: 360px;
 }
 
 .product-card:hover {
@@ -969,8 +1002,8 @@ select {
 }
 
 .product-img {
-    height: 120px;
-    border-radius: 14px;
+    height: 132px;
+    border-radius: 12px;
     background: linear-gradient(135deg, #0f9d58, #031f13);
     display: flex;
     justify-content: center;
@@ -981,10 +1014,26 @@ select {
     margin-bottom: 18px;
 }
 
+.product-info {
+    flex: 1;
+}
+
+.product-card h3 {
+    color: #063f24;
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
 .price {
     color: #0f9d58;
     font-size: 24px;
     font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.seller-line {
+    color: #4b5563;
+    margin-bottom: 14px;
 }
 
 .status {
@@ -1007,7 +1056,7 @@ select {
 
 .request-btn {
     width: 100%;
-    padding: 12px;
+    padding: 13px;
     background: #0f9d58;
     color: white;
     border: none;
@@ -1022,11 +1071,25 @@ select {
 
 .disabled-btn {
     width: 100%;
-    padding: 12px;
+    padding: 13px;
     background: #999;
     color: white;
     border: none;
     border-radius: 10px;
+}
+
+.marketplace-empty {
+    grid-column: 1 / -1;
+    background: white;
+    color: #10231c;
+    border-radius: 16px;
+    padding: 34px;
+    text-align: center;
+}
+
+.marketplace-empty h3 {
+    color: #004d40;
+    margin-bottom: 8px;
 }
 
 .home-page {
@@ -1136,4 +1199,389 @@ select {
 .home-feature-card p {
     color: #333;
     line-height: 1.5;
+}
+
+/* =========================
+   ADMIN UX IMPROVEMENTS
+========================= */
+
+.page-heading {
+    margin-bottom: 24px;
+}
+
+.page-heading p {
+    color: #d9fbe6;
+    font-size: 18px;
+    margin-bottom: 0;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: white;
+    color: #10231c;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+}
+
+.summary-card span {
+    display: block;
+    color: #52645d;
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.summary-card strong {
+    color: #007a3d;
+    font-size: 34px;
+}
+
+.summary-card.warning strong {
+    color: #dc2626;
+}
+
+.account-filter-box {
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+.account-filter-box input,
+.account-filter-box select {
+    min-width: 220px;
+}
+
+.account-filter-box select {
+    flex: 0.5;
+    margin-bottom: 0;
+    padding: 14px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.status-approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-warning {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+/* =========================
+   LOGIN UX IMPROVEMENTS
+========================= */
+
+.login-form {
+    display: grid;
+    gap: 10px;
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 92px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    width: auto;
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+.login-submit {
+    margin-top: 4px;
+}
+
+.forgot-form {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.forgot-form input {
+    padding: 13px;
+    font-size: 15px;
+    margin-bottom: 10px;
+}
+
+.link-button {
+    background: transparent;
+    color: #0b6b3a;
+    padding: 8px;
+    font-size: 15px;
+    box-shadow: none;
+}
+
+.link-button:hover {
+    background: #ecfdf5;
+}
+
+/* =========================
+   REGISTER PASSWORD STRENGTH
+========================= */
+
+.register-form {
+    gap: 8px;
+}
+
+.password-guidance {
+    color: #52645d;
+    font-size: 14px;
+    margin: -12px 0 10px;
+    text-align: left;
+}
+
+.password-strength {
+    margin: -4px 0 22px;
+}
+
+.strength-track {
+    height: 9px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    display: block;
+    height: 100%;
+    width: 28%;
+    border-radius: 999px;
+    background: #dc2626;
+    transition: width 0.2s ease, background 0.2s ease;
+}
+
+.strength-fill.medium {
+    width: 64%;
+    background: #f59e0b;
+}
+
+.strength-fill.strong {
+    width: 100%;
+    background: #0f9d58;
+}
+
+.strength-text {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.strength-text.weak {
+    color: #b91c1c;
+}
+
+.strength-text.medium {
+    color: #b45309;
+}
+
+.strength-text.strong {
+    color: #08783d;
+}
+
+/* =========================
+   REQUEST REVIEW UX
+========================= */
+
+.request-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #001a1a, #003d33, #001a1a);
+    color: white;
+    padding: 36px;
+}
+
+.request-container {
+    width: 95%;
+    max-width: 1250px;
+    margin: 0 auto;
+}
+
+.request-header {
+    margin-bottom: 24px;
+}
+
+.request-header h1 {
+    color: #66ff99;
+    font-size: 42px;
+    margin: 16px 0 10px;
+}
+
+.request-header p {
+    max-width: 780px;
+    color: #d9fbe6;
+    line-height: 1.6;
+}
+
+.request-summary {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.workflow-note,
+.request-card,
+.empty-panel {
+    background: white;
+    color: #10231c;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.workflow-note {
+    margin-bottom: 24px;
+}
+
+.workflow-note h2,
+.empty-panel h2 {
+    color: #004d40;
+    margin-bottom: 14px;
+}
+
+.progress-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.progress-steps span {
+    background: #edf7f1;
+    color: #004d40;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.request-list {
+    display: grid;
+    gap: 18px;
+}
+
+.request-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.request-card h3 {
+    color: #004d40;
+    margin-bottom: 8px;
+}
+
+.request-card p {
+    color: #40534b;
+    margin-bottom: 6px;
+}
+
+.request-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 16px;
+    color: #52645d;
+    font-size: 14px;
+}
+
+.request-actions {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.request-actions form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.request-actions input {
+    margin-bottom: 0;
+    padding: 12px;
+    font-size: 15px;
+}
+
+.approve-btn,
+.reject-btn {
+    padding: 12px 16px;
+    font-size: 15px;
+}
+
+.approve-btn {
+    background: #008f39;
+}
+
+.reject-btn {
+    background: #dc2626;
+}
+
+.rejection-reason {
+    margin-top: 14px;
+    padding: 12px;
+    background: #fff1f2;
+    border-radius: 12px;
+    color: #991b1b;
+}
+
+@media (max-width: 760px) {
+    .search-box,
+    .request-card-header,
+    .request-actions,
+    .progress-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .search-box,
+    .request-actions form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .login-card {
+        padding: 32px 24px;
+    }
+
+    .marketplace-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .marketplace-nav,
+    .nav-btn {
+        width: 100%;
+    }
+
+    .nav-btn {
+        text-align: center;
+    }
 }

@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template
+from flask import Blueprint, redirect, render_template, request
 
 from backend.services.marketplace_service import (
     accept_request,
@@ -25,9 +25,26 @@ def request_buy_route(product_id):
 
 @marketplace_bp.route("/seller_requests")
 def seller_requests():
+    requests_list = get_requests()
+    pending_count = 0
+    approved_count = 0
+    rejected_count = 0
+
+    for item in requests_list:
+        status = item.get("status")
+        if status == "Pending":
+            pending_count += 1
+        elif status in ["Accepted", "Approved"]:
+            approved_count += 1
+        elif status == "Rejected":
+            rejected_count += 1
+
     return render_template(
         "user/seller_requests.html",
-        requests_list=get_requests(),
+        requests_list=requests_list,
+        pending_count=pending_count,
+        approved_count=approved_count,
+        rejected_count=rejected_count,
     )
 
 
@@ -39,5 +56,5 @@ def accept_request_route(request_id):
 
 @marketplace_bp.route("/reject_request/<int:request_id>", methods=["POST"])
 def reject_request_route(request_id):
-    reject_request(request_id)
+    reject_request(request_id, request.form.get("rejection_reason"))
     return redirect("/seller_requests")

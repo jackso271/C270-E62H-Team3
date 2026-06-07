@@ -44,6 +44,7 @@ def accept_request(request_id):
     for req in requests_list:
         if req.get("id") == request_id:
             req["status"] = "Accepted"
+            req["reviewed_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             for product in products:
                 if product.get("id") == req.get("product_id"):
@@ -56,12 +57,14 @@ def accept_request(request_id):
     save_json(data_file("products"), products)
 
 
-def reject_request(request_id):
+def reject_request(request_id, reason=None):
     requests_list = get_requests()
 
     for req in requests_list:
         if req.get("id") == request_id:
             req["status"] = "Rejected"
+            req["rejection_reason"] = reason or "Request rejected after review."
+            req["reviewed_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             break
 
     save_json(data_file("requests"), requests_list)

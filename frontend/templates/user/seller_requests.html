@@ -1,32 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Seller Requests</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Requests</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <h1>Incoming Purchase Requests</h1>
 
-    <a href="/marketplace">Back to Marketplace</a>
-    <hr>
+<body class="request-page">
 
-    {% for request in requests_list %}
-        <div style="border: 1px solid black; padding: 15px; margin-bottom: 10px;">
-            <h3>{{ request.product_title }}</h3>
-            <p>Buyer: {{ request.buyer }}</p>
-            <p>Seller: {{ request.seller }}</p>
-            <p>Status: {{ request.status }}</p>
-            <p>Time: {{ request.time }}</p>
-
-            {% if request.status == "Pending" %}
-                <form action="/accept_request/{{ request.id }}" method="POST" style="display:inline;">
-                    <button type="submit">Accept</button>
-                </form>
-
-                <form action="/reject_request/{{ request.id }}" method="POST" style="display:inline;">
-                    <button type="submit">Reject</button>
-                </form>
-            {% endif %}
+    <main class="request-container">
+        <div class="request-header">
+            <div>
+                <a href="/marketplace" class="back-btn">&larr; Back to Marketplace</a>
+                <h1>Product Request Review</h1>
+                <p>
+                    Review incoming product requests, approve available items, or reject
+                    requests with a short reason for demo tracking.
+                </p>
+            </div>
         </div>
-    {% endfor %}
+
+        <section class="summary-grid request-summary">
+            <div class="summary-card">
+                <span>Pending requests</span>
+                <strong>{{ pending_count }}</strong>
+            </div>
+            <div class="summary-card">
+                <span>Approved requests</span>
+                <strong>{{ approved_count }}</strong>
+            </div>
+            <div class="summary-card warning">
+                <span>Rejected requests</span>
+                <strong>{{ rejected_count }}</strong>
+            </div>
+        </section>
+
+        <section class="workflow-note">
+            <h2>Verification Progress</h2>
+            <div class="progress-steps">
+                <span>Submit Request</span>
+                <span>Admin Review</span>
+                <span>Approved / Rejected</span>
+            </div>
+        </section>
+
+        {% if requests_list %}
+            <section class="request-list">
+                {% for request in requests_list %}
+                    <article class="request-card">
+                        <div class="request-card-header">
+                            <div>
+                                <h3>{{ request.product_title }}</h3>
+                                <p>Buyer: {{ request.buyer }}</p>
+                                <p>Seller: {{ request.seller }}</p>
+                            </div>
+
+                            {% if request.status == "Pending" %}
+                                <span class="status-badge status-pending">Pending</span>
+                            {% elif request.status in ["Accepted", "Approved"] %}
+                                <span class="status-badge status-approved">Approved</span>
+                            {% elif request.status == "Rejected" %}
+                                <span class="status-badge status-rejected">Rejected</span>
+                            {% else %}
+                                <span class="status-badge status-warning">{{ request.status }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="request-meta">
+                            <span>Submitted: {{ request.time }}</span>
+                            {% if request.reviewed_at %}
+                                <span>Reviewed: {{ request.reviewed_at }}</span>
+                            {% endif %}
+                        </div>
+
+                        {% if request.status == "Rejected" %}
+                            <p class="rejection-reason">
+                                Rejection reason: {{ request.rejection_reason or "No reason provided." }}
+                            </p>
+                        {% endif %}
+
+                        {% if request.status == "Pending" %}
+                            <div class="request-actions">
+                                <form action="/accept_request/{{ request.id }}" method="POST">
+                                    <button type="submit" class="approve-btn">Approve</button>
+                                </form>
+
+                                <form action="/reject_request/{{ request.id }}" method="POST">
+                                    <input
+                                        type="text"
+                                        name="rejection_reason"
+                                        placeholder="Optional rejection reason"
+                                    >
+                                    <button type="submit" class="reject-btn">Reject</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <section class="empty-panel">
+                <h2>No product requests yet</h2>
+                <p>
+                    Product requests will appear here after a buyer submits a request
+                    from the marketplace.
+                </p>
+            </section>
+        {% endif %}
+    </main>
+
 </body>
+
 </html>

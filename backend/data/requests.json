@@ -32,8 +32,9 @@
         "product_title": "Keyboard",
         "buyer": "buyer_demo",
         "seller": "seller1",
-        "status": "Pending",
-        "time": "2026-05-09 15:34:22"
+        "status": "Accepted",
+        "time": "2026-05-09 15:34:22",
+        "reviewed_at": "2026-06-07 20:01:42"
     },
     {
         "id": 5,
@@ -41,7 +42,41 @@
         "product_title": "Keyboard",
         "buyer": "buyer_demo",
         "seller": "seller1",
-        "status": "Pending",
-        "time": "2026-06-07 19:16:19"
+        "status": "Rejected",
+        "time": "2026-06-07 19:16:19",
+        "rejection_reason": "i dont want to sll",
+        "reviewed_at": "2026-06-07 20:01:54"
+    },
+    {
+        "id": 6,
+        "product_id": 3,
+        "product_title": "iPad Case",
+        "buyer": "buyer_demo",
+        "seller": "seller2",
+        "status": "Accepted",
+        "time": "2026-06-07 20:02:54",
+        "reviewed_at": "2026-06-07 20:12:39"
+    },
+    {
+        "id": 7,
+        "product_id": 3,
+        "product_title": "iPad Case",
+        "buyer": "buyer_demo",
+        "seller": "seller2",
+        "status": "Rejected",
+        "time": "2026-06-07 20:02:56",
+        "rejection_reason": "Request rejected after review.",
+        "reviewed_at": "2026-06-07 20:12:59"
+    },
+    {
+        "id": 8,
+        "product_id": 3,
+        "product_title": "iPad Case",
+        "buyer": "buyer_demo",
+        "seller": "seller2",
+        "status": "Rejected",
+        "time": "2026-06-07 20:12:33",
+        "rejection_reason": "Request rejected after review.",
+        "reviewed_at": "2026-06-07 20:13:00"
     }
 ]

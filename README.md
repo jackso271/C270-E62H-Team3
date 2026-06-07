@@ -129,3 +129,18 @@ Recommended workflow for teammates:
   files from `frontend/static`.
 - JSON storage defaults to `backend/data`, but tests can use a temporary data
   folder through the Flask `DATA_DIR` config.
+
+## Admin UX Updates
+
+The admin interface uses clearer Account Management wording and includes:
+
+- Account summary cards for total, new, inactive, and blocked accounts.
+- Search and filters by account status and role.
+- Clearer failed login reasons for wrong password, account not found, blocked
+  account, and password reset requests.
+- A recent activity section built from available JSON data.
+- A demo-friendly forgot password request that logs a security event only.
+
+The product request review page now includes status badges, request counters,
+verification progress, and optional rejection reasons. Marketplace browsing and
+the main user dashboard were not redesigned.

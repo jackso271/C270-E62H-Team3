@@ -34,13 +34,21 @@ def create_admin():
 
 def log_success(user):
     logs = load_json(data_file("success_logs"))
+    login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     logs.append({
         "name": user.get("name") or user.get("username") or "Unknown",
         "username": user.get("username"),
         "role": user.get("role"),
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "time": login_time,
     })
     save_json(data_file("success_logs"), logs)
+
+    users = load_json(data_file("users"))
+    for saved_user in users:
+        if saved_user.get("id") == user.get("id"):
+            saved_user["last_login"] = login_time
+            break
+    save_json(data_file("users"), users)
 
 
 def log_failed(username, reason):
@@ -53,15 +61,18 @@ def log_failed(username, reason):
     save_json(data_file("failed_logs"), logs)
 
 
-def find_matching_user(login_id, password):
-    """Return a user matching the original login rules, or None."""
+def log_password_reset_request(login_id):
+    log_failed(login_id or "Unknown", "Password reset requested")
+
+
+def find_user_by_login_id(login_id):
+    """Return a user matching the original login ID rules, or None."""
     users = load_json(data_file("users"))
 
     for user in users:
         username = str(user.get("username", "")).strip().lower()
         email = str(user.get("email", "")).strip().lower()
         student_id = str(user.get("student_id", "")).strip().lower()
-        saved_password = str(user.get("password", "")).strip()
         name = str(user.get("name", "")).strip().lower()
 
         if (
@@ -69,8 +80,23 @@ def find_matching_user(login_id, password):
             or login_id == email
             or login_id == student_id
             or login_id == name
-        ) and password == saved_password:
+        ):
             return user
+
+    return None
+
+
+def find_matching_user(login_id, password):
+    """Return a user matching the original login rules, or None."""
+    user = find_user_by_login_id(login_id)
+
+    if not user:
+        return None
+
+    saved_password = str(user.get("password", "")).strip()
+
+    if password == saved_password:
+        return user
 
     return None
 

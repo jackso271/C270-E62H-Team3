@@ -101,3 +101,44 @@ def test_invalid_login_shows_error_page(client):
 
     assert response.status_code == 200
     assert b"Login Failed" in response.data or b"Invalid" in response.data
+
+
+def test_wrong_password_logs_clear_reason(client, app):
+    response = client.post(
+        "/login",
+        data={"login_id": "student1", "password": "wrong"},
+    )
+
+    failed_logs_path = app.config["DATA_DIR"] + "/failed_logins.json"
+    with open(failed_logs_path, "r", encoding="utf-8") as file:
+        logs = json.load(file)
+
+    assert response.status_code == 200
+    assert logs[-1]["reason"] == "Wrong password"
+
+
+def test_unknown_account_logs_clear_reason(client, app):
+    client.post(
+        "/login",
+        data={"login_id": "missing-user", "password": "password123"},
+    )
+
+    failed_logs_path = app.config["DATA_DIR"] + "/failed_logins.json"
+    with open(failed_logs_path, "r", encoding="utf-8") as file:
+        logs = json.load(file)
+
+    assert logs[-1]["reason"] == "Account not found"
+
+
+def test_forgot_password_logs_reset_request(client, app):
+    response = client.post(
+        "/forgot-password",
+        data={"login_id": "student1"},
+    )
+
+    failed_logs_path = app.config["DATA_DIR"] + "/failed_logins.json"
+    with open(failed_logs_path, "r", encoding="utf-8") as file:
+        logs = json.load(file)
+
+    assert response.status_code == 302
+    assert logs[-1]["reason"] == "Password reset requested"

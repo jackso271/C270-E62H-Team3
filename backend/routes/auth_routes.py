@@ -1,8 +1,10 @@
 from flask import Blueprint, redirect, render_template, request, session
 
 from backend.services.auth_service import (
+    find_user_by_login_id,
     find_matching_user,
     log_failed,
+    log_password_reset_request,
     log_success,
     register_user,
 )
@@ -72,8 +74,25 @@ def login():
 
         return redirect("/homepage")
 
-    log_failed(login_id, "Invalid login")
+    existing_user = find_user_by_login_id(login_id)
+    if existing_user:
+        log_failed(login_id, "Wrong password")
+    else:
+        log_failed(login_id, "Account not found")
+
     return render_template("user/login_error.html")
+
+
+@auth_bp.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    login_id = request.form.get("login_id", "").strip().lower()
+    log_password_reset_request(login_id)
+
+    return redirect(
+        "/error?title=Password Reset Request Logged"
+        "&message=Your password reset request has been recorded for admin review."
+        "&back_url=/"
+    )
 
 
 @auth_bp.route("/homepage")

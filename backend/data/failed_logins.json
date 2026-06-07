@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "username": "testuser01",
+        "reason": "Wrong password",
+        "time": "2026-06-07 20:01:24"
+    }
+]
