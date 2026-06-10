@@ -32,6 +32,14 @@ def app(tmp_path):
                 "role": "admin",
                 "blocked": False,
             },
+            {
+                "id": 3,
+                "student_id": "25044459",
+                "email": "25044459@myrp.edu.sg",
+                "password": "password123",
+                "role": "user",
+                "blocked": False,
+            },
         ],
         "products.json": [
             {
@@ -61,6 +69,12 @@ def app(tmp_path):
 @pytest.fixture()
 def client(app):
     return app.test_client()
+
+
+def read_users(app):
+    users_path = app.config["DATA_DIR"] + "/users.json"
+    with open(users_path, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 def test_application_startup(app):
@@ -94,6 +108,118 @@ def test_admin_login_redirects_to_dashboard(client):
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/admin/dashboard")
+
+
+def test_legacy_user_without_username_can_login_using_email(client):
+    response = client.post(
+        "/login",
+        data={"login_id": "25044459@myrp.edu.sg", "password": "password123"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/homepage")
+
+
+def test_legacy_user_without_username_can_login_using_student_id(client):
+    response = client.post(
+        "/login",
+        data={"login_id": "25044459", "password": "password123"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/homepage")
+
+
+def test_registering_new_account_works(client, app):
+    response = client.post(
+        "/register",
+        data={
+            "name": "New Student",
+            "username": "newstudent",
+            "email": "newstudent@myrp.edu.sg",
+            "student_id": "S99999",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+    )
+
+    users = read_users(app)
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/")
+    assert any(user["username"] == "newstudent" for user in users)
+
+
+def test_duplicate_email_is_blocked(client):
+    response = client.post(
+        "/register",
+        data={
+            "name": "Other Student",
+            "username": "otherstudent",
+            "email": " STUDENT1@MYRP.EDU.SG ",
+            "student_id": "S54321",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Username, email, or student ID already exists." in response.data
+
+
+def test_duplicate_username_is_blocked(client):
+    response = client.post(
+        "/register",
+        data={
+            "name": "Other Student",
+            "username": " STUDENT1 ",
+            "email": "otherstudent@myrp.edu.sg",
+            "student_id": "S54321",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Username, email, or student ID already exists." in response.data
+
+
+def test_duplicate_student_id_is_blocked(client):
+    response = client.post(
+        "/register",
+        data={
+            "name": "Other Student",
+            "username": "otherstudent",
+            "email": "otherstudent@myrp.edu.sg",
+            "student_id": " S12345 ",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Username, email, or student ID already exists." in response.data
+
+
+def test_blank_registration_fields_are_rejected_clearly(client):
+    response = client.post(
+        "/register",
+        data={
+            "name": "",
+            "username": "blankstudent",
+            "email": "blankstudent@myrp.edu.sg",
+            "student_id": "S77777",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Name, username, email, student ID, and password are required." in response.data
 
 
 def test_invalid_login_shows_error_page(client):

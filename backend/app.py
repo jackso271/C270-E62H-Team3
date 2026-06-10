@@ -16,7 +16,6 @@ DEFAULT_DATA_DIR = Path(__file__).resolve().parent / "data"
 
 
 def create_app(test_config=None):
-    """Create and configure the Flask application."""
     app = Flask(
         __name__,
         template_folder=str(TEMPLATE_DIR),
@@ -31,12 +30,10 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-    # Prepare JSON storage before routes start reading data.
     with app.app_context():
         ensure_data_files(app.config["DATA_DIR"])
         create_admin()
 
-    # Register route groups. URL paths stay the same as the original app.
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(marketplace_bp)

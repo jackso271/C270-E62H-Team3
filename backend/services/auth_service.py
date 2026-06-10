@@ -4,12 +4,68 @@ from backend.services.notification_service import add_notification
 from backend.utils.json_storage import data_file, load_json, save_json
 
 
+def normalize_text(value):
+    """Return a stripped string for form and JSON values."""
+    return str(value or "").strip()
+
+
+def normalize_email(value):
+    """Return a stripped, lower-case email address."""
+    return normalize_text(value).lower()
+
+
+def email_username(email):
+    """Use the part before @ as a fallback username or name."""
+    clean_email = normalize_email(email)
+    if "@" in clean_email:
+        return clean_email.split("@", 1)[0]
+    return clean_email
+
+
+def get_user_identifier(user):
+    """Return the best available display identifier for a user."""
+    return (
+        normalize_text(user.get("username"))
+        or email_username(user.get("email"))
+        or normalize_text(user.get("student_id"))
+        or "N/A"
+    )
+
+
+def ensure_user_shape(user):
+    """Fill missing user fields so legacy accounts remain usable."""
+    username = normalize_text(user.get("username"))
+    email = normalize_email(user.get("email"))
+    student_id = normalize_text(user.get("student_id"))
+
+    if not username:
+        username = email_username(email) or student_id
+
+    name = normalize_text(user.get("name"))
+    if not name:
+        name = username or email_username(email) or "N/A"
+
+    user["id"] = user.get("id")
+    user["name"] = name
+    user["username"] = username
+    user["email"] = email
+    user["student_id"] = student_id
+    user["school"] = normalize_text(user.get("school")) or "N/A"
+    user["password"] = user.get("password", "")
+    user["role"] = normalize_text(user.get("role")) or "student"
+    user["blocked"] = user.get("blocked", False)
+    user["created_at"] = normalize_text(user.get("created_at")) or "N/A"
+    user["last_login"] = normalize_text(user.get("last_login")) or "N/A"
+    return user
+
+
 def create_admin():
     """Ensure the default admin account exists for demonstrations and marking."""
     users = load_json(data_file("users"))
     admin_exists = False
 
     for user in users:
+        ensure_user_shape(user)
         if user.get("username") == "admin":
             admin_exists = True
             user["name"] = user.get("name") or "Admin"
@@ -17,6 +73,9 @@ def create_admin():
             user["student_id"] = user.get("student_id") or "admin"
             user["role"] = "admin"
             user["blocked"] = user.get("blocked", False)
+            user["school"] = user.get("school") or "N/A"
+            user["created_at"] = user.get("created_at") or "N/A"
+            user["last_login"] = user.get("last_login") or "N/A"
 
     if not admin_exists:
         users.append({
@@ -28,6 +87,9 @@ def create_admin():
             "password": "admin123",
             "role": "admin",
             "blocked": False,
+            "school": "N/A",
+            "created_at": "N/A",
+            "last_login": "N/A",
         })
 
     save_json(data_file("users"), users)
@@ -74,18 +136,20 @@ def log_password_reset_request(login_id):
 def find_user_by_login_id(login_id):
     """Return a user matching the original login ID rules, or None."""
     users = load_json(data_file("users"))
+    clean_login_id = normalize_text(login_id)
+    lower_login_id = clean_login_id.lower()
 
     for user in users:
-        username = str(user.get("username", "")).strip().lower()
-        email = str(user.get("email", "")).strip().lower()
-        student_id = str(user.get("student_id", "")).strip().lower()
-        name = str(user.get("name", "")).strip().lower()
+        username = normalize_text(user.get("username")).lower()
+        email = normalize_email(user.get("email"))
+        student_id = normalize_text(user.get("student_id"))
+        name = normalize_text(user.get("name")).lower()
 
         if (
-            login_id == username
-            or login_id == email
-            or login_id == student_id
-            or login_id == name
+            lower_login_id == username
+            or lower_login_id == email
+            or clean_login_id == student_id
+            or lower_login_id == name
         ):
             return user
 
@@ -109,33 +173,51 @@ def find_matching_user(login_id, password):
 
 def register_user(form):
     """Validate and save a new student account using the original rules."""
-    email = form.get("email")
-    username = form.get("username")
-    student_id = form.get("student_id")
+    name = normalize_text(form.get("name"))
+    username = normalize_text(form.get("username"))
+    email = normalize_email(form.get("email"))
+    student_id = normalize_text(form.get("student_id"))
+    password = normalize_text(form.get("password"))
+    school = normalize_text(form.get("school")) or "N/A"
     users = load_json(data_file("users"))
+
+    if not name or not username or not email or not student_id or not password:
+        return False, "Missing Registration Details", (
+            "Name, username, email, student ID, and password are required."
+        )
 
     if not email.endswith("@myrp.edu.sg"):
         return False, "Invalid RP Email", (
             "Only RP students using official RP emails are allowed to register."
         )
 
+    new_username = username.lower()
     for user in users:
-        if user.get("username") == username or user.get("student_id") == student_id:
+        saved_username = normalize_text(user.get("username")).lower()
+        saved_email = normalize_email(user.get("email"))
+        saved_student_id = normalize_text(user.get("student_id"))
+
+        if (
+            (saved_username and saved_username == new_username)
+            or (saved_email and saved_email == email)
+            or (saved_student_id and saved_student_id == student_id)
+        ):
             return False, "Account Already Exists", (
-                "This username, student ID, or email is already registered."
+                "Username, email, or student ID already exists."
             )
 
     users.append({
         "id": len(users) + 1,
-        "name": form.get("name"),
+        "name": name,
         "username": username,
         "email": email,
         "student_id": student_id,
-        "school": form.get("school"),
-        "password": form.get("password"),
+        "school": school,
+        "password": password,
         "role": "student",
         "blocked": False,
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "last_login": "N/A",
     })
     save_json(data_file("users"), users)
 

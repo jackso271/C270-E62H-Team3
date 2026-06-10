@@ -1,1 +1,23 @@
-[]
+[
+    {
+        "id": 1,
+        "title": "Product request submitted",
+        "message": "New request submitted for iPad Air.",
+        "status": "Pending",
+        "time": "2026-06-10 09:55:31"
+    },
+    {
+        "id": 2,
+        "title": "Product request submitted",
+        "message": "New request submitted for iPhone 14 Pro.",
+        "status": "Pending",
+        "time": "2026-06-10 09:55:33"
+    },
+    {
+        "id": 3,
+        "title": "Product request submitted",
+        "message": "New request submitted for Apple Watch Series 8.",
+        "status": "Pending",
+        "time": "2026-06-10 09:55:35"
+    }
+]

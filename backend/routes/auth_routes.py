@@ -85,7 +85,7 @@ def login():
 
 @auth_bp.route("/forgot-password", methods=["POST"])
 def forgot_password():
-    login_id = request.form.get("login_id", "").strip().lower()
+    login_id = request.form.get("login_id", "").strip()
     log_password_reset_request(login_id)
 
     return redirect(

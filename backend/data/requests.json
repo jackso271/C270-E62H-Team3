@@ -78,5 +78,32 @@
         "time": "2026-06-07 20:12:33",
         "rejection_reason": "Request rejected after review.",
         "reviewed_at": "2026-06-07 20:13:00"
+    },
+    {
+        "id": 9,
+        "product_id": 7,
+        "product_title": "iPad Air",
+        "buyer": "buyer_demo",
+        "seller": "Sarah Lee",
+        "status": "Pending",
+        "time": "2026-06-10 09:55:31"
+    },
+    {
+        "id": 10,
+        "product_id": 4,
+        "product_title": "iPhone 14 Pro",
+        "buyer": "buyer_demo",
+        "seller": "John Doe",
+        "status": "Pending",
+        "time": "2026-06-10 09:55:33"
+    },
+    {
+        "id": 11,
+        "product_id": 8,
+        "product_title": "Apple Watch Series 8",
+        "buyer": "buyer_demo",
+        "seller": "Tom Brown",
+        "status": "Pending",
+        "time": "2026-06-10 09:55:35"
     }
 ]

@@ -70,5 +70,17 @@
         "username": "admin",
         "role": "admin",
         "time": "2026-06-07 20:29:43"
+    },
+    {
+        "name": "Admin",
+        "username": "admin",
+        "role": "admin",
+        "time": "2026-06-10 09:38:29"
+    },
+    {
+        "name": "user02",
+        "username": "user2",
+        "role": "student",
+        "time": "2026-06-10 09:55:05"
     }
 ]
