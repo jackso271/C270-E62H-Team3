@@ -9,14 +9,25 @@
 
     <div class="home-page">
 
-        <nav class="home-navbar">
-            <div class="home-logo">RP Marketplace</div>
+        <nav class="app-navbar">
+            <a href="/homepage" class="app-brand">
+                <span class="brand-dot"></span>
+                <span>
+                    <strong>RP Marketplace</strong>
+                    <small>Buy and request items from other RP students</small>
+                </span>
+            </a>
 
-            <div class="home-nav-links">
+            <div class="app-nav-links">
+                <a href="/homepage" class="active">Home</a>
                 <a href="/marketplace">Marketplace</a>
                 <a href="/seller/dashboard">Seller Dashboard</a>
                 <a href="/seller_requests">Requests</a>
-                <a href="/logout" class="logout-link">Logout</a>
+                <details class="user-menu">
+                    <summary>{{ name or "User" }}</summary>
+                    <a href="/notifications">Notifications</a>
+                    <a href="/logout">Logout</a>
+                </details>
             </div>
         </nav>
 
@@ -26,8 +37,8 @@
                 <h1>Welcome, {{ name }}</h1>
 
                 <p>
-                    Discover affordable items listed by RP students.
-                    Send purchase requests and manage deals safely within the RP community.
+                    Buy, sell, and manage campus listings in one clean RP Marketplace workspace.
+                    Browse student deals, track requests, and keep your listings up to date.
                 </p>
 
                 <div class="home-actions">
@@ -56,7 +67,7 @@
 
                 <div class="home-feature-card">
                     <h3>Quick Access</h3>
-                    <p>Browse listings and manage requests from one dashboard.</p>
+                    <p>Jump between marketplace browsing, seller tools, and request updates quickly.</p>
                 </div>
 
             </section>

@@ -97,14 +97,5 @@
         "price": 150,
         "status": "Available",
         "description": "Crystal clear 4K video for streaming and meetings"
-    },
-    {
-        "id": 12,
-        "title": "4K Tv",
-        "name": "4K Tv",
-        "description": "Samsung",
-        "price": 2000.0,
-        "seller": "user2",
-        "status": "Sold"
     }
 ]

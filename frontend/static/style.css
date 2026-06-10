@@ -1677,3 +1677,1452 @@ select {
         flex-direction: column;
     }
 }
+
+/* =========================
+   FINAL DARK MARKETPLACE SYSTEM
+   Removes remaining light surfaces and old boxed nav styling.
+========================= */
+
+html {
+    background: #0f1115;
+}
+
+body {
+    background: #0f1115;
+    color: #f8fafc;
+}
+
+.login-body,
+.marketplace-body,
+.request-page,
+.seller-dashboard-body {
+    background:
+        radial-gradient(circle at 14% 10%, rgba(57, 217, 138, 0.16), transparent 30%),
+        radial-gradient(circle at 84% 18%, rgba(0, 168, 90, 0.12), transparent 30%),
+        linear-gradient(135deg, #0f1115 0%, #12161c 54%, #07120d 100%) !important;
+    color: #f8fafc;
+}
+
+.app-navbar {
+    align-items: center;
+    background: rgba(7, 11, 15, 0.94);
+    border-bottom: 1px solid rgba(57, 217, 138, 0.2);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+    color: #f8fafc;
+    display: flex;
+    gap: 24px;
+    justify-content: space-between;
+    left: 0;
+    padding: 16px clamp(18px, 5vw, 72px);
+    position: sticky;
+    right: 0;
+    top: 0;
+    width: 100%;
+    z-index: 50;
+}
+
+.app-brand {
+    align-items: center;
+    color: #f8fafc;
+    display: flex;
+    gap: 12px;
+    min-width: 240px;
+    text-decoration: none;
+}
+
+.app-brand strong {
+    color: #f8fafc;
+    display: block;
+    font-size: 18px;
+    letter-spacing: 0;
+}
+
+.app-brand small {
+    color: #8ea0b5;
+    display: block;
+    font-size: 12px;
+    line-height: 1.35;
+    margin-top: 2px;
+}
+
+.brand-dot {
+    background: radial-gradient(circle, #39d98a, #00a85a 58%, #063f2b);
+    border-radius: 12px;
+    box-shadow: 0 0 26px rgba(57, 217, 138, 0.56);
+    flex: 0 0 auto;
+    height: 18px;
+    margin-right: 0;
+    width: 18px;
+}
+
+.app-nav-links {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.app-nav-links a,
+.user-menu summary {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    color: #d9e1eb;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 11px 14px;
+    text-decoration: none;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.app-nav-links a:hover,
+.user-menu summary:hover {
+    background: rgba(57, 217, 138, 0.1);
+    border-color: rgba(57, 217, 138, 0.26);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.app-nav-links a.active,
+.user-menu[open] summary {
+    background: linear-gradient(135deg, #00a85a, #0f8f54);
+    border-color: rgba(57, 217, 138, 0.48);
+    box-shadow: 0 12px 28px rgba(0, 168, 90, 0.2);
+    color: white;
+}
+
+.user-menu {
+    position: relative;
+}
+
+.user-menu summary {
+    list-style: none;
+}
+
+.user-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.user-menu[open] {
+    z-index: 80;
+}
+
+.user-menu[open]::after {
+    background: rgba(15, 17, 21, 0.98);
+    border: 1px solid rgba(57, 217, 138, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    content: "";
+    inset: 42px 0 auto auto;
+    min-height: 92px;
+    position: absolute;
+    width: 190px;
+    z-index: -1;
+}
+
+.user-menu a {
+    display: block;
+    margin-top: 8px;
+    min-width: 170px;
+    position: relative;
+    z-index: 2;
+}
+
+.home-page {
+    background: transparent !important;
+    min-height: 100vh;
+    padding: 0 0 56px;
+}
+
+.home-navbar,
+.marketplace-header,
+.seller-dashboard-header {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+    position: static !important;
+}
+
+.home-content {
+    max-width: 1240px;
+    padding: clamp(28px, 5vw, 66px) 20px 0;
+}
+
+.home-hero,
+.marketplace-intro,
+.request-header {
+    background:
+        linear-gradient(135deg, rgba(0, 168, 90, 0.18), rgba(22, 27, 35, 0.94)),
+        #171c24 !important;
+    border: 1px solid rgba(57, 217, 138, 0.2) !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42) !important;
+}
+
+.home-hero h1,
+.marketplace-intro h2,
+.request-header h1 {
+    color: #f8fafc !important;
+}
+
+.home-hero p,
+.marketplace-intro p,
+.request-header p {
+    color: #a7b0bf !important;
+}
+
+.home-feature-card,
+.product-card,
+.summary-card,
+.workflow-note,
+.request-card,
+.notification-card,
+.empty-panel,
+.marketplace-empty,
+.seller-panel,
+.seller-stat,
+.seller-product-card {
+    background: rgba(22, 27, 35, 0.94) !important;
+    border: 1px solid rgba(57, 217, 138, 0.18) !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38) !important;
+    color: #f8fafc !important;
+}
+
+.home-feature-card h3,
+.summary-card strong,
+.seller-stat strong,
+.price {
+    color: #39d98a !important;
+}
+
+.home-feature-card p,
+.product-description,
+.seller-line,
+.summary-card span,
+.request-card p,
+.notification-card p,
+.request-meta,
+.workflow-copy,
+.seller-product-card p,
+.empty-panel p {
+    color: #a7b0bf !important;
+}
+
+.marketplace-shell,
+.request-container,
+.seller-dashboard-shell {
+    width: min(1240px, calc(100% - 32px)) !important;
+}
+
+.marketplace-shell,
+.seller-dashboard-shell {
+    padding-top: clamp(28px, 4vw, 52px) !important;
+}
+
+.marketplace-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.product-card {
+    border-radius: 22px !important;
+    min-height: 430px;
+}
+
+.product-img {
+    background:
+        radial-gradient(circle at 24% 22%, rgba(255, 255, 255, 0.22), transparent 24%),
+        linear-gradient(135deg, #00a85a 0%, #063f2b 58%, #101820 100%) !important;
+    height: 126px;
+}
+
+.product-card h3 {
+    color: #f8fafc !important;
+}
+
+.available {
+    background: rgba(57, 217, 138, 0.16) !important;
+    border-color: rgba(57, 217, 138, 0.38) !important;
+    color: #39d98a !important;
+}
+
+.reserved {
+    background: rgba(245, 158, 11, 0.16) !important;
+    border-color: rgba(245, 158, 11, 0.34) !important;
+    color: #fbbf24 !important;
+}
+
+.status-sold {
+    background: rgba(148, 163, 184, 0.14) !important;
+    border-color: rgba(148, 163, 184, 0.28) !important;
+    color: #cbd5e1 !important;
+}
+
+.login-card {
+    background:
+        linear-gradient(180deg, rgba(27, 32, 41, 0.98), rgba(15, 17, 21, 0.98)) !important;
+    border: 1px solid rgba(57, 217, 138, 0.3) !important;
+}
+
+.login-card h1,
+.auth-kicker {
+    color: #39d98a !important;
+}
+
+.login-card h2,
+.login-card label {
+    color: #f8fafc !important;
+}
+
+.login-card input,
+.login-card select,
+.seller-field input,
+.seller-field select,
+.request-actions input {
+    background: rgba(7, 11, 15, 0.8) !important;
+    border-color: rgba(148, 163, 184, 0.24) !important;
+    color: #f8fafc !important;
+}
+
+.disabled-btn {
+    background: #2b313b !important;
+    color: #a7b0bf !important;
+}
+
+@media (max-width: 860px) {
+    .app-navbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+        padding: 14px 18px;
+    }
+
+    .app-brand {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .app-nav-links {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .app-nav-links a,
+    .user-menu,
+    .user-menu summary {
+        flex: 1 1 auto;
+    }
+
+    .user-menu[open]::after {
+        display: none;
+    }
+
+    .user-menu a {
+        background: rgba(7, 11, 15, 0.9);
+        border: 1px solid rgba(57, 217, 138, 0.18);
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 560px) {
+    .app-nav-links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .app-nav-links a,
+    .user-menu summary {
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+    }
+
+    .marketplace-grid,
+    .home-features {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================
+   DARK RP MARKETPLACE THEME
+   UI-only redesign: green + black startup dashboard style.
+========================= */
+
+:root {
+    --dark-bg: #0f1115;
+    --dark-bg-2: #151922;
+    --dark-panel: rgba(22, 27, 35, 0.92);
+    --dark-panel-solid: #171c24;
+    --dark-card: #1b2029;
+    --dark-border: rgba(57, 217, 138, 0.18);
+    --dark-border-strong: rgba(57, 217, 138, 0.38);
+    --rp-green-neon: #39d98a;
+    --rp-green-main: #00a85a;
+    --rp-green-deep: #063f2b;
+    --dark-text: #f8fafc;
+    --dark-muted: #a7b0bf;
+    --dark-dim: #6b7280;
+    --dark-danger: #ef4444;
+    --dark-warning: #f59e0b;
+    --dark-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+    --green-glow: 0 0 0 1px rgba(57, 217, 138, 0.18), 0 18px 50px rgba(0, 168, 90, 0.16);
+}
+
+body,
+.login-body,
+.marketplace-body,
+.request-page,
+.admin-page,
+.seller-dashboard-body {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(57, 217, 138, 0.16), transparent 30%),
+        radial-gradient(circle at 86% 18%, rgba(0, 168, 90, 0.12), transparent 28%),
+        linear-gradient(135deg, #0f1115 0%, #101820 48%, #07120d 100%);
+    color: var(--dark-text);
+}
+
+.login-body {
+    min-height: 100vh;
+    padding: 24px;
+}
+
+.login-body::before {
+    background: linear-gradient(135deg, rgba(57, 217, 138, 0.22), rgba(0, 0, 0, 0));
+    border-right-color: rgba(57, 217, 138, 0.34);
+}
+
+.login-body::after {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0), rgba(57, 217, 138, 0.18));
+    border-left-color: rgba(57, 217, 138, 0.26);
+}
+
+.login-container {
+    max-width: 520px;
+}
+
+.login-card {
+    background:
+        linear-gradient(180deg, rgba(27, 32, 41, 0.96), rgba(17, 24, 31, 0.96));
+    border: 1px solid var(--dark-border-strong);
+    border-radius: 26px;
+    box-shadow: var(--dark-shadow), 0 0 90px rgba(57, 217, 138, 0.1);
+    color: var(--dark-text);
+    padding: clamp(30px, 5vw, 48px);
+    text-align: left;
+}
+
+.rp-logo {
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+    display: block;
+    margin: 0 0 22px;
+    padding: 10px;
+    width: 112px;
+}
+
+.login-card h1 {
+    color: var(--rp-green-neon);
+    font-size: clamp(30px, 5vw, 42px);
+    margin-bottom: 6px;
+}
+
+.login-card h2 {
+    color: var(--dark-text);
+    font-size: 28px;
+    margin: 10px 0 8px;
+}
+
+.auth-kicker {
+    color: var(--rp-green-neon);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.subtitle,
+.footer-text,
+.password-guidance,
+.strength-text {
+    color: var(--dark-muted);
+}
+
+.login-form label,
+.register-form label,
+.seller-field label {
+    color: #e5e7eb;
+    font-size: 14px;
+}
+
+.login-card input,
+.login-card select,
+.seller-field input,
+.seller-field select,
+.search-box input,
+.search-box select,
+.request-actions input {
+    background: rgba(9, 13, 18, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    color: var(--dark-text);
+}
+
+.login-card input::placeholder,
+.request-actions input::placeholder {
+    color: #778294;
+}
+
+.login-card input:focus,
+.login-card select:focus,
+.seller-field input:focus,
+.seller-field select:focus,
+.search-box input:focus,
+.search-box select:focus {
+    border-color: var(--rp-green-neon);
+    box-shadow: 0 0 0 4px rgba(57, 217, 138, 0.12);
+}
+
+.login-submit,
+.login-card button[type="submit"],
+.request-btn,
+.home-actions a,
+.nav-btn,
+.seller-dashboard-button,
+.approve-btn,
+.filter-btn,
+.page-btn {
+    background: linear-gradient(135deg, var(--rp-green-main), #0f8f54);
+    color: white;
+    box-shadow: 0 14px 30px rgba(0, 168, 90, 0.22);
+}
+
+.login-submit:hover,
+.login-card button[type="submit"]:hover,
+.request-btn:hover,
+.home-actions a:hover,
+.nav-btn:hover,
+.seller-dashboard-button:hover,
+.approve-btn:hover,
+.filter-btn:hover,
+.page-btn:hover {
+    background: linear-gradient(135deg, var(--rp-green-neon), var(--rp-green-main));
+    transform: translateY(-2px);
+}
+
+.toggle-password,
+.link-button {
+    background: rgba(57, 217, 138, 0.11);
+    border: 1px solid var(--dark-border);
+    color: var(--rp-green-neon);
+    box-shadow: none;
+}
+
+.forgot-form {
+    border-top-color: rgba(148, 163, 184, 0.18);
+}
+
+.footer-text a {
+    color: var(--rp-green-neon);
+}
+
+.strength-track {
+    background: #29313d;
+}
+
+.home-navbar,
+.marketplace-header,
+.seller-dashboard-header {
+    background: rgba(15, 17, 21, 0.86);
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--green-glow);
+    backdrop-filter: blur(16px);
+    color: var(--dark-text);
+    position: sticky;
+    top: 16px;
+    z-index: 20;
+}
+
+.home-logo,
+.marketplace-header h1,
+.seller-dashboard-header h1 {
+    color: var(--rp-green-neon);
+}
+
+.brand-dot {
+    background: radial-gradient(circle, var(--rp-green-neon), var(--rp-green-main));
+    border-radius: 999px;
+    box-shadow: 0 0 22px rgba(57, 217, 138, 0.5);
+    display: inline-block;
+    height: 12px;
+    margin-right: 10px;
+    vertical-align: middle;
+    width: 12px;
+}
+
+.home-nav-links a,
+.marketplace-nav a,
+.seller-dashboard-nav a {
+    color: var(--dark-muted);
+    border: 1px solid transparent;
+}
+
+.home-nav-links a:hover,
+.marketplace-nav a:hover,
+.seller-dashboard-nav a:hover {
+    background: rgba(57, 217, 138, 0.1);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.home-nav-links .logout-link {
+    background: linear-gradient(135deg, var(--rp-green-main), #0d7a49);
+    color: white;
+}
+
+.home-hero,
+.marketplace-intro,
+.workflow-note,
+.request-card,
+.notification-card,
+.empty-panel,
+.summary-card,
+.seller-panel,
+.seller-stat,
+.seller-product-card,
+.marketplace-empty {
+    background: var(--dark-panel);
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--dark-shadow);
+    color: var(--dark-text);
+}
+
+.home-hero {
+    background:
+        linear-gradient(135deg, rgba(0, 168, 90, 0.22), rgba(15, 17, 21, 0.94)),
+        var(--dark-panel-solid);
+}
+
+.home-hero h1,
+.marketplace-intro h2,
+.request-header h1,
+.seller-panel h2,
+.seller-product-card h3,
+.request-card h3,
+.notification-card h2,
+.workflow-note h2,
+.empty-panel h2 {
+    color: var(--dark-text);
+}
+
+.home-hero p,
+.marketplace-intro p,
+.marketplace-header p,
+.seller-dashboard-header p,
+.request-header p,
+.request-card p,
+.notification-card p,
+.workflow-copy,
+.request-meta,
+.seller-product-card p,
+.seller-empty,
+.marketplace-empty p {
+    color: var(--dark-muted);
+}
+
+.home-feature-card {
+    background: linear-gradient(180deg, rgba(27, 32, 41, 0.95), rgba(17, 24, 31, 0.95));
+    border: 1px solid var(--dark-border);
+    border-top: 4px solid var(--rp-green-main);
+    color: var(--dark-text);
+}
+
+.home-feature-card h3 {
+    color: var(--rp-green-neon);
+}
+
+.home-feature-card p {
+    color: var(--dark-muted);
+}
+
+.product-card {
+    background: linear-gradient(180deg, #1b2029, #141922);
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--dark-shadow);
+    color: var(--dark-text);
+    min-height: 410px;
+}
+
+.product-card:hover {
+    border-color: var(--dark-border-strong);
+    box-shadow: var(--dark-shadow), 0 0 34px rgba(57, 217, 138, 0.14);
+    transform: translateY(-6px);
+}
+
+.product-img {
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.2), transparent 24%),
+        linear-gradient(135deg, #00a85a, #063f2b 60%, #101820);
+    color: white;
+}
+
+.product-card h3 {
+    color: var(--dark-text);
+}
+
+.price {
+    color: var(--rp-green-neon);
+}
+
+.seller-line,
+.product-description {
+    color: var(--dark-muted);
+}
+
+.status {
+    border: 1px solid transparent;
+}
+
+.available {
+    background: rgba(57, 217, 138, 0.16);
+    border-color: rgba(57, 217, 138, 0.36);
+    color: var(--rp-green-neon);
+}
+
+.reserved {
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.34);
+    color: #fbbf24;
+}
+
+.status-sold {
+    background: rgba(148, 163, 184, 0.14);
+    border-color: rgba(148, 163, 184, 0.28);
+    color: #cbd5e1;
+}
+
+.disabled-btn {
+    background: #2b313b;
+    color: #a7b0bf;
+}
+
+.request-header {
+    background:
+        linear-gradient(135deg, rgba(0, 168, 90, 0.24), rgba(15, 17, 21, 0.94)),
+        var(--dark-panel-solid);
+    border: 1px solid var(--dark-border);
+}
+
+.filter-tabs a,
+.seller-filters a,
+.progress-steps span,
+.review-complete {
+    background: rgba(57, 217, 138, 0.1);
+    border-color: var(--dark-border);
+    color: var(--dark-muted);
+}
+
+.filter-tabs a.active,
+.filter-tabs a:hover,
+.seller-filters a.active,
+.seller-filters a:hover {
+    background: linear-gradient(135deg, var(--rp-green-main), #0f8f54);
+    color: white;
+}
+
+.status-approved {
+    background: rgba(57, 217, 138, 0.16);
+    color: var(--rp-green-neon);
+}
+
+.status-pending {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+}
+
+.status-rejected {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fca5a5;
+}
+
+.status-warning {
+    background: rgba(148, 163, 184, 0.16);
+    color: #d1d5db;
+}
+
+.reject-btn,
+.seller-danger-button,
+.delete-btn {
+    background: linear-gradient(135deg, #ef4444, #991b1b);
+}
+
+.admin-page {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(57, 217, 138, 0.14), transparent 30%),
+        linear-gradient(135deg, #0f1115, #111827 55%, #07120d);
+}
+
+.admin-container h1,
+.page-heading h1 {
+    color: var(--dark-text);
+}
+
+.page-heading p,
+.pagination-box {
+    color: var(--dark-muted);
+}
+
+.search-box,
+.account-filter-box {
+    background: var(--dark-panel);
+    border: 1px solid var(--dark-border);
+}
+
+.admin-table {
+    background: var(--dark-panel-solid);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text);
+}
+
+.admin-table th {
+    background: linear-gradient(135deg, #101820, var(--rp-green-deep));
+}
+
+.admin-table td {
+    border-bottom-color: rgba(148, 163, 184, 0.12);
+    color: var(--dark-text);
+}
+
+.admin-protected {
+    background: rgba(57, 217, 138, 0.12);
+    color: var(--rp-green-neon);
+}
+
+.back-btn,
+.clear-search-btn {
+    background: #242a35;
+    color: var(--dark-text);
+    border: 1px solid var(--dark-border);
+}
+
+.summary-card {
+    border-top: 4px solid var(--rp-green-main);
+}
+
+.summary-card span {
+    color: var(--dark-muted);
+}
+
+.summary-card strong,
+.seller-stat strong {
+    color: var(--rp-green-neon);
+}
+
+.seller-dashboard-body {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(57, 217, 138, 0.16), transparent 30%),
+        linear-gradient(135deg, #0f1115, #111827 55%, #07120d);
+}
+
+.seller-dashboard-shell {
+    width: min(1180px, calc(100% - 32px));
+}
+
+.seller-stat {
+    border-top: 4px solid var(--rp-green-main);
+}
+
+.seller-field input:disabled {
+    background: #242a35;
+    color: var(--dark-muted);
+}
+
+@media (max-width: 760px) {
+    .home-navbar,
+    .marketplace-header,
+    .seller-dashboard-header {
+        top: 0;
+        border-radius: 0;
+    }
+
+    .product-card {
+        min-height: auto;
+    }
+}
+
+/* =========================
+   UI/UX SPRINT OVERRIDES
+   Visual-only polish for the refactored Flask app.
+========================= */
+
+:root {
+    --rp-green: #007a3d;
+    --rp-green-dark: #004d2e;
+    --rp-green-soft: #e8f7ee;
+    --rp-charcoal: #111827;
+    --rp-text: #1f2937;
+    --rp-muted: #64748b;
+    --rp-border: #dbe7df;
+    --rp-bg: #f6f8f7;
+    --rp-card: #ffffff;
+    --rp-danger: #dc2626;
+    --rp-warning: #f59e0b;
+    --rp-radius: 16px;
+    --rp-shadow: 0 14px 36px rgba(17, 24, 39, 0.12);
+}
+
+body,
+.marketplace-body,
+.request-page,
+.admin-page,
+.login-body,
+.seller-dashboard-body {
+    background:
+        radial-gradient(circle at top left, rgba(0, 122, 61, 0.12), transparent 30%),
+        var(--rp-bg);
+    color: var(--rp-text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.login-body {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.login-body::before,
+.login-body::after {
+    opacity: 0.28;
+}
+
+.login-card,
+.home-navbar,
+.home-hero,
+.home-feature-card,
+.product-card,
+.summary-card,
+.workflow-note,
+.request-card,
+.notification-card,
+.empty-panel,
+.marketplace-empty,
+.admin-table,
+.seller-panel,
+.seller-stat,
+.seller-product-card {
+    border: 1px solid var(--rp-border);
+    border-radius: var(--rp-radius);
+    box-shadow: var(--rp-shadow);
+}
+
+.login-card {
+    padding: clamp(28px, 5vw, 48px);
+}
+
+.login-card h1,
+.home-hero h1,
+.marketplace-header h1,
+.request-header h1,
+.admin-container h1 {
+    letter-spacing: 0;
+}
+
+.login-card h1 {
+    color: var(--rp-green-dark);
+    font-size: clamp(32px, 5vw, 42px);
+}
+
+.subtitle,
+.footer-text,
+.marketplace-intro p,
+.request-header p,
+.home-hero p {
+    color: var(--rp-muted);
+}
+
+label {
+    color: var(--rp-charcoal);
+    font-size: 15px;
+}
+
+input,
+select,
+textarea,
+.seller-field input,
+.seller-field select {
+    border: 1px solid var(--rp-border);
+    border-radius: 12px;
+    color: var(--rp-text);
+    font-size: 16px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.seller-field input:focus,
+.seller-field select:focus {
+    border-color: var(--rp-green);
+    box-shadow: 0 0 0 4px rgba(0, 122, 61, 0.13);
+    outline: none;
+}
+
+button,
+.request-btn,
+.nav-btn,
+.home-actions a,
+.back-btn,
+.seller-dashboard-button,
+.filter-btn,
+.clear-search-btn,
+.page-btn,
+.action-btn {
+    border-radius: 12px;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+button:hover,
+.request-btn:hover,
+.nav-btn:hover,
+.home-actions a:hover,
+.back-btn:hover,
+.seller-dashboard-button:hover,
+.filter-btn:hover,
+.clear-search-btn:hover,
+.page-btn:hover,
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(17, 24, 39, 0.14);
+}
+
+.home-page {
+    padding: 24px clamp(16px, 5vw, 70px);
+}
+
+.home-navbar,
+.marketplace-header,
+.seller-dashboard-header {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--rp-border);
+    color: var(--rp-text);
+}
+
+.home-navbar {
+    margin-bottom: 44px;
+    position: sticky;
+    top: 16px;
+    z-index: 10;
+}
+
+.home-logo,
+.marketplace-header h1,
+.marketplace-intro h2,
+.request-header h1,
+.request-card h3,
+.notification-card h2,
+.seller-dashboard-header h1,
+.seller-panel h2,
+.seller-product-card h3,
+.home-feature-card h3 {
+    color: var(--rp-green-dark);
+}
+
+.home-nav-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.home-nav-links a,
+.marketplace-nav a,
+.seller-dashboard-nav a {
+    color: var(--rp-green-dark);
+    margin-left: 0;
+    padding: 10px 13px;
+    border-radius: 999px;
+    text-decoration: none;
+}
+
+.home-nav-links a:hover,
+.marketplace-nav a:hover,
+.seller-dashboard-nav a:hover {
+    background: var(--rp-green-soft);
+}
+
+.home-nav-links .logout-link,
+.nav-btn,
+.seller-dashboard-nav a,
+.seller-dashboard-button,
+.request-btn,
+.approve-btn,
+.filter-btn {
+    background: var(--rp-green);
+    color: white;
+}
+
+.home-content {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+}
+
+.home-hero {
+    background:
+        linear-gradient(135deg, rgba(0, 77, 46, 0.94), rgba(17, 24, 39, 0.92));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.home-hero h1 {
+    color: white;
+    font-size: clamp(36px, 5vw, 54px);
+}
+
+.home-hero p {
+    color: #dff5e8;
+}
+
+.home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.home-actions a {
+    margin-right: 0;
+}
+
+.home-actions a:nth-child(2) {
+    background: white;
+    color: var(--rp-green-dark);
+}
+
+.home-feature-card {
+    border-top: 4px solid var(--rp-green);
+}
+
+.marketplace-body,
+.request-page,
+.admin-page {
+    min-height: 100vh;
+}
+
+.marketplace-header {
+    border-bottom: 1px solid var(--rp-border);
+    box-shadow: 0 6px 22px rgba(17, 24, 39, 0.08);
+}
+
+.marketplace-header p {
+    color: var(--rp-muted);
+}
+
+.marketplace-nav {
+    align-items: center;
+}
+
+.nav-btn {
+    font-size: 14px;
+    padding: 10px 14px;
+}
+
+.marketplace-shell,
+.request-container {
+    width: min(1180px, calc(100% - 32px));
+}
+
+.marketplace-intro {
+    background: white;
+    border: 1px solid var(--rp-border);
+    border-radius: var(--rp-radius);
+    padding: 24px;
+    box-shadow: 0 8px 26px rgba(17, 24, 39, 0.08);
+}
+
+.marketplace-grid {
+    align-items: stretch;
+}
+
+.product-card {
+    min-height: 390px;
+    overflow: hidden;
+    padding: 0;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+}
+
+.product-img {
+    border-radius: 0;
+    height: 116px;
+    margin-bottom: 0;
+    background:
+        linear-gradient(135deg, rgba(0, 122, 61, 0.92), rgba(17, 24, 39, 0.95));
+}
+
+.product-info {
+    padding: 18px 18px 8px;
+}
+
+.product-card h3 {
+    color: var(--rp-charcoal);
+    font-size: 20px;
+    line-height: 1.25;
+}
+
+.price {
+    color: var(--rp-green);
+}
+
+.seller-line {
+    color: var(--rp-muted);
+}
+
+.product-description {
+    color: var(--rp-muted);
+    font-size: 14px;
+    line-height: 1.45;
+    margin-bottom: 14px;
+}
+
+.product-card .status,
+.product-card form,
+.product-card .disabled-btn {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
+.available,
+.status-approved {
+    background: #dff7e8;
+    color: #056135;
+}
+
+.reserved,
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.disabled-btn {
+    background: #e5e7eb;
+    color: #475569;
+    cursor: not-allowed;
+    margin-bottom: 18px;
+}
+
+.request-btn {
+    margin-bottom: 18px;
+}
+
+.request-page {
+    padding: 28px 0 48px;
+}
+
+.request-header {
+    background: linear-gradient(135deg, var(--rp-green-dark), var(--rp-charcoal));
+    border-radius: var(--rp-radius);
+    padding: 26px;
+    box-shadow: var(--rp-shadow);
+}
+
+.request-header h1 {
+    color: white;
+}
+
+.request-header p {
+    color: #dff5e8;
+}
+
+.workflow-note,
+.request-card,
+.notification-card,
+.empty-panel {
+    box-shadow: 0 10px 28px rgba(17, 24, 39, 0.1);
+}
+
+.request-actions {
+    grid-template-columns: minmax(140px, 180px) minmax(260px, 1fr);
+}
+
+.reject-btn,
+.seller-danger-button,
+.delete-btn {
+    background: var(--rp-danger);
+}
+
+.admin-page {
+    background:
+        radial-gradient(circle at top left, rgba(0, 122, 61, 0.16), transparent 32%),
+        var(--rp-bg);
+    color: var(--rp-text);
+    padding: 32px 0 48px;
+}
+
+.admin-container {
+    width: min(1280px, calc(100% - 32px));
+    max-width: 1280px;
+}
+
+.admin-container h1 {
+    color: var(--rp-charcoal);
+    font-size: clamp(32px, 4vw, 46px);
+}
+
+.page-heading p {
+    color: var(--rp-muted);
+}
+
+.admin-table {
+    display: table;
+    overflow: hidden;
+    color: var(--rp-text);
+    font-size: 15px;
+}
+
+.admin-table th {
+    background: var(--rp-charcoal);
+    color: white;
+    font-size: 14px;
+    padding: 15px;
+}
+
+.admin-table td {
+    font-size: 14px;
+    padding: 14px;
+}
+
+.search-box,
+.account-filter-box {
+    background: white;
+    border: 1px solid var(--rp-border);
+    box-shadow: 0 8px 22px rgba(17, 24, 39, 0.08);
+}
+
+.summary-card strong {
+    color: var(--rp-green);
+}
+
+.pagination-box {
+    color: var(--rp-text);
+}
+
+.seller-dashboard-body {
+    background: var(--rp-bg);
+}
+
+.seller-dashboard-header {
+    box-shadow: 0 6px 22px rgba(17, 24, 39, 0.08);
+}
+
+.seller-dashboard-header p {
+    color: var(--rp-muted);
+}
+
+.seller-dashboard-shell {
+    width: min(1120px, calc(100% - 32px));
+}
+
+.seller-stat {
+    border-top: 4px solid var(--rp-green);
+}
+
+.seller-stat strong {
+    color: var(--rp-green);
+}
+
+.seller-filters a {
+    border-radius: 999px;
+}
+
+.seller-filters a.active {
+    background: var(--rp-green);
+    border-color: var(--rp-green);
+}
+
+.seller-product-card {
+    background: white;
+}
+
+@media (max-width: 960px) {
+    .home-content,
+    .home-features {
+        grid-template-columns: 1fr;
+    }
+
+    .home-navbar,
+    .marketplace-header,
+    .seller-dashboard-header {
+        align-items: flex-start;
+        flex-direction: column;
+        position: static;
+    }
+
+    .home-nav-links,
+    .marketplace-nav,
+    .seller-dashboard-nav {
+        justify-content: flex-start;
+        width: 100%;
+    }
+}
+
+@media (max-width: 760px) {
+    .login-body {
+        padding: 16px;
+    }
+
+    .login-container,
+    .login-card {
+        max-width: 100%;
+    }
+
+    .home-page {
+        padding: 16px;
+    }
+
+    .home-navbar,
+    .home-hero,
+    .marketplace-intro,
+    .request-header,
+    .seller-panel {
+        padding: 20px;
+    }
+
+    .home-nav-links a,
+    .marketplace-nav a,
+    .seller-dashboard-nav a {
+        width: 100%;
+        text-align: center;
+    }
+
+    .marketplace-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .request-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .summary-grid,
+    .seller-stats {
+        grid-template-columns: 1fr;
+    }
+}

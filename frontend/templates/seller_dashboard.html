@@ -193,20 +193,124 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .seller-dashboard-body {
+            background:
+                radial-gradient(circle at 12% 8%, rgba(57, 217, 138, 0.16), transparent 30%),
+                radial-gradient(circle at 86% 18%, rgba(0, 168, 90, 0.12), transparent 28%),
+                linear-gradient(135deg, #0f1115 0%, #101820 55%, #07120d 100%);
+            color: #f8fafc;
+        }
+
+        .seller-dashboard-header {
+            background: rgba(15, 17, 21, 0.88);
+            border: 1px solid rgba(57, 217, 138, 0.2);
+            box-shadow: 0 0 0 1px rgba(57, 217, 138, 0.14), 0 18px 50px rgba(0, 0, 0, 0.34);
+            color: #f8fafc;
+            position: sticky;
+            top: 16px;
+            z-index: 20;
+            backdrop-filter: blur(16px);
+        }
+
+        .seller-dashboard-header h1 {
+            color: #39d98a;
+        }
+
+        .seller-dashboard-header p {
+            color: #a7b0bf;
+        }
+
+        .seller-dashboard-nav a,
+        .seller-dashboard-button {
+            background: linear-gradient(135deg, #00a85a, #0f8f54);
+            border-radius: 12px;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+        }
+
+        .seller-dashboard-nav a:hover,
+        .seller-dashboard-button:hover {
+            background: linear-gradient(135deg, #39d98a, #00a85a);
+            box-shadow: 0 12px 28px rgba(0, 168, 90, 0.24);
+            transform: translateY(-2px);
+        }
+
+        .seller-stat,
+        .seller-panel,
+        .seller-product-card {
+            background: rgba(22, 27, 35, 0.94);
+            border: 1px solid rgba(57, 217, 138, 0.18);
+            border-radius: 16px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+            color: #f8fafc;
+        }
+
+        .seller-stat {
+            border-top: 4px solid #00a85a;
+        }
+
+        .seller-stat strong,
+        .seller-panel h2,
+        .seller-product-card h3 {
+            color: #39d98a;
+        }
+
+        .seller-stat span,
+        .seller-product-card p,
+        .seller-empty {
+            color: #a7b0bf;
+        }
+
+        .seller-field input,
+        .seller-field select {
+            background: rgba(9, 13, 18, 0.78);
+            border-color: rgba(148, 163, 184, 0.24);
+            border-radius: 12px;
+            color: #f8fafc;
+        }
+
+        .seller-field input:focus,
+        .seller-field select:focus {
+            border-color: #39d98a;
+            box-shadow: 0 0 0 4px rgba(57, 217, 138, 0.12);
+            outline: none;
+        }
+
+        .seller-filters a {
+            border-radius: 999px;
+        }
+
+        .seller-filters a.active {
+            background: linear-gradient(135deg, #00a85a, #0f8f54);
+            border-color: #00a85a;
+            color: white;
+        }
+
+        .seller-danger-button {
+            background: linear-gradient(135deg, #ef4444, #991b1b);
+        }
     </style>
 </head>
 <body class="seller-dashboard-body">
-    <header class="seller-dashboard-header">
-        <div>
-            <h1>Seller Dashboard</h1>
-            <p>Manage your RP Marketplace listings.</p>
-        </div>
+    <header class="app-navbar seller-dashboard-header">
+        <a href="/homepage" class="app-brand">
+            <span class="brand-dot"></span>
+            <span>
+                <strong>RP Marketplace</strong>
+                <small>Buy and request items from other RP students</small>
+            </span>
+        </a>
 
-        <nav class="seller-dashboard-nav">
+        <nav class="app-nav-links seller-dashboard-nav">
             <a href="/homepage">Home</a>
             <a href="/marketplace">Marketplace</a>
+            <a href="/seller/dashboard" class="active">Seller Dashboard</a>
             <a href="/seller_requests">Requests</a>
-            <a href="/logout">Logout</a>
+            <details class="user-menu">
+                <summary>Seller</summary>
+                <a href="/notifications">Notifications</a>
+                <a href="/logout">Logout</a>
+            </details>
         </nav>
     </header>
 
@@ -263,7 +367,7 @@
                 {% for product in products %}
                     <article class="seller-product-card">
                         <h3>{{ product.title or product.name }}</h3>
-                        <p>${{ product.price }} · {{ product.status }} · {{ product.description or "No description" }}</p>
+                        <p>${{ product.price }} &middot; {{ product.status }} &middot; {{ product.description or "No description" }}</p>
 
                         <form action="/seller/dashboard/edit/{{ product.id }}" method="POST" class="seller-edit-form">
                             <div class="seller-field">

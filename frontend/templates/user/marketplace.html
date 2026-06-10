@@ -8,17 +8,25 @@
 </head>
 <body class="marketplace-body">
 
-    <header class="marketplace-header">
-        <div>
-            <h1>RP Marketplace</h1>
-            <p>Buy and request items from other RP students</p>
-        </div>
+    <header class="app-navbar">
+        <a href="/homepage" class="app-brand">
+            <span class="brand-dot"></span>
+            <span>
+                <strong>RP Marketplace</strong>
+                <small>Buy and request items from other RP students</small>
+            </span>
+        </a>
 
-        <nav class="marketplace-nav">
-            <a href="/homepage" class="nav-btn">Home</a>
-            <a href="/seller/dashboard" class="nav-btn">Seller Dashboard</a>
-            <a href="/seller_requests" class="nav-btn">Seller Requests</a>
-            <a href="/notifications" class="nav-btn">Notifications</a>
+        <nav class="app-nav-links">
+            <a href="/homepage">Home</a>
+            <a href="/marketplace" class="active">Marketplace</a>
+            <a href="/seller/dashboard">Seller Dashboard</a>
+            <a href="/seller_requests">Requests</a>
+            <details class="user-menu">
+                <summary>Account</summary>
+                <a href="/notifications">Notifications</a>
+                <a href="/logout">Logout</a>
+            </details>
         </nav>
     </header>
 
@@ -37,6 +45,7 @@
                     <h3>{{ product.title }}</h3>
                     <p class="price">${{ product.price }}</p>
                     <p class="seller-line"><strong>Seller:</strong> {{ product.seller }}</p>
+                    <p class="product-description">{{ product.description or "No description provided." }}</p>
                 </div>
 
                 {% if product.status == "Available" %}
@@ -56,7 +65,7 @@
                         <button disabled class="disabled-btn">Not Available</button>
                     {% endif %}
                 {% elif product.status == "Sold" %}
-                    <span class="status reserved">Sold</span>
+                    <span class="status status-sold">Sold</span>
                     <button disabled class="disabled-btn">Sold</button>
                 {% else %}
                     <span class="status reserved">{{ product.status }}</span>

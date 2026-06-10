@@ -252,3 +252,340 @@ td a.danger {
     border-radius: 14px;
     padding: 18px;
 }
+
+/* =========================
+   ADMIN UI/UX SPRINT
+========================= */
+
+:root {
+    --rp-green: #007a3d;
+    --rp-green-dark: #004d2e;
+    --rp-green-soft: #e8f7ee;
+    --rp-charcoal: #111827;
+    --rp-muted: #64748b;
+    --rp-border: #dbe7df;
+    --rp-bg: #f6f8f7;
+    --rp-shadow: 0 14px 36px rgba(17, 24, 39, 0.12);
+}
+
+body.admin-body {
+    background:
+        radial-gradient(circle at top left, rgba(0, 122, 61, 0.18), transparent 32%),
+        var(--rp-bg);
+    color: #1f2937;
+}
+
+.admin-container {
+    max-width: 1120px;
+    padding: 48px 20px;
+}
+
+.admin-container h1,
+.admin-page h1 {
+    color: var(--rp-charcoal);
+    font-size: clamp(34px, 5vw, 50px);
+    letter-spacing: 0;
+}
+
+.subtitle {
+    color: var(--rp-muted);
+}
+
+.admin-menu {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.admin-menu a,
+.activity-panel,
+.empty-panel {
+    border: 1px solid var(--rp-border);
+    box-shadow: var(--rp-shadow);
+}
+
+.admin-menu a {
+    background: white;
+    border-radius: 18px;
+    color: var(--rp-green-dark);
+    min-height: 132px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.35;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.admin-menu a:hover {
+    background: var(--rp-green-soft);
+    box-shadow: 0 18px 40px rgba(17, 24, 39, 0.16);
+    color: var(--rp-green-dark);
+    transform: translateY(-3px);
+}
+
+.admin-menu .logout {
+    background: var(--rp-charcoal);
+    color: white;
+}
+
+.admin-menu .logout:hover {
+    background: #263244;
+    color: white;
+}
+
+.activity-panel {
+    background: white;
+}
+
+.section-heading h2,
+.activity-item strong {
+    color: var(--rp-green-dark);
+}
+
+.activity-item {
+    border-bottom-color: var(--rp-border);
+}
+
+table {
+    border: 1px solid var(--rp-border);
+    box-shadow: var(--rp-shadow);
+}
+
+th {
+    background: var(--rp-charcoal);
+}
+
+td {
+    color: #1f2937;
+}
+
+.back-btn,
+.filter-box button,
+.delete-selected-btn,
+.clear-btn,
+.action-btn {
+    border-radius: 12px;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+.back-btn:hover,
+.filter-box button:hover,
+.delete-selected-btn:hover,
+.clear-btn:hover,
+.action-btn:hover {
+    box-shadow: 0 10px 22px rgba(17, 24, 39, 0.14);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 760px) {
+    .admin-container {
+        width: 100%;
+        padding: 28px 16px;
+    }
+
+    .activity-item {
+        flex-direction: column;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* =========================
+   DARK ADMIN DASHBOARD THEME
+========================= */
+
+:root {
+    --admin-dark-bg: #0f1115;
+    --admin-panel: rgba(22, 27, 35, 0.94);
+    --admin-card: #1b2029;
+    --admin-border: rgba(57, 217, 138, 0.2);
+    --admin-border-strong: rgba(57, 217, 138, 0.38);
+    --admin-green: #39d98a;
+    --admin-green-main: #00a85a;
+    --admin-muted: #a7b0bf;
+    --admin-text: #f8fafc;
+    --admin-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+body.admin-body {
+    background:
+        radial-gradient(circle at 10% 8%, rgba(57, 217, 138, 0.18), transparent 30%),
+        radial-gradient(circle at 88% 22%, rgba(0, 168, 90, 0.12), transparent 28%),
+        linear-gradient(135deg, #0f1115, #101820 54%, #07120d);
+    color: var(--admin-text);
+}
+
+.admin-container h1,
+.admin-page h1 {
+    color: var(--admin-text);
+}
+
+.subtitle {
+    color: var(--admin-muted);
+}
+
+.admin-menu a,
+.activity-panel,
+.empty-panel {
+    background: var(--admin-panel);
+    border: 1px solid var(--admin-border);
+    box-shadow: var(--admin-shadow);
+    color: var(--admin-text);
+}
+
+.admin-menu a {
+    color: var(--admin-text);
+}
+
+.admin-menu a:hover {
+    background:
+        linear-gradient(135deg, rgba(0, 168, 90, 0.22), rgba(27, 32, 41, 0.96));
+    border-color: var(--admin-border-strong);
+    color: var(--admin-green);
+}
+
+.admin-menu .logout {
+    background: linear-gradient(135deg, #262d38, #141922);
+    color: var(--admin-text);
+}
+
+.section-heading h2,
+.activity-item strong {
+    color: var(--admin-green);
+}
+
+.section-heading p,
+.activity-item span,
+.activity-item time {
+    color: var(--admin-muted);
+}
+
+.activity-item {
+    border-bottom-color: rgba(148, 163, 184, 0.14);
+}
+
+table {
+    background: var(--admin-panel);
+    border: 1px solid var(--admin-border);
+    box-shadow: var(--admin-shadow);
+    color: var(--admin-text);
+}
+
+th {
+    background: linear-gradient(135deg, #101820, #063f2b);
+}
+
+td {
+    border-bottom-color: rgba(148, 163, 184, 0.14);
+    color: var(--admin-text);
+}
+
+td a {
+    color: var(--admin-green);
+}
+
+.back-btn,
+.clear-btn,
+.filter-box button,
+.delete-selected-btn {
+    border: 1px solid var(--admin-border);
+}
+
+.back-btn,
+.filter-box button {
+    background: linear-gradient(135deg, var(--admin-green-main), #0f8f54);
+    color: white;
+}
+
+.clear-btn {
+    background: #242a35;
+}
+
+.filter-box {
+    background: var(--admin-panel);
+    border: 1px solid var(--admin-border);
+}
+
+.filter-box input {
+    background: #0f141b;
+    border-color: rgba(148, 163, 184, 0.24);
+    color: var(--admin-text);
+}
+
+/* =========================
+   FINAL DARK ADMIN PANEL
+========================= */
+
+html,
+body.admin-body {
+    background: #0f1115;
+}
+
+body.admin-body {
+    background:
+        radial-gradient(circle at 14% 10%, rgba(57, 217, 138, 0.16), transparent 30%),
+        radial-gradient(circle at 84% 18%, rgba(0, 168, 90, 0.12), transparent 30%),
+        linear-gradient(135deg, #0f1115 0%, #12161c 54%, #07120d 100%) !important;
+    color: #f8fafc;
+}
+
+.admin-container {
+    color: #f8fafc;
+}
+
+.admin-container h1,
+.admin-page h1,
+.section-heading h2 {
+    color: #f8fafc !important;
+}
+
+.subtitle,
+.section-heading p,
+.activity-item span,
+.activity-item time {
+    color: #a7b0bf !important;
+}
+
+.admin-menu a,
+.activity-panel,
+.empty-panel,
+table,
+.filter-box {
+    background: rgba(22, 27, 35, 0.94) !important;
+    border: 1px solid rgba(57, 217, 138, 0.18) !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38) !important;
+    color: #f8fafc !important;
+}
+
+.admin-menu a:hover {
+    border-color: rgba(57, 217, 138, 0.38) !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.46), 0 0 34px rgba(57, 217, 138, 0.12) !important;
+}
+
+.admin-menu .logout {
+    background: linear-gradient(135deg, #242a35, #101820) !important;
+}
+
+th {
+    background: linear-gradient(135deg, #101820, #063f2b) !important;
+    color: #f8fafc !important;
+}
+
+td {
+    background: rgba(22, 27, 35, 0.7);
+    border-bottom-color: rgba(148, 163, 184, 0.14) !important;
+    color: #f8fafc !important;
+}
+
+.activity-item strong,
+td a {
+    color: #39d98a !important;
+}
+
+@media (max-width: 760px) {
+    .admin-menu {
+        grid-template-columns: 1fr;
+    }
+}

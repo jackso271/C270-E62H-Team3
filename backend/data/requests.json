@@ -126,5 +126,23 @@
         "status": "Accepted",
         "time": "2026-06-10 11:11:56",
         "reviewed_at": "2026-06-10 11:12:31"
+    },
+    {
+        "id": 14,
+        "product_id": 4,
+        "product_title": "iPhone 14 Pro",
+        "buyer": "user2",
+        "seller": "John Doe",
+        "status": "Pending",
+        "time": "2026-06-10 11:29:22"
+    },
+    {
+        "id": 15,
+        "product_id": 8,
+        "product_title": "Apple Watch Series 8",
+        "buyer": "user2",
+        "seller": "Tom Brown",
+        "status": "Pending",
+        "time": "2026-06-10 11:46:34"
     }
 ]
