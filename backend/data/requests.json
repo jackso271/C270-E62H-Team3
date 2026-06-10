@@ -112,7 +112,19 @@
         "product_title": "4K Tv",
         "buyer": "buyer_demo",
         "seller": "user2",
-        "status": "Pending",
-        "time": "2026-06-10 10:54:57"
+        "status": "Rejected",
+        "time": "2026-06-10 10:54:57",
+        "rejection_reason": "Request rejected after review.",
+        "reviewed_at": "2026-06-10 11:11:36"
+    },
+    {
+        "id": 13,
+        "product_id": 12,
+        "product_title": "4K Tv",
+        "buyer": "user3",
+        "seller": "user2",
+        "status": "Accepted",
+        "time": "2026-06-10 11:11:56",
+        "reviewed_at": "2026-06-10 11:12:31"
     }
 ]

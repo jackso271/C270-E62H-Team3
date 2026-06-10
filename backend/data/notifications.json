@@ -26,5 +26,26 @@
         "message": "New request submitted for 4K Tv.",
         "status": "Pending",
         "time": "2026-06-10 10:54:57"
+    },
+    {
+        "id": 5,
+        "title": "Product request rejected",
+        "message": "4K Tv was rejected.",
+        "status": "Rejected",
+        "time": "2026-06-10 11:11:36"
+    },
+    {
+        "id": 6,
+        "title": "Product request submitted",
+        "message": "New request submitted for 4K Tv.",
+        "status": "Pending",
+        "time": "2026-06-10 11:11:56"
+    },
+    {
+        "id": 7,
+        "title": "Product request approved",
+        "message": "4K Tv was approved.",
+        "status": "Approved",
+        "time": "2026-06-10 11:12:31"
     }
 ]

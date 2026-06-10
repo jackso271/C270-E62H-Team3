@@ -26,6 +26,15 @@ def require_logged_in_user():
     }
 
 
+def access_denied(message="Access denied."):
+    return render_template(
+        "user/error.html",
+        title="Access Denied",
+        message=message,
+        back_url="/seller/dashboard",
+    ), 403
+
+
 @seller_dashboard_bp.route("/seller/dashboard")
 def seller_dashboard():
     user = require_logged_in_user()
@@ -53,7 +62,10 @@ def add_seller_product():
     if not user:
         return redirect("/")
 
-    add_product(request.form, user)
+    success, message = add_product(request.form, user)
+    if not success:
+        return access_denied(message)
+
     return redirect("/seller/dashboard")
 
 
@@ -63,7 +75,10 @@ def edit_seller_product(product_id):
     if not user:
         return redirect("/")
 
-    edit_product(product_id, request.form, user)
+    success, message = edit_product(product_id, request.form, user)
+    if not success:
+        return access_denied(message)
+
     return redirect("/seller/dashboard")
 
 
@@ -73,5 +88,8 @@ def delete_seller_product(product_id):
     if not user:
         return redirect("/")
 
-    delete_product(product_id, user)
+    success, message = delete_product(product_id, user)
+    if not success:
+        return access_denied(message)
+
     return redirect("/seller/dashboard")

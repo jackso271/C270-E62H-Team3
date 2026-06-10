@@ -42,9 +42,22 @@
                 {% if product.status == "Available" %}
                     <span class="status available">{{ product.status }}</span>
 
-                    <form action="/request_buy/{{ product.id }}" method="POST">
-                        <button type="submit" class="request-btn">Request to Buy</button>
-                    </form>
+                    {% if product.request_state == "requestable" %}
+                        <form action="/request_buy/{{ product.id }}" method="POST">
+                            <button type="submit" class="request-btn">Request to Buy</button>
+                        </form>
+                    {% elif product.request_state == "already_requested" %}
+                        <button disabled class="disabled-btn">Request Pending</button>
+                    {% elif product.request_state == "own_listing" %}
+                        <button disabled class="disabled-btn">Your Listing</button>
+                    {% elif product.request_state == "login_required" %}
+                        <button disabled class="disabled-btn">Login Required</button>
+                    {% else %}
+                        <button disabled class="disabled-btn">Not Available</button>
+                    {% endif %}
+                {% elif product.status == "Sold" %}
+                    <span class="status reserved">Sold</span>
+                    <button disabled class="disabled-btn">Sold</button>
                 {% else %}
                     <span class="status reserved">{{ product.status }}</span>
                     <button disabled class="disabled-btn">Not Available</button>
