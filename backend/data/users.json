@@ -50,6 +50,19 @@
         "role": "student",
         "blocked": false,
         "created_at": "2026-06-10 09:54:53",
-        "last_login": "2026-06-10 09:55:05"
+        "last_login": "2026-06-10 10:52:55"
+    },
+    {
+        "id": 5,
+        "name": "user03",
+        "username": "user3",
+        "email": "23345@myrp.edu.sg",
+        "student_id": "23345",
+        "school": "School of Applied Science",
+        "password": "123456",
+        "role": "student",
+        "blocked": false,
+        "created_at": "2026-06-10 10:54:44",
+        "last_login": "2026-06-10 10:54:53"
     }
 ]

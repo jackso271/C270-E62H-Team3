@@ -5,6 +5,7 @@ from flask import Flask
 from backend.routes.admin_routes import admin_bp
 from backend.routes.auth_routes import auth_bp
 from backend.routes.marketplace_routes import marketplace_bp
+from backend.routes.seller_dashboard_routes import seller_dashboard_bp
 from backend.services.auth_service import create_admin
 from backend.utils.json_storage import ensure_data_files
 
@@ -37,6 +38,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(marketplace_bp)
+    app.register_blueprint(seller_dashboard_bp)
 
     return app
 

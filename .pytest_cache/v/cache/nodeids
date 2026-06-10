@@ -13,6 +13,11 @@
   "tests/test_app.py::test_product_request_filter_empty_state",
   "tests/test_app.py::test_product_request_route_still_creates_request",
   "tests/test_app.py::test_registering_new_account_works",
+  "tests/test_app.py::test_seller_dashboard_add_product_works",
+  "tests/test_app.py::test_seller_dashboard_delete_product_works",
+  "tests/test_app.py::test_seller_dashboard_edit_product_works",
+  "tests/test_app.py::test_seller_dashboard_filtering_works",
+  "tests/test_app.py::test_seller_dashboard_route_loads_for_logged_in_user",
   "tests/test_app.py::test_student_login_redirects_to_homepage",
   "tests/test_app.py::test_unknown_account_logs_clear_reason",
   "tests/test_app.py::test_wrong_password_logs_clear_reason"

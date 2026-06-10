@@ -65,6 +65,9 @@ def login():
 
         session["user_id"] = user.get("id")
         session["name"] = user.get("name")
+        session["username"] = user.get("username")
+        session["email"] = user.get("email")
+        session["student_id"] = user.get("student_id")
         session["role"] = user.get("role")
 
         log_success(user)

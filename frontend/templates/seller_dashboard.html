@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .seller-dashboard-body {
+            background: #f5f7fb;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .seller-dashboard-header {
+            background: #111827;
+            color: white;
+            padding: 28px 8%;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .seller-dashboard-header h1 {
+            margin: 0 0 6px;
+            font-size: 30px;
+        }
+
+        .seller-dashboard-header p {
+            margin: 0;
+            color: #cbd5e1;
+        }
+
+        .seller-dashboard-nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .seller-dashboard-nav a,
+        .seller-dashboard-button {
+            background: #2563eb;
+            border: 0;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 14px;
+            padding: 10px 14px;
+            text-decoration: none;
+        }
+
+        .seller-dashboard-shell {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 28px 20px 50px;
+        }
+
+        .seller-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .seller-stat {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .seller-stat strong {
+            display: block;
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+
+        .seller-panel {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 22px;
+            padding: 20px;
+        }
+
+        .seller-panel h2 {
+            margin: 0 0 16px;
+            font-size: 20px;
+        }
+
+        .seller-form-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1.8fr 0.8fr 0.8fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .seller-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .seller-field input,
+        .seller-field select {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            padding: 10px;
+            width: 100%;
+        }
+
+        .seller-toolbar {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .seller-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .seller-filters a {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #334155;
+            padding: 8px 12px;
+            text-decoration: none;
+        }
+
+        .seller-filters a.active {
+            background: #111827;
+            border-color: #111827;
+            color: white;
+        }
+
+        .seller-product-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .seller-product-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .seller-product-card h3 {
+            margin: 0 0 6px;
+        }
+
+        .seller-product-card p {
+            color: #64748b;
+            margin: 0 0 12px;
+        }
+
+        .seller-edit-form {
+            display: grid;
+            grid-template-columns: 1.2fr 1.8fr 0.7fr 0.8fr auto auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .seller-danger-button {
+            background: #dc2626;
+        }
+
+        .seller-empty {
+            color: #64748b;
+            padding: 28px;
+            text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .seller-dashboard-header,
+            .seller-toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .seller-stats,
+            .seller-form-grid,
+            .seller-edit-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="seller-dashboard-body">
+    <header class="seller-dashboard-header">
+        <div>
+            <h1>Seller Dashboard</h1>
+            <p>Manage your RP Marketplace listings.</p>
+        </div>
+
+        <nav class="seller-dashboard-nav">
+            <a href="/homepage">Home</a>
+            <a href="/marketplace">Marketplace</a>
+            <a href="/seller_requests">Requests</a>
+            <a href="/logout">Logout</a>
+        </nav>
+    </header>
+
+    <main class="seller-dashboard-shell">
+        <section class="seller-stats">
+            <div class="seller-stat">
+                <strong>{{ stats.total }}</strong>
+                <span>Total listings</span>
+            </div>
+            <div class="seller-stat">
+                <strong>{{ stats.available }}</strong>
+                <span>Available</span>
+            </div>
+            <div class="seller-stat">
+                <strong>{{ stats.sold }}</strong>
+                <span>Sold</span>
+            </div>
+        </section>
+
+        <section class="seller-panel">
+            <h2>Add Listing</h2>
+            <form action="/seller/dashboard/add" method="POST" class="seller-form-grid">
+                <div class="seller-field">
+                    <label for="title">Product Name</label>
+                    <input id="title" name="title" type="text" required>
+                </div>
+                <div class="seller-field">
+                    <label for="description">Description</label>
+                    <input id="description" name="description" type="text">
+                </div>
+                <div class="seller-field">
+                    <label for="price">Price</label>
+                    <input id="price" name="price" type="number" min="0" step="0.01" required>
+                </div>
+                <div class="seller-field">
+                    <label>Status</label>
+                    <input type="text" value="Available" disabled>
+                </div>
+                <button type="submit" class="seller-dashboard-button">Add</button>
+            </form>
+        </section>
+
+        <section class="seller-panel">
+            <div class="seller-toolbar">
+                <h2>Your Listings</h2>
+                <div class="seller-filters">
+                    <a href="/seller/dashboard?status=all" class="{% if status_filter == 'all' %}active{% endif %}">All</a>
+                    <a href="/seller/dashboard?status=available" class="{% if status_filter == 'available' %}active{% endif %}">Available</a>
+                    <a href="/seller/dashboard?status=sold" class="{% if status_filter == 'sold' %}active{% endif %}">Sold</a>
+                </div>
+            </div>
+
+            <div class="seller-product-list">
+                {% for product in products %}
+                    <article class="seller-product-card">
+                        <h3>{{ product.title or product.name }}</h3>
+                        <p>${{ product.price }} · {{ product.status }} · {{ product.description or "No description" }}</p>
+
+                        <form action="/seller/dashboard/edit/{{ product.id }}" method="POST" class="seller-edit-form">
+                            <div class="seller-field">
+                                <label for="title-{{ product.id }}">Name</label>
+                                <input id="title-{{ product.id }}" name="title" type="text" value="{{ product.title or product.name }}" required>
+                            </div>
+                            <div class="seller-field">
+                                <label for="description-{{ product.id }}">Description</label>
+                                <input id="description-{{ product.id }}" name="description" type="text" value="{{ product.description }}">
+                            </div>
+                            <div class="seller-field">
+                                <label for="price-{{ product.id }}">Price</label>
+                                <input id="price-{{ product.id }}" name="price" type="number" min="0" step="0.01" value="{{ product.price }}" required>
+                            </div>
+                            <div class="seller-field">
+                                <label for="status-{{ product.id }}">Status</label>
+                                <select id="status-{{ product.id }}" name="status">
+                                    <option value="Available" {% if product.status == "Available" %}selected{% endif %}>Available</option>
+                                    <option value="Sold" {% if product.status == "Sold" %}selected{% endif %}>Sold</option>
+                                    <option value="Reserved" {% if product.status == "Reserved" %}selected{% endif %}>Reserved</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="seller-dashboard-button">Save</button>
+                            <button type="submit" formaction="/seller/dashboard/delete/{{ product.id }}" class="seller-dashboard-button seller-danger-button">Delete</button>
+                        </form>
+                    </article>
+                {% else %}
+                    <div class="seller-empty">No listings found for this filter.</div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

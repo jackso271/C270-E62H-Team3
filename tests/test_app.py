@@ -45,10 +45,30 @@ def app(tmp_path):
             {
                 "id": 1,
                 "title": "Keyboard",
+                "name": "Keyboard",
                 "price": 25,
-                "seller": "seller1",
+                "seller": "student1",
                 "status": "Available",
-            }
+                "description": "Compact keyboard",
+            },
+            {
+                "id": 2,
+                "title": "Mouse",
+                "name": "Mouse",
+                "price": 15,
+                "seller": "student1",
+                "status": "Sold",
+                "description": "Wireless mouse",
+            },
+            {
+                "id": 3,
+                "title": "Monitor",
+                "name": "Monitor",
+                "price": 80,
+                "seller": "otherstudent",
+                "status": "Available",
+                "description": "24 inch monitor",
+            },
         ],
         "requests.json": [],
         "notifications.json": [],
@@ -75,6 +95,19 @@ def read_users(app):
     users_path = app.config["DATA_DIR"] + "/users.json"
     with open(users_path, "r", encoding="utf-8") as file:
         return json.load(file)
+
+
+def read_products(app):
+    products_path = app.config["DATA_DIR"] + "/products.json"
+    with open(products_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def login_student(client):
+    return client.post(
+        "/login",
+        data={"login_id": "student1", "password": "password123"},
+    )
 
 
 def test_application_startup(app):
@@ -108,6 +141,85 @@ def test_admin_login_redirects_to_dashboard(client):
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/admin/dashboard")
+
+
+def test_seller_dashboard_route_loads_for_logged_in_user(client):
+    login_student(client)
+
+    response = client.get("/seller/dashboard")
+
+    assert response.status_code == 200
+    assert b"Seller Dashboard" in response.data
+    assert b"Keyboard" in response.data
+    assert b"Monitor" not in response.data
+
+
+def test_seller_dashboard_add_product_works(client, app):
+    login_student(client)
+
+    response = client.post(
+        "/seller/dashboard/add",
+        data={
+            "title": "Notebook",
+            "description": "Unused lined notebook",
+            "price": "4.50",
+        },
+    )
+    products = read_products(app)
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/seller/dashboard")
+    assert any(
+        product["title"] == "Notebook"
+        and product["seller"] == "student1"
+        and product["status"] == "Available"
+        for product in products
+    )
+
+
+def test_seller_dashboard_edit_product_works(client, app):
+    login_student(client)
+
+    response = client.post(
+        "/seller/dashboard/edit/1",
+        data={
+            "title": "Mechanical Keyboard",
+            "description": "Blue switches",
+            "price": "35",
+            "status": "Sold",
+        },
+    )
+    products = read_products(app)
+    product = next(item for item in products if item["id"] == 1)
+
+    assert response.status_code == 302
+    assert product["title"] == "Mechanical Keyboard"
+    assert product["name"] == "Mechanical Keyboard"
+    assert product["description"] == "Blue switches"
+    assert product["price"] == 35.0
+    assert product["status"] == "Sold"
+
+
+def test_seller_dashboard_delete_product_works(client, app):
+    login_student(client)
+
+    response = client.post("/seller/dashboard/delete/1")
+    products = read_products(app)
+
+    assert response.status_code == 302
+    assert all(product["id"] != 1 for product in products)
+    assert any(product["id"] == 3 for product in products)
+
+
+def test_seller_dashboard_filtering_works(client):
+    login_student(client)
+
+    response = client.get("/seller/dashboard?status=sold")
+
+    assert response.status_code == 200
+    assert b"Mouse" in response.data
+    assert b"Keyboard" not in response.data
+    assert b"Monitor" not in response.data
 
 
 def test_legacy_user_without_username_can_login_using_email(client):
