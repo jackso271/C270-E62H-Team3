@@ -1,0 +1,55 @@
+[
+    {
+        "id": 1,
+        "name": "25044459",
+        "username": "25044459",
+        "student_id": "25044459",
+        "email": "25044459@myrp.edu.sg",
+        "school": "N/A",
+        "password": "password123",
+        "role": "user",
+        "blocked": false,
+        "created_at": "N/A",
+        "last_login": "N/A"
+    },
+    {
+        "id": 2,
+        "name": "Admin",
+        "username": "admin",
+        "email": "admin@rp.edu.sg",
+        "student_id": "admin",
+        "school": "N/A",
+        "password": "admin123",
+        "role": "admin",
+        "blocked": false,
+        "created_at": "N/A",
+        "last_login": "2026-06-10 09:38:29"
+    },
+    {
+        "id": 7,
+        "name": "testuser01",
+        "username": "testuser1",
+        "email": "12345@myrp.edu.sg",
+        "student_id": "12345",
+        "school": "School of Sports, Health and Leisure",
+        "password": "1234",
+        "role": "student",
+        "blocked": false,
+        "created_at": "2026-06-07 19:16:05",
+        "status_updated_at": "2026-06-07 20:00:41",
+        "last_login": "2026-06-07 20:28:49"
+    },
+    {
+        "id": 4,
+        "name": "user02",
+        "username": "user2",
+        "email": "22345@myrp.edu.sg",
+        "student_id": "22345",
+        "school": "School of Engineering",
+        "password": "123456",
+        "role": "student",
+        "blocked": false,
+        "created_at": "2026-06-10 09:54:53",
+        "last_login": "2026-06-10 09:55:05"
+    }
+]

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ title }}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-body">
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <img
+                src="{{ url_for('static', filename='images/rp-logo.png') }}"
+                alt="RP Logo"
+                class="rp-logo"
+            >
+
+            <h1>{{ title }}</h1>
+
+            <p class="subtitle">
+                {{ message }}
+            </p>
+
+            <a href="{{ back_url }}" class="primary-btn">
+                Back to Register
+            </a>
+
+            <br><br>
+
+            <a href="/" class="footer-text">
+                Back to Login
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

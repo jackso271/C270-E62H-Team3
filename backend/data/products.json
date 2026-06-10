@@ -1,58 +1,101 @@
 [
   {
     "id": 1,
-    "name": "iPhone 14 Pro",
-    "seller": "John Doe",
-    "price": 1200,
-    "description": "Latest iPhone with advanced camera system"
+    "title": "Used Laptop",
+    "name": "Used Laptop",
+    "price": 450,
+    "seller": "seller1",
+    "status": "Reserved",
+    "description": "Pre-owned laptop listed by seller1"
   },
   {
     "id": 2,
-    "name": "MacBook Pro 16",
-    "seller": "Jane Smith",
-    "price": 2500,
-    "description": "Powerful laptop for professionals"
+    "title": "Keyboard",
+    "name": "Keyboard",
+    "price": 25,
+    "seller": "seller1",
+    "status": "Reserved",
+    "description": "Keyboard listed by seller1"
   },
   {
     "id": 3,
-    "name": "AirPods Pro",
-    "seller": "Mike Johnson",
-    "price": 250,
-    "description": "Premium wireless earbuds with noise cancellation"
+    "title": "iPad Case",
+    "name": "iPad Case",
+    "price": 10,
+    "seller": "seller2",
+    "status": "Reserved",
+    "description": "iPad case listed by seller2"
   },
   {
     "id": 4,
-    "name": "iPad Air",
-    "seller": "Sarah Lee",
-    "price": 600,
-    "description": "Perfect tablet for work and entertainment"
+    "title": "iPhone 14 Pro",
+    "name": "iPhone 14 Pro",
+    "seller": "John Doe",
+    "price": 1200,
+    "status": "Available",
+    "description": "Latest iPhone with advanced camera system"
   },
   {
     "id": 5,
-    "name": "Apple Watch Series 8",
-    "seller": "Tom Brown",
-    "price": 400,
-    "description": "Smart watch with health tracking features"
+    "title": "MacBook Pro 16",
+    "name": "MacBook Pro 16",
+    "seller": "Jane Smith",
+    "price": 2500,
+    "status": "Available",
+    "description": "Powerful laptop for professionals"
   },
   {
     "id": 6,
-    "name": "Gaming Laptop ASUS",
-    "seller": "Alex Wong",
-    "price": 1800,
-    "description": "High-performance gaming laptop with RTX 4090"
+    "title": "AirPods Pro",
+    "name": "AirPods Pro",
+    "seller": "Mike Johnson",
+    "price": 250,
+    "status": "Available",
+    "description": "Premium wireless earbuds with noise cancellation"
   },
   {
     "id": 7,
-    "name": "Mechanical Keyboard RGB",
-    "seller": "Chris Park",
-    "price": 180,
-    "description": "Professional mechanical keyboard with customizable lighting"
+    "title": "iPad Air",
+    "name": "iPad Air",
+    "seller": "Sarah Lee",
+    "price": 600,
+    "status": "Available",
+    "description": "Perfect tablet for work and entertainment"
   },
   {
     "id": 8,
+    "title": "Apple Watch Series 8",
+    "name": "Apple Watch Series 8",
+    "seller": "Tom Brown",
+    "price": 400,
+    "status": "Available",
+    "description": "Smart watch with health tracking features"
+  },
+  {
+    "id": 9,
+    "title": "Gaming Laptop ASUS",
+    "name": "Gaming Laptop ASUS",
+    "seller": "Alex Wong",
+    "price": 1800,
+    "status": "Available",
+    "description": "High-performance gaming laptop with RTX 4090"
+  },
+  {
+    "id": 10,
+    "title": "Mechanical Keyboard RGB",
+    "name": "Mechanical Keyboard RGB",
+    "seller": "Chris Park",
+    "price": 180,
+    "status": "Available",
+    "description": "Professional mechanical keyboard with customizable lighting"
+  },
+  {
+    "id": 11,
+    "title": "4K Webcam",
     "name": "4K Webcam",
     "seller": "Emily Davis",
     "price": 150,
+    "status": "Available",
     "description": "Crystal clear 4K video for streaming and meetings"
   }
 ]

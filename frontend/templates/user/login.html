@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RP Marketplace Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-body">
+
+    <div class="login-container">
+        <div class="login-card">
+            <img src="{{ url_for('static', filename='images/rp-logo.png') }}" alt="RP Logo" class="rp-logo">
+
+            <h1>RP Marketplace</h1>
+            <p class="subtitle">Sign in with your RP student or admin account</p>
+
+            <form action="/login" method="POST" class="login-form">
+                <label for="login_id">Login ID</label>
+                <input
+                    id="login_id"
+                    type="text"
+                    name="login_id"
+                    placeholder="Username, RP email, student ID, or name"
+                    required
+                >
+
+                <label for="password">Password</label>
+                <div class="password-field">
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
+                        Show
+                    </button>
+                </div>
+
+                <button type="submit" class="login-submit">
+                    Login
+                </button>
+            </form>
+
+            <form action="/forgot-password" method="POST" class="forgot-form">
+                <input
+                    type="text"
+                    name="login_id"
+                    placeholder="Enter login ID for reset request"
+                    aria-label="Login ID for password reset request"
+                >
+                <button type="submit" class="link-button">
+                    Forgot Password?
+                </button>
+            </form>
+
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+
+            <p class="footer-text">
+                New to RP Market?
+                <a href="/register">Create Account</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById("password");
+            const toggleButton = document.querySelector(".toggle-password");
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                toggleButton.textContent = "Hide";
+            } else {
+                passwordInput.type = "password";
+                toggleButton.textContent = "Show";
+            }
+        }
+    </script>
+
+</body>
+
+</html>

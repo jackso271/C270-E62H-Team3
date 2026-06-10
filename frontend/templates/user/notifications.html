@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="request-page">
+
+    <main class="request-container">
+        <div class="request-header">
+            <a href="/marketplace" class="back-btn">&larr; Back to Marketplace</a>
+            <h1>Notifications</h1>
+            <p>
+                Recent product request, seller request, and security updates are shown newest first.
+            </p>
+        </div>
+
+        {% if notifications %}
+            <section class="notification-list">
+                {% for notification in notifications %}
+                    <article class="notification-card">
+                        <div>
+                            <h2>{{ notification.title }}</h2>
+                            <p>{{ notification.message }}</p>
+                            <time>{{ notification.time }}</time>
+                        </div>
+
+                        {% if notification.status == "Approved" %}
+                            <span class="status-badge status-approved">Approved</span>
+                        {% elif notification.status == "Rejected" %}
+                            <span class="status-badge status-rejected">Rejected</span>
+                        {% elif notification.status == "Pending" %}
+                            <span class="status-badge status-pending">Pending</span>
+                        {% else %}
+                            <span class="status-badge status-warning">Info</span>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <section class="empty-panel">
+                <h2>No notifications yet</h2>
+                <p>Request updates and security messages will appear here.</p>
+            </section>
+        {% endif %}
+    </main>
+
+</body>
+
+</html>

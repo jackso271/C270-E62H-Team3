@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+
+<body class="admin-body">
+
+    <div class="admin-container">
+        <h1>RP Marketplace Admin</h1>
+        <p class="subtitle">Monitor accounts, security logs, and review activity</p>
+
+        <div class="admin-menu">
+            <a href="/admin/users">Account Management</a>
+            <a href="/admin/success-logs">Successful Login Activity</a>
+            <a href="/admin/failed-logs">Security & Failed Login Logs</a>
+            <a href="/logout" class="logout">Logout</a>
+        </div>
+
+        <section class="activity-panel">
+            <div class="section-heading">
+                <h2>Recent Activity</h2>
+                <p>Latest account, security, and request events from available JSON data.</p>
+            </div>
+
+            {% if recent_activities %}
+                <div class="activity-list">
+                    {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div>
+                                <strong>{{ activity.label }}</strong>
+                                <span>{{ activity.detail }}</span>
+                            </div>
+                            <time>{{ activity.time_text }}</time>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-panel">
+                    No recent activity is available yet.
+                </div>
+            {% endif %}
+        </section>
+    </div>
+
+</body>
+</html>

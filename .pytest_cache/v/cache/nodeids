@@ -1,0 +1,19 @@
+[
+  "tests/test_app.py::test_admin_login_redirects_to_dashboard",
+  "tests/test_app.py::test_application_startup",
+  "tests/test_app.py::test_blank_registration_fields_are_rejected_clearly",
+  "tests/test_app.py::test_duplicate_email_is_blocked",
+  "tests/test_app.py::test_duplicate_student_id_is_blocked",
+  "tests/test_app.py::test_duplicate_username_is_blocked",
+  "tests/test_app.py::test_forgot_password_logs_reset_request",
+  "tests/test_app.py::test_invalid_login_shows_error_page",
+  "tests/test_app.py::test_legacy_user_without_username_can_login_using_email",
+  "tests/test_app.py::test_legacy_user_without_username_can_login_using_student_id",
+  "tests/test_app.py::test_main_routes_render",
+  "tests/test_app.py::test_product_request_filter_empty_state",
+  "tests/test_app.py::test_product_request_route_still_creates_request",
+  "tests/test_app.py::test_registering_new_account_works",
+  "tests/test_app.py::test_student_login_redirects_to_homepage",
+  "tests/test_app.py::test_unknown_account_logs_clear_reason",
+  "tests/test_app.py::test_wrong_password_logs_clear_reason"
+]
