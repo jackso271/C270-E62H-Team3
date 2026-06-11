@@ -39,9 +39,32 @@ def access_denied(message="Access denied."):
 
 @marketplace_bp.route("/marketplace")
 def marketplace():
+    user = current_user()
+
+    search = request.args.get("search", "").lower()
+    category = request.args.get("category", "")
+
+    products = get_marketplace_products(user)
+
+    # SEARCH
+    if search:
+        products = [
+            p for p in products
+            if search in p.get("title", "").lower()
+        ]
+
+    # FILTER
+    if category:
+        products = [
+            p for p in products
+            if p.get("category") == category
+        ]
+
     return render_template(
         "user/marketplace.html",
-        products=get_marketplace_products(current_user()),
+        products=products,
+        search=search,
+        category=category
     )
 
 
@@ -125,3 +148,22 @@ def reject_request_route(request_id):
         return access_denied(message)
 
     return redirect("/seller_requests")
+
+@marketplace_bp.route("/product/<int:product_id>")
+def product_details(product_id):
+    user = current_user()
+
+    products = get_marketplace_products(user)
+
+    product = next(
+        (p for p in products if p["id"] == product_id),
+        None
+    )
+
+    if not product:
+        return access_denied("Product not found.")
+
+    return render_template(
+        "user/product_details.html",
+        product=product
+    )
