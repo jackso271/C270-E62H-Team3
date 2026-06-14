@@ -36,6 +36,17 @@
             <h2>Available Items</h2>
             <p>Browse listed items and submit a request when something fits what you need.</p>
         </section>
+        
+        <form method="GET" action="/marketplace">
+            <input type="text" name="search" placeholder="Search products..." value="{{ search or '' }}">
+            <select name="category">
+                <option value="">All Categories</option>
+                <option value="Books">Books</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Food">Food</option>
+            </select>
+            <button type="submit">Search</button>
+        </form>
 
         <section class="marketplace-grid">
         {% for product in products %}
@@ -43,7 +54,11 @@
                 <div class="product-img" aria-hidden="true">RP</div>
 
                 <div class="product-info">
-                    <h3>{{ product.title }}</h3>
+                    <h3>
+                        <a href="/product/{{ product.id }}">
+                            {{ product.title }}
+                        </a>
+                    </h3>
                     <p class="price">${{ product.price }}</p>
                     <p class="seller-line"><strong>Seller:</strong> {{ product.seller }}</p>
                     <p class="product-description">{{ product.description or "No description provided." }}</p>
