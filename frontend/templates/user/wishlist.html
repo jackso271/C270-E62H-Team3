@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RP Marketplace</title>
+    <title>Wishlist</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="marketplace-body">
 
+<body class="marketplace-body">
     <header class="app-navbar">
         <a href="/homepage" class="app-brand">
             <span class="brand-dot"></span>
@@ -19,8 +20,8 @@
 
         <nav class="app-nav-links">
             <a href="/homepage">Home</a>
-            <a href="/marketplace" class="active">Marketplace</a>
-            <a href="/wishlist">Wishlist</a>
+            <a href="/marketplace">Marketplace</a>
+            <a href="/wishlist" class="active">Wishlist</a>
             <a href="/seller/dashboard">Seller Dashboard</a>
             <a href="/seller_requests">Requests</a>
             <details class="user-menu">
@@ -33,13 +34,13 @@
 
     <main class="marketplace-shell">
         <section class="marketplace-intro">
-            <h2>Available Items</h2>
-            <p>Browse listed items and submit a request when something fits what you need.</p>
+            <h2>Your Wishlist</h2>
+            <p>Saved items are private to your account and stay here until you remove them.</p>
         </section>
 
         <section class="marketplace-grid">
-        {% for product in products %}
-            <div class="product-card">
+        {% for product in wishlist_items %}
+            <div class="product-card wishlist-card">
                 <div class="product-img" aria-hidden="true">RP</div>
 
                 <div class="product-info">
@@ -49,18 +50,9 @@
                     <p class="product-description">{{ product.description or "No description provided." }}</p>
                 </div>
 
-                {% if product.wishlist_saved %}
-                    <form action="/wishlist/remove/{{ product.id }}" method="POST">
-                        <button type="submit" class="wishlist-btn saved">Saved - Remove</button>
-                    </form>
-                {% else %}
-                    <form action="/wishlist/add/{{ product.id }}" method="POST">
-                        <button type="submit" class="wishlist-btn">Add to Wishlist</button>
-                    </form>
-                {% endif %}
-
                 {% if product.status == "Available" %}
                     <span class="status available">{{ product.status }}</span>
+
                     {% if product.request_state == "requestable" %}
                         <form action="/request_buy/{{ product.id }}" method="POST">
                             <button type="submit" class="request-btn">Request to Buy</button>
@@ -69,8 +61,6 @@
                         <button disabled class="disabled-btn">Request Pending</button>
                     {% elif product.request_state == "own_listing" %}
                         <button disabled class="disabled-btn">Your Listing</button>
-                    {% elif product.request_state == "login_required" %}
-                        <button disabled class="disabled-btn">Login Required</button>
                     {% else %}
                         <button disabled class="disabled-btn">Not Available</button>
                     {% endif %}
@@ -81,15 +71,20 @@
                     <span class="status reserved">{{ product.status }}</span>
                     <button disabled class="disabled-btn">Not Available</button>
                 {% endif %}
+
+                <form action="/wishlist/remove/{{ product.id }}" method="POST">
+                    <button type="submit" class="wishlist-btn saved">Remove from Wishlist</button>
+                </form>
             </div>
         {% else %}
-            <div class="marketplace-empty">
-                <h3>No products listed yet</h3>
-                <p>Items added by teammates will appear here automatically.</p>
+            <div class="marketplace-empty wishlist-empty">
+                <h3>Your wishlist is empty</h3>
+                <p>Save items from the marketplace and they will appear here.</p>
+                <a href="/marketplace" class="empty-action">Browse Marketplace</a>
             </div>
         {% endfor %}
         </section>
     </main>
-
 </body>
+
 </html>

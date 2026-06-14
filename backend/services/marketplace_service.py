@@ -21,6 +21,70 @@ def get_requests():
     return load_json(data_file("requests"))
 
 
+def get_wishlists():
+    wishlists = load_json(data_file("wishlists"))
+    if isinstance(wishlists, dict):
+        return wishlists
+    return {}
+
+
+def save_wishlists(wishlists):
+    save_json(data_file("wishlists"), wishlists)
+
+
+def wishlist_key(user):
+    return str(user.get("user_id"))
+
+
+def get_wishlist_ids(user):
+    if not user:
+        return []
+
+    wishlist = get_wishlists().get(wishlist_key(user), [])
+    return [
+        product_id for product_id in wishlist
+        if isinstance(product_id, int)
+    ]
+
+
+def get_wishlist_products(user):
+    saved_ids = set(get_wishlist_ids(user))
+    return [
+        product for product in get_marketplace_products(user)
+        if product.get("id") in saved_ids
+    ]
+
+
+def add_to_wishlist(product_id, user):
+    if not user or get_product_by_id(product_id) is None:
+        return False
+
+    wishlists = get_wishlists()
+    key = wishlist_key(user)
+    saved_ids = wishlists.setdefault(key, [])
+
+    if product_id not in saved_ids:
+        saved_ids.append(product_id)
+        save_wishlists(wishlists)
+
+    return True
+
+
+def remove_from_wishlist(product_id, user):
+    if not user:
+        return False
+
+    wishlists = get_wishlists()
+    key = wishlist_key(user)
+    saved_ids = wishlists.get(key, [])
+
+    if product_id in saved_ids:
+        saved_ids.remove(product_id)
+        save_wishlists(wishlists)
+
+    return True
+
+
 def get_request_buyer(user):
     return seller_name(user)
 
@@ -55,13 +119,17 @@ def get_product_by_id(product_id):
 
 def get_marketplace_products(user=None):
     products = get_products()
+    wishlist_ids = set(get_wishlist_ids(user))
 
     if not user:
         for product in products:
             product["request_state"] = "login_required"
+            product["wishlist_saved"] = False
         return products
 
     for product in products:
+        product["wishlist_saved"] = product.get("id") in wishlist_ids
+
         if product_belongs_to_seller(product, user):
             product["request_state"] = "own_listing"
         elif product.get("status") in SOLD_STATUSES:

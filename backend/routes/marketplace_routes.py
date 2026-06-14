@@ -2,10 +2,13 @@ from flask import Blueprint, redirect, render_template, request, session
 
 from backend.services.marketplace_service import (
     accept_request,
+    add_to_wishlist,
     get_marketplace_products,
     get_seller_requests,
+    get_wishlist_products,
     request_counts,
     reject_request,
+    remove_from_wishlist,
     request_buy,
 )
 from backend.services.notification_service import get_notifications
@@ -43,6 +46,38 @@ def marketplace():
         "user/marketplace.html",
         products=get_marketplace_products(current_user()),
     )
+
+
+@marketplace_bp.route("/wishlist")
+def wishlist():
+    user = current_user()
+    if not user:
+        return redirect("/")
+
+    return render_template(
+        "user/wishlist.html",
+        wishlist_items=get_wishlist_products(user),
+    )
+
+
+@marketplace_bp.route("/wishlist/add/<int:product_id>", methods=["POST"])
+def add_wishlist_route(product_id):
+    user = current_user()
+    if not user:
+        return redirect("/")
+
+    add_to_wishlist(product_id, user)
+    return redirect(request.referrer or "/marketplace")
+
+
+@marketplace_bp.route("/wishlist/remove/<int:product_id>", methods=["POST"])
+def remove_wishlist_route(product_id):
+    user = current_user()
+    if not user:
+        return redirect("/")
+
+    remove_from_wishlist(product_id, user)
+    return redirect(request.referrer or "/wishlist")
 
 
 @marketplace_bp.route("/request_buy/<int:product_id>", methods=["POST"])

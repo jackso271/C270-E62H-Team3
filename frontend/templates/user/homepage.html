@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-<body class="login-body">
+<body class="home-body">
 
     <div class="home-page">
 
@@ -21,6 +21,7 @@
             <div class="app-nav-links">
                 <a href="/homepage" class="active">Home</a>
                 <a href="/marketplace">Marketplace</a>
+                <a href="/wishlist">Wishlist</a>
                 <a href="/seller/dashboard">Seller Dashboard</a>
                 <a href="/seller_requests">Requests</a>
                 <details class="user-menu">
@@ -34,42 +35,96 @@
         <main class="home-content">
 
             <section class="home-hero">
-                <h1>Welcome, {{ name }}</h1>
+                <div class="home-hero-copy">
+                    <p class="home-eyebrow">RP student marketplace</p>
+                    <h1>Welcome, {{ name }}</h1>
 
-                <p>
-                    Buy, sell, and manage campus listings in one clean RP Marketplace workspace.
-                    Browse student deals, track requests, and keep your listings up to date.
-                </p>
+                    <p>
+                        Buy, sell, and manage campus listings in one clean RP Marketplace workspace.
+                        Browse student deals, track requests, and keep your listings up to date.
+                    </p>
 
-                <div class="home-actions">
-                    <a href="/marketplace">Browse Marketplace</a>
-                    <a href="/seller/dashboard">Manage Listings</a>
-                    <a href="/seller_requests">View Requests</a>
+                    <div class="home-actions">
+                        <a href="/marketplace">Browse Marketplace</a>
+                        <a href="/wishlist">View Wishlist</a>
+                        <a href="/seller/dashboard">Manage Listings</a>
+                        <a href="/seller_requests">View Requests</a>
+                    </div>
                 </div>
+
+                <div class="home-deal-panel" aria-label="Marketplace snapshot">
+                    <span class="home-deal-tag">Campus picks</span>
+                    <h2>Find useful items from RP students</h2>
+                    <p>Textbooks, tech gear, desk tools, accessories, and everyday campus essentials.</p>
+                    <a href="/marketplace">Start browsing</a>
+                </div>
+            </section>
+
+            <section class="home-quick-access" aria-label="Quick access">
+                <a href="/marketplace">
+                    <strong>Shop Items</strong>
+                    <span>Browse live campus listings</span>
+                </a>
+                <a href="/wishlist">
+                    <strong>Saved Finds</strong>
+                    <span>Return to items you liked</span>
+                </a>
+                <a href="/seller/dashboard">
+                    <strong>Sell on Campus</strong>
+                    <span>Add and manage your listings</span>
+                </a>
+                <a href="/seller_requests">
+                    <strong>Request Hub</strong>
+                    <span>Review buying activity</span>
+                </a>
+            </section>
+
+            <section class="home-section-heading">
+                <p>Student marketplace highlights</p>
+                <h2>Built for quick campus trading</h2>
             </section>
 
             <section class="home-features">
 
                 <div class="home-feature-card">
+                    <span>01</span>
                     <h3>Verified RP Users</h3>
                     <p>Only RP students can access the marketplace.</p>
                 </div>
 
                 <div class="home-feature-card">
+                    <span>02</span>
                     <h3>Campus Deals</h3>
                     <p>Find affordable second-hand items from students nearby.</p>
                 </div>
 
                 <div class="home-feature-card">
+                    <span>03</span>
                     <h3>Safe Requests</h3>
                     <p>Send purchase requests before confirming a transaction.</p>
                 </div>
 
                 <div class="home-feature-card">
+                    <span>04</span>
                     <h3>Quick Access</h3>
                     <p>Jump between marketplace browsing, seller tools, and request updates quickly.</p>
                 </div>
 
+            </section>
+
+            <section class="home-campus-strip" aria-label="Campus-safe trading benefits">
+                <div>
+                    <strong>Campus-safe flow</strong>
+                    <span>Request first, then coordinate clearly with the seller.</span>
+                </div>
+                <div>
+                    <strong>Student-focused</strong>
+                    <span>Listings stay relevant to RP student life and study needs.</span>
+                </div>
+                <div>
+                    <strong>Easy selling</strong>
+                    <span>Manage items, status, and requests from one dashboard.</span>
+                </div>
             </section>
 
         </main>
