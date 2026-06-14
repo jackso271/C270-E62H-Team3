@@ -3232,7 +3232,7 @@ button:hover,
 }
 
 .home-hero-copy,
-.home-deal-panel {
+.home-carousel {
     position: relative;
     z-index: 1;
 }
@@ -3269,7 +3269,6 @@ button:hover,
 }
 
 .home-body .home-actions a,
-.home-deal-panel a,
 .home-quick-access a,
 .empty-action {
     text-decoration: none;
@@ -3293,7 +3292,6 @@ button:hover,
 }
 
 .home-body .home-actions a:hover,
-.home-deal-panel a:hover,
 .home-quick-access a:hover,
 .home-feature-card:hover,
 .home-campus-strip div:hover {
@@ -3301,7 +3299,7 @@ button:hover,
     transform: translateY(-3px);
 }
 
-.home-deal-panel {
+.home-carousel {
     align-self: stretch;
     background: rgba(8, 13, 18, 0.68);
     border: 1px solid rgba(187, 247, 208, 0.24);
@@ -3309,7 +3307,33 @@ button:hover,
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    min-height: 280px;
+    overflow: hidden;
     padding: 24px;
+}
+
+.home-carousel-track {
+    display: grid;
+    flex: 1;
+    min-height: 220px;
+    position: relative;
+}
+
+.home-carousel-slide {
+    display: flex;
+    flex-direction: column;
+    grid-area: 1 / 1;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(18px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.home-carousel-slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
 }
 
 .home-deal-tag {
@@ -3323,28 +3347,40 @@ button:hover,
     padding: 8px 12px;
 }
 
-.home-deal-panel h2 {
+.home-carousel-slide h2 {
     color: #ffffff;
     font-size: clamp(24px, 3vw, 34px);
     line-height: 1.12;
     margin: 28px 0 12px;
 }
 
-.home-deal-panel p {
+.home-carousel-slide p {
     color: #a7b0bf !important;
     font-size: 15px !important;
     line-height: 1.55;
 }
 
-.home-deal-panel a {
-    background: linear-gradient(135deg, #00a85a, #39d98a);
-    border-radius: 12px;
-    color: #052e1b;
-    display: inline-block;
-    font-weight: 800;
-    margin-top: 24px;
-    padding: 12px 16px;
-    text-align: center;
+.home-carousel-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 22px;
+}
+
+.home-carousel-dots button {
+    background: rgba(255, 255, 255, 0.28);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    height: 9px;
+    padding: 0;
+    transition: background 0.2s ease, width 0.2s ease;
+    width: 9px;
+}
+
+.home-carousel-dots button.active {
+    background: #39d98a;
+    width: 26px;
 }
 
 .home-quick-access {
@@ -3518,7 +3554,16 @@ button:hover,
 
     .home-body .home-feature-card,
     .home-campus-strip div,
-    .home-deal-panel {
+    .home-carousel {
         border-radius: 14px;
+    }
+
+    .home-carousel {
+        min-height: 250px;
+        padding: 20px;
+    }
+
+    .home-carousel-track {
+        min-height: 190px;
     }
 }

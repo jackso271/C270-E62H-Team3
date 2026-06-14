@@ -52,11 +52,39 @@
                     </div>
                 </div>
 
-                <div class="home-deal-panel" aria-label="Marketplace snapshot">
-                    <span class="home-deal-tag">Campus picks</span>
-                    <h2>Find useful items from RP students</h2>
-                    <p>Textbooks, tech gear, desk tools, accessories, and everyday campus essentials.</p>
-                    <a href="/marketplace">Start browsing</a>
+                <div class="home-carousel" aria-label="Marketplace highlights">
+                    <div class="home-carousel-track">
+                        <article class="home-carousel-slide active">
+                            <span class="home-deal-tag">Campus Picks</span>
+                            <h2>Find useful items from RP students</h2>
+                            <p>Textbooks, tech gear, desk tools, accessories, and everyday campus essentials.</p>
+                        </article>
+
+                        <article class="home-carousel-slide">
+                            <span class="home-deal-tag">Sell Faster</span>
+                            <h2>List unused textbooks, gadgets, and accessories</h2>
+                            <p>Turn extra campus items into quick listings for other students to discover.</p>
+                        </article>
+
+                        <article class="home-carousel-slide">
+                            <span class="home-deal-tag">Safe Requests</span>
+                            <h2>Track buyer requests before confirming</h2>
+                            <p>Review interest, manage request status, and keep each transaction clear.</p>
+                        </article>
+
+                        <article class="home-carousel-slide">
+                            <span class="home-deal-tag">Student Deals</span>
+                            <h2>Browse affordable campus items</h2>
+                            <p>Find practical second-hand deals from RP students without leaving the marketplace.</p>
+                        </article>
+                    </div>
+
+                    <div class="home-carousel-dots" aria-label="Choose highlight slide">
+                        <button type="button" class="active" aria-label="Show Campus Picks"></button>
+                        <button type="button" aria-label="Show Sell Faster"></button>
+                        <button type="button" aria-label="Show Safe Requests"></button>
+                        <button type="button" aria-label="Show Student Deals"></button>
+                    </div>
                 </div>
             </section>
 
@@ -131,5 +159,43 @@
 
     </div>
 
+    <script>
+        (() => {
+            const slides = document.querySelectorAll(".home-carousel-slide");
+            const dots = document.querySelectorAll(".home-carousel-dots button");
+            if (!slides.length || !dots.length) {
+                return;
+            }
+
+            let activeIndex = 0;
+            let timerId;
+
+            const showSlide = (index) => {
+                activeIndex = index;
+                slides.forEach((slide, slideIndex) => {
+                    slide.classList.toggle("active", slideIndex === activeIndex);
+                });
+                dots.forEach((dot, dotIndex) => {
+                    dot.classList.toggle("active", dotIndex === activeIndex);
+                });
+            };
+
+            const startTimer = () => {
+                timerId = window.setInterval(() => {
+                    showSlide((activeIndex + 1) % slides.length);
+                }, 4000);
+            };
+
+            dots.forEach((dot, index) => {
+                dot.addEventListener("click", () => {
+                    window.clearInterval(timerId);
+                    showSlide(index);
+                    startTimer();
+                });
+            });
+
+            startTimer();
+        })();
+    </script>
 </body>
 </html>
