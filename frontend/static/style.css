@@ -142,14 +142,14 @@ body {
 
 /* Form */
 
-form {
+.login-body form {
     text-align: left;
 }
 
 
 /* Labels */
 
-label {
+.login-body label {
     display: block;
 
     margin-bottom: 8px;
@@ -164,7 +164,7 @@ label {
 
 /* Inputs */
 
-input {
+.login-body input {
     width: 100%;
 
     padding: 18px;
@@ -178,7 +178,7 @@ input {
     font-size: 18px;
 }
 
-input:focus {
+.login-body input:focus {
     outline: none;
 
     border-color: #0b6b3a;
@@ -189,7 +189,7 @@ input:focus {
 
 /* Button */
 
-button {
+.login-body button {
     width: 100%;
 
     padding: 18px;
@@ -214,7 +214,7 @@ button {
     transition: 0.3s;
 }
 
-button:hover {
+.login-body button:hover {
     background:
         linear-gradient(135deg,
             #0f7f45,
@@ -258,7 +258,7 @@ button:hover {
    HOME PAGE
 ========================= */
 
-.navbar {
+.home-body .navbar {
     height: 70px;
 
     background: white;
@@ -296,7 +296,7 @@ button:hover {
     font-weight: bold;
 }
 
-body {
+.home-body {
     margin: 0;
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #021b13, #063d2f);
@@ -305,7 +305,7 @@ body {
 
 /* NAVBAR */
 
-.navbar {
+.home-body .navbar {
     background: white;
     padding: 18px 30px;
     display: flex;
@@ -339,14 +339,14 @@ body {
 
 /* HERO SECTION */
 
-.hero {
+.home-body .hero {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 80px 20px 40px;
 }
 
-.hero div {
+.home-body .hero div {
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.15);
@@ -358,13 +358,13 @@ body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.35);
 }
 
-.hero h1 {
+.home-body .hero h1 {
     font-size: 52px;
     margin-bottom: 20px;
     color: #39d98a;
 }
 
-.hero p {
+.home-body .hero p {
     font-size: 18px;
     line-height: 1.7;
     color: #e8fff2;
@@ -518,7 +518,8 @@ body {
    GLOBAL ADMIN STYLING
 ========================= */
 
-body {
+.admin-page,
+.admin-body {
     font-family: Arial, sans-serif;
     font-size: 18px;
     background: linear-gradient(to bottom, #001f1f, #003d33);
@@ -531,7 +532,8 @@ body {
    PAGE CONTAINER
 ========================= */
 
-.container {
+.admin-page .container,
+.admin-body .container {
     width: 95%;
     margin: 40px auto;
 }
@@ -540,7 +542,8 @@ body {
    TITLES
 ========================= */
 
-h1 {
+.admin-page h1,
+.admin-body h1 {
     font-size: 48px;
     margin-bottom: 30px;
     color: #66ff99;
@@ -550,9 +553,12 @@ h1 {
    BUTTONS
 ========================= */
 
-button,
-.btn,
-input[type="submit"] {
+.admin-page button,
+.admin-page .btn,
+.admin-page input[type="submit"],
+.admin-body button,
+.admin-body .btn,
+.admin-body input[type="submit"] {
     padding: 12px 20px;
     font-size: 16px;
     border: none;
@@ -601,7 +607,8 @@ input[type="submit"] {
    TABLE STYLING
 ========================= */
 
-table {
+.admin-page table,
+.admin-body table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 25px;
@@ -612,7 +619,8 @@ table {
     font-size: 18px;
 }
 
-th {
+.admin-page th,
+.admin-body th {
     background-color: #004d40;
     color: white;
     padding: 18px;
@@ -620,7 +628,8 @@ th {
     font-size: 18px;
 }
 
-td {
+.admin-page td,
+.admin-body td {
     padding: 18px;
     text-align: center;
     border-bottom: 1px solid #ccc;
@@ -882,7 +891,7 @@ input[type="checkbox"] {
     margin: 0 10px;
 }
 
-select {
+.login-body select {
     width: 100%;
     padding: 18px;
     margin-bottom: 24px;
@@ -985,7 +994,7 @@ select {
     gap: 22px;
 }
 
-.product-card {
+.marketplace-body .product-card {
     background: white;
     color: #111;
     border-radius: 16px;
@@ -998,7 +1007,7 @@ select {
     border: 1px solid rgba(57, 217, 138, 0.18);
 }
 
-.product-card:hover {
+.marketplace-body .product-card:hover {
     transform: translateY(-5px);
 }
 
@@ -1019,7 +1028,7 @@ select {
     flex: 1;
 }
 
-.product-card h3 {
+.marketplace-body .product-card h3 {
     color: #063f24;
     font-size: 22px;
     margin-bottom: 8px;
@@ -1687,7 +1696,13 @@ html {
     background: #0f1115;
 }
 
-body {
+.login-body,
+.marketplace-body,
+.request-page,
+.seller-dashboard-body,
+.admin-page,
+.admin-body,
+.home-body {
     background: #0f1115;
     color: #f8fafc;
 }
@@ -1878,7 +1893,7 @@ body {
 }
 
 .home-feature-card,
-.product-card,
+.marketplace-body .product-card,
 .summary-card,
 .workflow-note,
 .request-card,
@@ -1929,7 +1944,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
-.product-card {
+.marketplace-body .product-card {
     border-radius: 22px !important;
     min-height: 430px;
 }
@@ -1941,7 +1956,7 @@ body {
     height: 126px;
 }
 
-.product-card h3 {
+.marketplace-body .product-card h3 {
     color: #f8fafc !important;
 }
 
@@ -2073,7 +2088,6 @@ body {
     --green-glow: 0 0 0 1px rgba(57, 217, 138, 0.18), 0 18px 50px rgba(0, 168, 90, 0.16);
 }
 
-body,
 .login-body,
 .marketplace-body,
 .request-page,
@@ -2350,7 +2364,7 @@ body,
     color: var(--dark-muted);
 }
 
-.product-card {
+.marketplace-body .product-card {
     background: linear-gradient(180deg, #1b2029, #141922);
     border: 1px solid var(--dark-border);
     box-shadow: var(--dark-shadow);
@@ -2358,7 +2372,7 @@ body,
     min-height: 410px;
 }
 
-.product-card:hover {
+.marketplace-body .product-card:hover {
     border-color: var(--dark-border-strong);
     box-shadow: var(--dark-shadow), 0 0 34px rgba(57, 217, 138, 0.14);
     transform: translateY(-6px);
@@ -2371,7 +2385,7 @@ body,
     color: white;
 }
 
-.product-card h3 {
+.marketplace-body .product-card h3 {
     color: var(--dark-text);
 }
 
@@ -2550,7 +2564,7 @@ body,
         border-radius: 0;
     }
 
-    .product-card {
+    .marketplace-body .product-card {
         min-height: auto;
     }
 }
@@ -2576,7 +2590,6 @@ body,
     --rp-shadow: 0 14px 36px rgba(17, 24, 39, 0.12);
 }
 
-body,
 .marketplace-body,
 .request-page,
 .admin-page,
@@ -2604,7 +2617,7 @@ body,
 .home-navbar,
 .home-hero,
 .home-feature-card,
-.product-card,
+.marketplace-body .product-card,
 .summary-card,
 .workflow-note,
 .request-card,
@@ -2645,14 +2658,22 @@ body,
     color: var(--rp-muted);
 }
 
-label {
+.login-card label,
+.seller-field label,
+.request-actions label {
     color: var(--rp-charcoal);
     font-size: 15px;
 }
 
-input,
-select,
-textarea,
+.login-card input,
+.login-card select,
+.login-card textarea,
+.marketplace-body .marketplace-shell > form input,
+.marketplace-body .marketplace-shell > form select,
+.marketplace-body .marketplace-shell > form textarea,
+.request-actions input,
+.request-actions select,
+.request-actions textarea,
 .seller-field input,
 .seller-field select {
     border: 1px solid var(--rp-border);
@@ -2662,9 +2683,15 @@ textarea,
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-input:focus,
-select:focus,
-textarea:focus,
+.login-card input:focus,
+.login-card select:focus,
+.login-card textarea:focus,
+.marketplace-body .marketplace-shell > form input:focus,
+.marketplace-body .marketplace-shell > form select:focus,
+.marketplace-body .marketplace-shell > form textarea:focus,
+.request-actions input:focus,
+.request-actions select:focus,
+.request-actions textarea:focus,
 .seller-field input:focus,
 .seller-field select:focus {
     border-color: var(--rp-green);
@@ -2672,7 +2699,8 @@ textarea:focus,
     outline: none;
 }
 
-button,
+.login-card button,
+.marketplace-body .marketplace-shell > form button,
 .request-btn,
 .nav-btn,
 .home-actions a,
@@ -2686,7 +2714,8 @@ button,
     transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
 
-button:hover,
+.login-card button:hover,
+.marketplace-body .marketplace-shell > form button:hover,
 .request-btn:hover,
 .nav-btn:hover,
 .home-actions a:hover,
@@ -2849,13 +2878,13 @@ button:hover,
     align-items: stretch;
 }
 
-.product-card {
+.marketplace-body .product-card {
     min-height: 390px;
     overflow: hidden;
     padding: 0;
 }
 
-.product-card:hover {
+.marketplace-body .product-card:hover {
     transform: translateY(-4px);
 }
 
@@ -2871,7 +2900,7 @@ button:hover,
     padding: 18px 18px 8px;
 }
 
-.product-card h3 {
+.marketplace-body .product-card h3 {
     color: var(--rp-charcoal);
     font-size: 20px;
     line-height: 1.25;
@@ -2892,9 +2921,9 @@ button:hover,
     margin-bottom: 14px;
 }
 
-.product-card .status,
-.product-card form,
-.product-card .disabled-btn {
+.marketplace-body .product-card .status,
+.marketplace-body .product-card form,
+.marketplace-body .product-card .disabled-btn {
     margin-left: 18px;
     margin-right: 18px;
 }
@@ -3232,7 +3261,7 @@ button:hover,
 }
 
 .home-hero-copy,
-.home-carousel {
+.home-body .home-carousel {
     position: relative;
     z-index: 1;
 }
@@ -3269,7 +3298,7 @@ button:hover,
 }
 
 .home-body .home-actions a,
-.home-quick-access a,
+.home-body .home-quick-access a,
 .empty-action {
     text-decoration: none;
 }
@@ -3292,14 +3321,14 @@ button:hover,
 }
 
 .home-body .home-actions a:hover,
-.home-quick-access a:hover,
-.home-feature-card:hover,
-.home-campus-strip div:hover {
+.home-body .home-quick-access a:hover,
+.home-body .home-feature-card:hover,
+.home-body .home-campus-strip div:hover {
     box-shadow: 0 16px 34px rgba(57, 217, 138, 0.18);
     transform: translateY(-3px);
 }
 
-.home-carousel {
+.home-body .home-carousel {
     align-self: stretch;
     background: rgba(8, 13, 18, 0.68);
     border: 1px solid rgba(187, 247, 208, 0.24);
@@ -3312,14 +3341,14 @@ button:hover,
     padding: 24px;
 }
 
-.home-carousel-track {
+.home-body .home-carousel-track {
     display: grid;
     flex: 1;
     min-height: 220px;
     position: relative;
 }
 
-.home-carousel-slide {
+.home-body .home-carousel-slide {
     display: flex;
     flex-direction: column;
     grid-area: 1 / 1;
@@ -3330,13 +3359,13 @@ button:hover,
     transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
-.home-carousel-slide.active {
+.home-body .home-carousel-slide.active {
     opacity: 1;
     pointer-events: auto;
     transform: translateX(0);
 }
 
-.home-deal-tag {
+.home-body .home-deal-tag {
     align-self: flex-start;
     background: rgba(57, 217, 138, 0.14);
     border: 1px solid rgba(57, 217, 138, 0.26);
@@ -3347,27 +3376,27 @@ button:hover,
     padding: 8px 12px;
 }
 
-.home-carousel-slide h2 {
+.home-body .home-carousel-slide h2 {
     color: #ffffff;
     font-size: clamp(24px, 3vw, 34px);
     line-height: 1.12;
     margin: 28px 0 12px;
 }
 
-.home-carousel-slide p {
+.home-body .home-carousel-slide p {
     color: #a7b0bf !important;
     font-size: 15px !important;
     line-height: 1.55;
 }
 
-.home-carousel-dots {
+.home-body .home-carousel-dots {
     display: flex;
     gap: 8px;
     justify-content: center;
     margin-top: 22px;
 }
 
-.home-carousel-dots button {
+.home-body .home-carousel-dots button {
     background: rgba(255, 255, 255, 0.28);
     border: 0;
     border-radius: 999px;
@@ -3378,19 +3407,19 @@ button:hover,
     width: 9px;
 }
 
-.home-carousel-dots button.active {
+.home-body .home-carousel-dots button.active {
     background: #39d98a;
     width: 26px;
 }
 
-.home-quick-access {
+.home-body .home-quick-access {
     display: grid;
     gap: 14px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     margin: 18px 0 30px;
 }
 
-.home-quick-access a {
+.home-body .home-quick-access a {
     background: rgba(22, 27, 35, 0.94);
     border: 1px solid rgba(57, 217, 138, 0.18);
     border-radius: 16px;
@@ -3400,21 +3429,21 @@ button:hover,
     transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.home-quick-access strong {
+.home-body .home-quick-access strong {
     color: #39d98a;
     display: block;
     font-size: 18px;
     margin-bottom: 8px;
 }
 
-.home-quick-access span {
+.home-body .home-quick-access span {
     color: #a7b0bf;
     display: block;
     font-size: 14px;
     line-height: 1.45;
 }
 
-.home-section-heading {
+.home-body .home-section-heading {
     align-items: end;
     display: flex;
     justify-content: space-between;
@@ -3422,14 +3451,14 @@ button:hover,
     margin: 34px 0 16px;
 }
 
-.home-section-heading p {
+.home-body .home-section-heading p {
     color: #39d98a;
     font-size: 13px;
     font-weight: 800;
     text-transform: uppercase;
 }
 
-.home-section-heading h2 {
+.home-body .home-section-heading h2 {
     color: #f8fafc;
     font-size: clamp(24px, 3vw, 34px);
     line-height: 1.15;
@@ -3454,7 +3483,7 @@ button:hover,
     transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.home-feature-card span {
+.home-body .home-feature-card span {
     color: rgba(187, 247, 208, 0.7);
     display: block;
     font-size: 13px;
@@ -3474,13 +3503,13 @@ button:hover,
     line-height: 1.55;
 }
 
-.home-campus-strip {
+.home-body .home-campus-strip {
     display: grid;
     gap: 16px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.home-campus-strip div {
+.home-body .home-campus-strip div {
     background: rgba(6, 78, 59, 0.34);
     border: 1px solid rgba(57, 217, 138, 0.2);
     border-radius: 16px;
@@ -3488,14 +3517,14 @@ button:hover,
     transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.home-campus-strip strong {
+.home-body .home-campus-strip strong {
     color: #f8fafc;
     display: block;
     font-size: 17px;
     margin-bottom: 8px;
 }
 
-.home-campus-strip span {
+.home-body .home-campus-strip span {
     color: #a7b0bf;
     display: block;
     font-size: 14px;
@@ -3505,20 +3534,20 @@ button:hover,
 @media (max-width: 980px) {
     .home-body .home-hero,
     .home-body .home-features,
-    .home-campus-strip {
+    .home-body .home-campus-strip {
         grid-template-columns: 1fr;
     }
 
-    .home-quick-access {
+    .home-body .home-quick-access {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .home-section-heading {
+    .home-body .home-section-heading {
         align-items: flex-start;
         flex-direction: column;
     }
 
-    .home-section-heading h2 {
+    .home-body .home-section-heading h2 {
         text-align: left;
     }
 }
@@ -3544,26 +3573,250 @@ button:hover,
     }
 
     .home-body .home-actions a,
-    .home-quick-access a {
+    .home-body .home-quick-access a {
         width: 100%;
     }
 
-    .home-quick-access {
+    .home-body .home-quick-access {
         grid-template-columns: 1fr;
     }
 
     .home-body .home-feature-card,
-    .home-campus-strip div,
-    .home-carousel {
+    .home-body .home-campus-strip div,
+    .home-body .home-carousel {
         border-radius: 14px;
     }
 
-    .home-carousel {
+    .home-body .home-carousel {
         min-height: 250px;
         padding: 20px;
     }
 
-    .home-carousel-track {
+    .home-body .home-carousel-track {
         min-height: 190px;
+    }
+}
+
+/* =========================
+   GLOBAL UI REGRESSION REPAIR
+   Keep dark RP theme while scoping page-specific sizing.
+========================= */
+
+.login-container {
+    max-width: 460px;
+}
+
+.login-card {
+    padding: 28px 32px !important;
+}
+
+.login-card .rp-logo {
+    width: 92px;
+    margin-bottom: 14px;
+}
+
+.login-card h1 {
+    font-size: 32px !important;
+}
+
+.login-card h2 {
+    font-size: 22px;
+    margin: 8px 0 6px;
+}
+
+.login-card .subtitle {
+    font-size: 15px;
+    margin-bottom: 18px;
+}
+
+.login-form {
+    gap: 6px;
+}
+
+.login-card input,
+.login-card select {
+    min-height: 46px;
+    padding: 12px 14px;
+    font-size: 15px;
+    margin-bottom: 14px;
+}
+
+.password-field input {
+    margin-bottom: 14px;
+    padding-right: 72px !important;
+}
+
+.login-card .toggle-password {
+    align-items: center;
+    bottom: auto;
+    display: inline-flex;
+    font-size: 13px;
+    height: 32px;
+    justify-content: center;
+    line-height: 1;
+    min-height: 0;
+    padding: 0 11px;
+    position: absolute;
+    right: 8px;
+    top: 7px;
+    width: auto;
+}
+
+.login-card .login-submit {
+    min-height: 46px;
+    padding: 12px 16px;
+}
+
+.login-card .forgot-form {
+    margin-top: 14px;
+    padding-top: 14px;
+}
+
+.login-card .forgot-form input {
+    margin-bottom: 8px;
+}
+
+.admin-page {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(57, 217, 138, 0.16), transparent 30%),
+        radial-gradient(circle at 86% 18%, rgba(0, 168, 90, 0.12), transparent 28%),
+        linear-gradient(135deg, #0f1115 0%, #101820 48%, #07120d 100%) !important;
+    color: var(--dark-text) !important;
+}
+
+.admin-container h1,
+.admin-container .page-heading h1 {
+    color: var(--rp-green-neon) !important;
+}
+
+.admin-container p,
+.admin-container .page-heading p,
+.pagination-box {
+    color: var(--dark-muted) !important;
+}
+
+.admin-page .search-box,
+.admin-page .account-filter-box,
+.admin-page .summary-card {
+    background: rgba(22, 27, 35, 0.94) !important;
+    border: 1px solid var(--dark-border) !important;
+    box-shadow: var(--dark-shadow) !important;
+    color: var(--dark-text) !important;
+}
+
+.admin-page .search-box input,
+.admin-page .search-box select,
+.admin-page .account-filter-box input,
+.admin-page .account-filter-box select {
+    background: rgba(9, 13, 18, 0.78) !important;
+    border: 1px solid rgba(148, 163, 184, 0.28) !important;
+    color: var(--dark-text) !important;
+    font-size: 15px;
+    min-height: 42px;
+}
+
+.admin-page .admin-table {
+    background: rgba(22, 27, 35, 0.96) !important;
+    border: 1px solid var(--dark-border) !important;
+    box-shadow: var(--dark-shadow) !important;
+    color: var(--dark-text) !important;
+}
+
+.admin-page .admin-table th {
+    background: rgba(6, 63, 43, 0.96) !important;
+    color: #ffffff !important;
+}
+
+.admin-page .admin-table td {
+    background: rgba(22, 27, 35, 0.88);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    color: #e5e7eb !important;
+}
+
+.admin-page .admin-table tr:hover td {
+    background: rgba(57, 217, 138, 0.08);
+}
+
+.admin-page .status-badge,
+.admin-page .admin-protected {
+    color: inherit;
+}
+
+.marketplace-body .marketplace-shell > form {
+    align-items: center;
+    background: rgba(22, 27, 35, 0.94);
+    border: 1px solid var(--dark-border);
+    border-radius: 18px;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(220px, 1fr) minmax(170px, 220px) auto;
+    margin: 0 0 24px;
+    padding: 16px;
+}
+
+.marketplace-body .marketplace-shell > form input,
+.marketplace-body .marketplace-shell > form select {
+    background: rgba(9, 13, 18, 0.78) !important;
+    border: 1px solid rgba(148, 163, 184, 0.28) !important;
+    border-radius: 12px;
+    color: var(--dark-text) !important;
+    font-size: 15px;
+    min-height: 44px;
+    margin: 0;
+    padding: 11px 13px;
+    width: 100%;
+}
+
+.marketplace-body .marketplace-shell > form button {
+    background: linear-gradient(135deg, var(--rp-green-main), #0f8f54);
+    border: 0;
+    border-radius: 12px;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 800;
+    min-height: 44px;
+    padding: 0 22px;
+    width: auto;
+}
+
+.marketplace-body .product-card {
+    background: linear-gradient(180deg, #1b2029, #141922) !important;
+    border: 1px solid var(--dark-border) !important;
+    box-shadow: var(--dark-shadow) !important;
+    color: var(--dark-text) !important;
+}
+
+.marketplace-body .product-card h3,
+.marketplace-body .product-card h3 a {
+    color: var(--dark-text) !important;
+    text-decoration: none;
+}
+
+.marketplace-body .product-card h3 a:hover {
+    color: var(--rp-green-neon) !important;
+}
+
+.marketplace-body .wishlist-btn,
+.marketplace-body .request-btn,
+.marketplace-body .disabled-btn {
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    min-height: 42px;
+}
+
+@media (max-width: 760px) {
+    .login-card {
+        padding: 24px 20px !important;
+    }
+
+    .marketplace-body .marketplace-shell > form {
+        grid-template-columns: 1fr;
+    }
+
+    .marketplace-body .marketplace-shell > form button {
+        width: 100%;
     }
 }
