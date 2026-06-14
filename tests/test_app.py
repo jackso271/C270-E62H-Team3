@@ -69,6 +69,7 @@ def app(tmp_path):
                 "price": 25,
                 "seller": "student1",
                 "status": "Available",
+                "category": "Electronics",
                 "description": "Compact keyboard",
             },
             {
@@ -78,6 +79,7 @@ def app(tmp_path):
                 "price": 15,
                 "seller": "student1",
                 "status": "Sold",
+                "category": "Electronics",
                 "description": "Wireless mouse",
             },
             {
@@ -87,6 +89,7 @@ def app(tmp_path):
                 "price": 80,
                 "seller": "otherstudent",
                 "status": "Available",
+                "category": "Electronics",
                 "description": "24 inch monitor",
             },
             {
@@ -96,11 +99,33 @@ def app(tmp_path):
                 "price": 120,
                 "seller": "student1",
                 "status": "Sold",
+                "category": "Electronics",
                 "description": "Sold tablet",
+            },
+            {
+                "id": 5,
+                "title": "Math Textbook",
+                "name": "Math Textbook",
+                "price": 12,
+                "seller": "otherstudent",
+                "status": "Available",
+                "category": "Books",
+                "description": "Used textbook",
+            },
+            {
+                "id": 6,
+                "title": "Snack Pack",
+                "name": "Snack Pack",
+                "price": 5,
+                "seller": "otherstudent",
+                "status": "Available",
+                "category": "Food",
+                "description": "Sealed snacks",
             },
         ],
         "requests.json": [],
         "notifications.json": [],
+        "wishlists.json": {},
         "success_logins.json": [],
         "failed_logins.json": [],
     }
@@ -135,6 +160,12 @@ def read_products(app):
 def read_requests(app):
     requests_path = app.config["DATA_DIR"] + "/requests.json"
     with open(requests_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def read_wishlists(app):
+    wishlists_path = app.config["DATA_DIR"] + "/wishlists.json"
+    with open(wishlists_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
@@ -204,6 +235,7 @@ def test_seller_dashboard_add_product_works(client, app):
             "title": "Notebook",
             "description": "Unused lined notebook",
             "price": "4.50",
+            "category": "Books",
         },
     )
     products = read_products(app)
@@ -214,6 +246,7 @@ def test_seller_dashboard_add_product_works(client, app):
         product["title"] == "Notebook"
         and product["seller"] == "student1"
         and product["status"] == "Available"
+        and product["category"] == "Books"
         for product in products
     )
 
@@ -228,6 +261,7 @@ def test_seller_dashboard_edit_product_works(client, app):
             "description": "Blue switches",
             "price": "35",
             "status": "Sold",
+            "category": "Electronics",
         },
     )
     products = read_products(app)
@@ -239,6 +273,7 @@ def test_seller_dashboard_edit_product_works(client, app):
     assert product["description"] == "Blue switches"
     assert product["price"] == 35.0
     assert product["status"] == "Sold"
+    assert product["category"] == "Electronics"
 
 
 def test_seller_dashboard_delete_product_works(client, app):
@@ -261,6 +296,62 @@ def test_seller_dashboard_filtering_works(client):
     assert b"Mouse" in response.data
     assert b"Keyboard" not in response.data
     assert b"Monitor" not in response.data
+
+
+def test_marketplace_category_filters_show_matching_products(client):
+    electronics_response = client.get("/marketplace?category=Electronics")
+    books_response = client.get("/marketplace?category=Books")
+    food_response = client.get("/marketplace?category=Food")
+
+    assert electronics_response.status_code == 200
+    assert b"Keyboard" in electronics_response.data
+    assert b"Math Textbook" not in electronics_response.data
+
+    assert books_response.status_code == 200
+    assert b"Math Textbook" in books_response.data
+    assert b"Keyboard" not in books_response.data
+
+    assert food_response.status_code == 200
+    assert b"Snack Pack" in food_response.data
+    assert b"Keyboard" not in food_response.data
+
+
+def test_marketplace_search_and_category_filter_work_together(client):
+    search_response = client.get("/marketplace?search=keyboard")
+    matching_response = client.get(
+        "/marketplace?search=keyboard&category=electronics"
+    )
+    empty_response = client.get("/marketplace?search=keyboard&category=Books")
+
+    assert search_response.status_code == 200
+    assert b"Keyboard" in search_response.data
+
+    assert matching_response.status_code == 200
+    assert b"Keyboard" in matching_response.data
+
+    assert empty_response.status_code == 200
+    assert b"No products match this search or category." in empty_response.data
+    assert b"Keyboard" not in empty_response.data
+
+
+def test_wishlist_add_remove_still_works(client, app):
+    login_user(client, "student2")
+
+    add_response = client.post("/wishlist/add/1")
+    wishlist_response = client.get("/wishlist")
+    wishlists = read_wishlists(app)
+
+    assert add_response.status_code == 302
+    assert wishlists["3"] == [1]
+    assert b"Keyboard" in wishlist_response.data
+
+    remove_response = client.post("/wishlist/remove/1")
+    wishlists = read_wishlists(app)
+    wishlist_response = client.get("/wishlist")
+
+    assert remove_response.status_code == 302
+    assert wishlists["3"] == []
+    assert b"Keyboard" not in wishlist_response.data
 
 
 def test_duplicate_product_request_is_blocked(client, app):

@@ -94,7 +94,7 @@
 
         .seller-form-grid {
             display: grid;
-            grid-template-columns: 1.3fr 1.8fr 0.8fr 0.8fr auto;
+            grid-template-columns: 1.2fr 1.6fr 0.75fr 0.9fr 0.8fr auto;
             gap: 12px;
             align-items: end;
         }
@@ -165,7 +165,7 @@
 
         .seller-edit-form {
             display: grid;
-            grid-template-columns: 1.2fr 1.8fr 0.7fr 0.8fr auto auto;
+            grid-template-columns: 1.1fr 1.5fr 0.65fr 0.85fr 0.75fr auto auto;
             gap: 10px;
             align-items: end;
         }
@@ -347,6 +347,15 @@
                     <input id="price" name="price" type="number" min="0" step="0.01" required>
                 </div>
                 <div class="seller-field">
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
+                        <option value="Electronics">Electronics</option>
+                        <option value="Books">Books</option>
+                        <option value="Food">Food</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+                <div class="seller-field">
                     <label>Status</label>
                     <input type="text" value="Available" disabled>
                 </div>
@@ -382,6 +391,15 @@
                             <div class="seller-field">
                                 <label for="price-{{ product.id }}">Price</label>
                                 <input id="price-{{ product.id }}" name="price" type="number" min="0" step="0.01" value="{{ product.price }}" required>
+                            </div>
+                            <div class="seller-field">
+                                <label for="category-{{ product.id }}">Category</label>
+                                <select id="category-{{ product.id }}" name="category">
+                                    <option value="Electronics" {% if product.category == "Electronics" %}selected{% endif %}>Electronics</option>
+                                    <option value="Books" {% if product.category == "Books" %}selected{% endif %}>Books</option>
+                                    <option value="Food" {% if product.category == "Food" %}selected{% endif %}>Food</option>
+                                    <option value="Others" {% if product.category == "Others" %}selected{% endif %}>Others</option>
+                                </select>
                             </div>
                             <div class="seller-field">
                                 <label for="status-{{ product.id }}">Status</label>

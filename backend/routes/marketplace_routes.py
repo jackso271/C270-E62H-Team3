@@ -60,7 +60,7 @@ def marketplace():
     if category:
         products = [
             p for p in products
-            if p.get("category") == category
+            if p.get("category", "").lower() == category.lower()
         ]
 
     return render_template(

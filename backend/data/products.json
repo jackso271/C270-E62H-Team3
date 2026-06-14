@@ -6,6 +6,7 @@
         "price": 450,
         "seller": "seller1",
         "status": "Reserved",
+        "category": "Electronics",
         "description": "Pre-owned laptop listed by seller1"
     },
     {
@@ -15,6 +16,7 @@
         "price": 25,
         "seller": "seller1",
         "status": "Reserved",
+        "category": "Electronics",
         "description": "Keyboard listed by seller1"
     },
     {
@@ -24,6 +26,7 @@
         "price": 10,
         "seller": "seller2",
         "status": "Reserved",
+        "category": "Electronics",
         "description": "iPad case listed by seller2"
     },
     {
@@ -33,6 +36,7 @@
         "seller": "John Doe",
         "price": 1200,
         "status": "Available",
+        "category": "Electronics",
         "description": "Latest iPhone with advanced camera system"
     },
     {
@@ -42,6 +46,7 @@
         "seller": "Jane Smith",
         "price": 2500,
         "status": "Available",
+        "category": "Electronics",
         "description": "Powerful laptop for professionals"
     },
     {
@@ -51,6 +56,7 @@
         "seller": "Mike Johnson",
         "price": 250,
         "status": "Available",
+        "category": "Electronics",
         "description": "Premium wireless earbuds with noise cancellation"
     },
     {
@@ -60,6 +66,7 @@
         "seller": "Sarah Lee",
         "price": 600,
         "status": "Available",
+        "category": "Electronics",
         "description": "Perfect tablet for work and entertainment"
     },
     {
@@ -69,6 +76,7 @@
         "seller": "Tom Brown",
         "price": 400,
         "status": "Available",
+        "category": "Electronics",
         "description": "Smart watch with health tracking features"
     },
     {
@@ -78,6 +86,7 @@
         "seller": "Alex Wong",
         "price": 1800,
         "status": "Available",
+        "category": "Electronics",
         "description": "High-performance gaming laptop with RTX 4090"
     },
     {
@@ -87,6 +96,7 @@
         "seller": "Chris Park",
         "price": 180,
         "status": "Available",
+        "category": "Electronics",
         "description": "Professional mechanical keyboard with customizable lighting"
     },
     {
@@ -96,6 +106,47 @@
         "seller": "Emily Davis",
         "price": 150,
         "status": "Available",
+        "category": "Electronics",
         "description": "Crystal clear 4K video for streaming and meetings"
+    },
+    {
+        "id": 12,
+        "title": "Business Statistics Textbook",
+        "name": "Business Statistics Textbook",
+        "seller": "Nadia Rahman",
+        "price": 18,
+        "status": "Available",
+        "category": "Books",
+        "description": "Gently used textbook for statistics modules"
+    },
+    {
+        "id": 13,
+        "title": "Python Programming Guide",
+        "name": "Python Programming Guide",
+        "seller": "Ryan Lim",
+        "price": 22,
+        "status": "Available",
+        "category": "Books",
+        "description": "Introductory programming book with examples"
+    },
+    {
+        "id": 14,
+        "title": "Campus Snack Bundle",
+        "name": "Campus Snack Bundle",
+        "seller": "Alicia Tan",
+        "price": 6,
+        "status": "Available",
+        "category": "Food",
+        "description": "Assorted sealed snacks for study sessions"
+    },
+    {
+        "id": 15,
+        "title": "Iced Coffee Voucher",
+        "name": "Iced Coffee Voucher",
+        "seller": "Marcus Lee",
+        "price": 4,
+        "status": "Available",
+        "category": "Food",
+        "description": "Unused campus cafe drink voucher"
     }
 ]

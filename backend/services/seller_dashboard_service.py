@@ -2,6 +2,7 @@ from backend.utils.json_storage import data_file, load_json, save_json
 
 
 VALID_STATUSES = ["Available", "Sold", "Reserved"]
+VALID_CATEGORIES = ["Electronics", "Books", "Food", "Others"]
 
 
 def normalize_text(value):
@@ -45,6 +46,7 @@ def clean_product(product):
     title = normalize_text(product.get("title")) or normalize_text(product.get("name"))
     name = normalize_text(product.get("name")) or title
     status = normalize_text(product.get("status")) or "Available"
+    category = normalize_text(product.get("category")) or "Others"
 
     return {
         **product,
@@ -54,6 +56,7 @@ def clean_product(product):
         "price": product.get("price", 0),
         "seller": normalize_text(product.get("seller")),
         "status": status,
+        "category": category,
     }
 
 
@@ -121,9 +124,13 @@ def add_product(form, user):
     title = normalize_text(form.get("title")) or normalize_text(form.get("name"))
     description = normalize_text(form.get("description"))
     price = parse_price(form.get("price"))
+    category = normalize_text(form.get("category")) or "Others"
 
     if not title or price is None:
         return False, "Product name and price are required."
+
+    if category not in VALID_CATEGORIES:
+        category = "Others"
 
     products.append({
         "id": next_product_id(products),
@@ -133,6 +140,7 @@ def add_product(form, user):
         "price": price,
         "seller": seller_name(user),
         "status": "Available",
+        "category": category,
     })
     save_products(products)
     return True, None
@@ -143,12 +151,16 @@ def edit_product(product_id, form, user):
     title = normalize_text(form.get("title")) or normalize_text(form.get("name"))
     price = parse_price(form.get("price"))
     status = normalize_text(form.get("status")) or "Available"
+    category = normalize_text(form.get("category")) or "Others"
 
     if not title or price is None:
         return False, "Product name and price are required."
 
     if status not in VALID_STATUSES:
         return False, "Invalid product status."
+
+    if category not in VALID_CATEGORIES:
+        category = "Others"
 
     for product in products:
         if product.get("id") == product_id and product_belongs_to_seller(product, user):
@@ -157,6 +169,7 @@ def edit_product(product_id, form, user):
             product["description"] = normalize_text(form.get("description"))
             product["price"] = price
             product["status"] = status
+            product["category"] = category
             save_products(products)
             return True, None
 
