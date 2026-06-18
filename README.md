@@ -289,13 +289,6 @@ Recommended workflow for teammates:
 8. Run `python -m pytest` before pushing.
 9. Open a pull request so teammates can review changes.
 
-## Team Contributions
-
-Existing contributor details should be kept here as the team updates the project documentation.
-
-| Contributor | Contributions |
-| --- | --- |
-| Jason | Login System, UI/UX Improvements, Docker, Jenkins CI/CD, Ansible Deployment |
 
 ## AI-Assisted Development
 
