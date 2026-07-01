@@ -158,40 +158,159 @@ Password: admin123
 
 ## Docker Setup
 
-Build the Docker image:
+Docker is used to package the Flask application so it can run consistently in a container during local testing, Jenkins builds, and Ansible deployment.
+
+### Docker Prerequisites
+
+- Docker Desktop or Docker Engine installed
+- Docker service started
+- Project cloned locally
+- Terminal opened at the project root folder
+
+Check that Docker is installed:
+
+```bash
+docker --version
+```
+
+Check that Docker can run commands:
+
+```bash
+docker ps
+```
+
+### Build Docker Image
+
+From the project root folder, build the Docker image:
 
 ```bash
 docker build -t rp-marketplace .
 ```
 
-Run the container:
+### Run Docker Container
+
+Run the Flask application container on port `5000`:
 
 ```bash
 docker run -d -p 5000:5000 --name rpmarketplace rp-marketplace
 ```
 
-Then open:
+Verify that the container is running:
+
+```bash
+docker ps
+```
+
+Open the application in a browser:
 
 ```text
 http://127.0.0.1:5000
 ```
 
-Docker Compose can also be used for local development:
+Default admin login:
+
+```text
+Login ID: admin
+Password: admin123
+```
+
+### Stop And Remove Docker Container
+
+Stop the running container:
+
+```bash
+docker stop rpmarketplace
+```
+
+Remove the stopped container:
+
+```bash
+docker rm rpmarketplace
+```
+
+### Docker Compose
+
+Docker Compose can also be used for local development and demo setup.
+
+Start the application with Docker Compose:
 
 ```bash
 docker compose up --build
 ```
 
+Stop and remove Docker Compose containers:
+
+```bash
+docker compose down
+```
+
 The compose file mounts `backend/data` so local JSON data remains available while the container runs.
 
-## Jenkins CI Pipeline
+## Jenkins CI/CD Pipeline
 
-Jenkins is used to automate the Continuous Integration and deployment workflow. The pipeline:
+Jenkins is used to automate the Continuous Integration and Continuous Deployment workflow. During the CA2 demo, Jenkins shows how code changes can be checked, tested, packaged with Docker, and deployed using Ansible.
 
-1. Clones the repository from GitHub.
-2. Builds the project.
-3. Performs automated verification.
-4. Deploys Docker containers.
+### Jenkins Prerequisites
+
+- Jenkins installed and running
+- Git installed on the Jenkins machine
+- Docker installed on the Jenkins machine
+- Ansible installed on the Jenkins machine or available in the deployment environment
+- Jenkins has permission to run Docker commands
+- GitHub repository is accessible by Jenkins
+- Project contains a `Jenkinsfile`
+
+### Create Jenkins Pipeline Job
+
+1. Open Jenkins in the browser.
+2. Select `New Item`.
+3. Enter a job name such as `rp-marketplace-pipeline`.
+4. Select `Pipeline`.
+5. Select `OK`.
+
+### Connect Jenkins To GitHub Repository
+
+In the Pipeline job configuration:
+
+1. Go to the `Pipeline` section.
+2. Set `Definition` to `Pipeline script from SCM`.
+3. Set `SCM` to `Git`.
+4. Enter the GitHub repository URL.
+5. Select the branch to build, for example:
+
+```text
+*/main
+```
+
+6. Set `Script Path` to:
+
+```text
+Jenkinsfile
+```
+
+7. Save the job.
+
+### Run Jenkins Build
+
+Start the pipeline manually:
+
+```text
+Build Now
+```
+
+Jenkins will read the `Jenkinsfile` from the GitHub repository and run the CI/CD pipeline.
+
+### Jenkins Pipeline Stages
+
+The pipeline is designed to demonstrate the following DevOps stages:
+
+| Stage | Purpose |
+| --- | --- |
+| Checkout Source | Pulls the latest project code from GitHub. |
+| Install Dependencies | Installs Python packages from `requirements.txt`. |
+| Run Pytest | Runs automated tests using `python -m pytest`. |
+| Build Docker Image | Builds the application image using the Dockerfile. |
+| Deploy using Ansible | Runs the Ansible playbook to deploy the Docker container. |
 
 Successful pipeline output:
 
@@ -210,7 +329,44 @@ This ensures the application validates successfully before deployment work conti
 
 ## Ansible Deployment
 
-Ansible is used to automate local Docker deployment for the C270 demo. The deployment playbook automates:
+Ansible is used to automate local Docker deployment for the C270 demo. Instead of manually stopping, removing, rebuilding, and running containers, the playbook performs those deployment steps consistently.
+
+### Ansible Prerequisites
+
+- Ansible installed
+- Docker installed and running
+- Project cloned locally
+- Terminal opened at the project root folder
+- Inventory file available in the `ansible/` folder
+- Deployment playbook available in the `ansible/` folder
+
+Check that Ansible is installed:
+
+```bash
+ansible --version
+```
+
+Move into the Ansible folder:
+
+```bash
+cd ansible
+```
+
+Test Ansible connectivity:
+
+```bash
+ansible all -i hosts -m ping
+```
+
+Run the deployment playbook:
+
+```bash
+ansible-playbook -i hosts deploy_docker_playbook.yaml
+```
+
+### What The Ansible Playbook Does
+
+The deployment playbook automates:
 
 - Verify Docker installation
 - Stop existing container
@@ -219,20 +375,21 @@ Ansible is used to automate local Docker deployment for the C270 demo. The deplo
 - Run container
 - Verify application availability
 
-Run the deployment playbook from the `ansible/` folder:
+After a successful deployment, open the application:
 
-```bash
-ansible-playbook -i hosts deploy_docker_playbook.yaml
+```text
+http://127.0.0.1:5000
 ```
 
-Optional Ansible test commands:
+Optional Ansible test playbook:
 
 ```bash
-ansible all -m ping
-ansible-playbook test_connection_playbook.yaml
+ansible-playbook -i hosts test_connection_playbook.yaml
 ```
 
 ## DevOps Workflow
+
+Complete CA2 DevOps workflow:
 
 ```text
 Developer
@@ -241,23 +398,48 @@ Developer
 Feature Branch
   |
   v
+Commit
+  |
+  v
+Push
+  |
+  v
 Pull Request
   |
   v
-Main Branch
+Code Review
   |
   v
-Jenkins Pipeline
+Merge to Main
+  |
+  v
+Jenkins
+  |
+  v
+Pytest
   |
   v
 Docker Build
   |
   v
-Container Deployment
-  ^
+Ansible Deploy
   |
-Ansible Automation
+  v
+Running App
 ```
+
+## CI/CD Pipeline Summary
+
+| DevOps Component | Role In This Project |
+| --- | --- |
+| Git/GitHub | Stores source code and tracks project changes. |
+| Branches | Allows teammates to work on features separately. |
+| Pull Requests | Supports review before changes are merged. |
+| Jenkins | Automates the CI/CD pipeline from the repository. |
+| Pytest | Verifies the Flask application with automated tests. |
+| Docker | Builds and runs the application in a container. |
+| Ansible | Automates Docker deployment steps. |
+| Flask App | The deployed RP Marketplace web application. |
 
 ## Testing
 
