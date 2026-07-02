@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invalid Login</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-body">
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <img
+                src="{{ url_for('static', filename='images/rp-logo.png') }}"
+                alt="RP Logo"
+                class="rp-logo"
+            >
+
+            <h1>Invalid Login</h1>
+
+            <p class="subtitle">
+                The username, email, student ID, or password entered is incorrect.
+            </p>
+
+            <a href="/" class="primary-btn">
+                Try Login Again
+            </a>
+
+            <br><br>
+
+            <a href="/register" class="footer-text">
+                Create New Account
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

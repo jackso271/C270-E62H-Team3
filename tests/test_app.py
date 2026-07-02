@@ -1,0 +1,680 @@
+import json
+
+import pytest
+
+from backend.app import create_app
+
+
+@pytest.fixture()
+def app(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+
+    seed_files = {
+        "users.json": [
+            {
+                "id": 1,
+                "name": "Student One",
+                "username": "student1",
+                "email": "student1@myrp.edu.sg",
+                "student_id": "S12345",
+                "password": "password123",
+                "role": "student",
+                "blocked": False,
+            },
+            {
+                "id": 2,
+                "name": "Admin",
+                "username": "admin",
+                "email": "admin@rp.edu.sg",
+                "student_id": "admin",
+                "password": "admin123",
+                "role": "admin",
+                "blocked": False,
+            },
+            {
+                "id": 3,
+                "name": "Student Two",
+                "username": "student2",
+                "email": "student2@myrp.edu.sg",
+                "student_id": "S23456",
+                "password": "password123",
+                "role": "student",
+                "blocked": False,
+            },
+            {
+                "id": 4,
+                "name": "Student Three",
+                "username": "student3",
+                "email": "student3@myrp.edu.sg",
+                "student_id": "S34567",
+                "password": "password123",
+                "role": "student",
+                "blocked": False,
+            },
+            {
+                "id": 5,
+                "student_id": "25044459",
+                "email": "25044459@myrp.edu.sg",
+                "password": "password123",
+                "role": "user",
+                "blocked": False,
+            },
+        ],
+        "products.json": [
+            {
+                "id": 1,
+                "title": "Keyboard",
+                "name": "Keyboard",
+                "price": 25,
+                "seller": "student1",
+                "status": "Available",
+                "category": "Electronics",
+                "description": "Compact keyboard",
+            },
+            {
+                "id": 2,
+                "title": "Mouse",
+                "name": "Mouse",
+                "price": 15,
+                "seller": "student1",
+                "status": "Sold",
+                "category": "Electronics",
+                "description": "Wireless mouse",
+            },
+            {
+                "id": 3,
+                "title": "Monitor",
+                "name": "Monitor",
+                "price": 80,
+                "seller": "otherstudent",
+                "status": "Available",
+                "category": "Electronics",
+                "description": "24 inch monitor",
+            },
+            {
+                "id": 4,
+                "title": "Tablet",
+                "name": "Tablet",
+                "price": 120,
+                "seller": "student1",
+                "status": "Sold",
+                "category": "Electronics",
+                "description": "Sold tablet",
+            },
+            {
+                "id": 5,
+                "title": "Math Textbook",
+                "name": "Math Textbook",
+                "price": 12,
+                "seller": "otherstudent",
+                "status": "Available",
+                "category": "Books",
+                "description": "Used textbook",
+            },
+            {
+                "id": 6,
+                "title": "Snack Pack",
+                "name": "Snack Pack",
+                "price": 5,
+                "seller": "otherstudent",
+                "status": "Available",
+                "category": "Food",
+                "description": "Sealed snacks",
+            },
+        ],
+        "requests.json": [],
+        "notifications.json": [],
+        "wishlists.json": {},
+        "success_logins.json": [],
+        "failed_logins.json": [],
+    }
+
+    for filename, content in seed_files.items():
+        (data_dir / filename).write_text(json.dumps(content), encoding="utf-8")
+
+    return create_app({
+        "TESTING": True,
+        "DATA_DIR": str(data_dir),
+        "SECRET_KEY": "test-secret",
+    })
+
+
+@pytest.fixture()
+def client(app):
+    return app.test_client()
+
+
+def read_users(app):
+    users_path = app.config["DATA_DIR"] + "/users.json"
+    with open(users_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def read_products(app):
+    products_path = app.config["DATA_DIR"] + "/products.json"
+    with open(products_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def read_requests(app):
+    requests_path = app.config["DATA_DIR"] + "/requests.json"
+    with open(requests_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def read_wishlists(app):
+    wishlists_path = app.config["DATA_DIR"] + "/wishlists.json"
+    with open(wishlists_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def login_student(client):
+    return login_user(client, "student1")
+
+
+def login_user(client, login_id):
+    return client.post(
+        "/login",
+        data={"login_id": login_id, "password": "password123"},
+    )
+
+
+def test_application_startup(app):
+    assert app is not None
+    assert app.name == "backend.app"
+
+
+def test_main_routes_render(client):
+    assert client.get("/").status_code == 200
+    assert client.get("/register").status_code == 200
+    assert client.get("/marketplace").status_code == 200
+    assert client.get("/notifications").status_code == 200
+
+    login_student(client)
+    assert client.get("/seller_requests").status_code == 200
+
+
+def test_student_login_redirects_to_homepage(client):
+    response = client.post(
+        "/login",
+        data={"login_id": "student1", "password": "password123"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/homepage")
+
+
+def test_admin_login_redirects_to_dashboard(client):
+    response = client.post(
+        "/login",
+        data={"login_id": "admin", "password": "admin123"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/admin/dashboard")
+
+
+def test_seller_dashboard_route_loads_for_logged_in_user(client):
+    login_student(client)
+
+    response = client.get("/seller/dashboard")
+
+    assert response.status_code == 200
+    assert b"Seller Dashboard" in response.data
+    assert b"Keyboard" in response.data
+    assert b"Monitor" not in response.data
+
+
+def test_seller_dashboard_add_product_works(client, app):
+    login_student(client)
+
+    response = client.post(
+        "/seller/dashboard/add",
+        data={
+            "title": "Notebook",
+            "description": "Unused lined notebook",
+            "price": "4.50",
+            "category": "Books",
+        },
+    )
+    products = read_products(app)
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/seller/dashboard")
+    assert any(
+        product["title"] == "Notebook"
+        and product["seller"] == "student1"
+        and product["status"] == "Available"
+        and product["category"] == "Books"
+        for product in products
+    )
+
+
+def test_seller_dashboard_edit_product_works(client, app):
+    login_student(client)
+
+    response = client.post(
+        "/seller/dashboard/edit/1",
+        data={
+            "title": "Mechanical Keyboard",
+            "description": "Blue switches",
+            "price": "35",
+            "status": "Sold",
+            "category": "Electronics",
+        },
+    )
+    products = read_products(app)
+    product = next(item for item in products if item["id"] == 1)
+
+    assert response.status_code == 302
+    assert product["title"] == "Mechanical Keyboard"
+    assert product["name"] == "Mechanical Keyboard"
+    assert product["description"] == "Blue switches"
+    assert product["price"] == 35.0
+    assert product["status"] == "Sold"
+    assert product["category"] == "Electronics"
+
+
+def test_seller_dashboard_delete_product_works(client, app):
+    login_student(client)
+
+    response = client.post("/seller/dashboard/delete/1")
+    products = read_products(app)
+
+    assert response.status_code == 302
+    assert all(product["id"] != 1 for product in products)
+    assert any(product["id"] == 3 for product in products)
+
+
+def test_seller_dashboard_filtering_works(client):
+    login_student(client)
+
+    response = client.get("/seller/dashboard?status=sold")
+
+    assert response.status_code == 200
+    assert b"Mouse" in response.data
+    assert b"Keyboard" not in response.data
+    assert b"Monitor" not in response.data
+
+
+def test_marketplace_category_filters_show_matching_products(client):
+    electronics_response = client.get("/marketplace?category=Electronics")
+    books_response = client.get("/marketplace?category=Books")
+    food_response = client.get("/marketplace?category=Food")
+
+    assert electronics_response.status_code == 200
+    assert b"Keyboard" in electronics_response.data
+    assert b"Math Textbook" not in electronics_response.data
+
+    assert books_response.status_code == 200
+    assert b"Math Textbook" in books_response.data
+    assert b"Keyboard" not in books_response.data
+
+    assert food_response.status_code == 200
+    assert b"Snack Pack" in food_response.data
+    assert b"Keyboard" not in food_response.data
+
+
+def test_marketplace_search_and_category_filter_work_together(client):
+    search_response = client.get("/marketplace?search=keyboard")
+    matching_response = client.get(
+        "/marketplace?search=keyboard&category=electronics"
+    )
+    empty_response = client.get("/marketplace?search=keyboard&category=Books")
+
+    assert search_response.status_code == 200
+    assert b"Keyboard" in search_response.data
+
+    assert matching_response.status_code == 200
+    assert b"Keyboard" in matching_response.data
+
+    assert empty_response.status_code == 200
+    assert b"No products match this search or category." in empty_response.data
+    assert b"Keyboard" not in empty_response.data
+
+
+def test_wishlist_add_remove_still_works(client, app):
+    login_user(client, "student2")
+
+    add_response = client.post("/wishlist/add/1")
+    wishlist_response = client.get("/wishlist")
+    wishlists = read_wishlists(app)
+
+    assert add_response.status_code == 302
+    assert wishlists["3"] == [1]
+    assert b"Keyboard" in wishlist_response.data
+
+    remove_response = client.post("/wishlist/remove/1")
+    wishlists = read_wishlists(app)
+    wishlist_response = client.get("/wishlist")
+
+    assert remove_response.status_code == 302
+    assert wishlists["3"] == []
+    assert b"Keyboard" not in wishlist_response.data
+
+
+def test_duplicate_product_request_is_blocked(client, app):
+    login_user(client, "student2")
+
+    first_response = client.post("/request_buy/1")
+    second_response = client.post("/request_buy/1")
+    requests = read_requests(app)
+
+    assert first_response.status_code == 302
+    assert second_response.status_code == 302
+    assert len([
+        request for request in requests
+        if request["product_id"] == 1 and request["buyer"] == "student2"
+    ]) == 1
+
+
+def test_requested_product_button_is_disabled_for_buyer(client):
+    login_user(client, "student2")
+    client.post("/request_buy/1")
+
+    response = client.get("/marketplace")
+
+    assert response.status_code == 200
+    assert b"Request Pending" in response.data
+
+
+def test_rejected_request_allows_buyer_to_request_again(client, app):
+    login_user(client, "student2")
+    client.post("/request_buy/1")
+
+    login_user(client, "student1")
+    client.post(
+        "/reject_request/1",
+        data={"rejection_reason": "Not available for pickup."},
+    )
+
+    login_user(client, "student2")
+    client.post("/request_buy/1")
+    requests = read_requests(app)
+
+    assert len([
+        request for request in requests
+        if request["product_id"] == 1 and request["buyer"] == "student2"
+    ]) == 2
+    assert requests[0]["status"] == "Rejected"
+    assert requests[1]["status"] == "Pending"
+
+
+def test_non_owner_cannot_view_other_seller_requests(client):
+    login_user(client, "student2")
+    client.post("/request_buy/1")
+
+    response = client.get("/seller_requests")
+
+    assert response.status_code == 200
+    assert b"Keyboard" not in response.data
+    assert b"approve-btn" not in response.data
+    assert b"reject-btn" not in response.data
+
+
+def test_non_owner_cannot_accept_request_directly(client, app):
+    login_user(client, "student2")
+    client.post("/request_buy/1")
+
+    response = client.post("/accept_request/1")
+    requests = read_requests(app)
+    products = read_products(app)
+    product = next(item for item in products if item["id"] == 1)
+
+    assert response.status_code == 403
+    assert b"Access Denied" in response.data
+    assert requests[0]["status"] == "Pending"
+    assert product["status"] == "Available"
+
+
+def test_owner_accept_marks_product_sold_and_blocks_new_requests(client, app):
+    login_user(client, "student2")
+    client.post("/request_buy/1")
+
+    login_user(client, "student1")
+    response = client.post("/accept_request/1")
+
+    login_user(client, "student3")
+    duplicate_response = client.post("/request_buy/1")
+    marketplace_response = client.get("/marketplace")
+    requests = read_requests(app)
+    products = read_products(app)
+    product = next(item for item in products if item["id"] == 1)
+
+    assert response.status_code == 302
+    assert duplicate_response.status_code == 302
+    assert product["status"] == "Sold"
+    assert len([request for request in requests if request["product_id"] == 1]) == 1
+    assert b"Sold" in marketplace_response.data
+
+
+def test_sold_item_cannot_be_requested_directly(client, app):
+    login_user(client, "student3")
+
+    response = client.post("/request_buy/4")
+    requests = read_requests(app)
+
+    assert response.status_code == 302
+    assert requests == []
+
+
+def test_non_owner_cannot_edit_or_delete_seller_dashboard_listing(client, app):
+    login_user(client, "student2")
+
+    edit_response = client.post(
+        "/seller/dashboard/edit/1",
+        data={
+            "title": "Hijacked Keyboard",
+            "description": "Nope",
+            "price": "1",
+            "status": "Sold",
+        },
+    )
+    delete_response = client.post("/seller/dashboard/delete/1")
+    products = read_products(app)
+    product = next(item for item in products if item["id"] == 1)
+
+    assert edit_response.status_code == 403
+    assert delete_response.status_code == 403
+    assert product["title"] == "Keyboard"
+    assert any(item["id"] == 1 for item in products)
+
+
+def test_legacy_user_without_username_can_login_using_email(client):
+    response = client.post(
+        "/login",
+        data={"login_id": "25044459@myrp.edu.sg", "password": "password123"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/homepage")
+
+
+def test_legacy_user_without_username_can_login_using_student_id(client):
+    response = client.post(
+        "/login",
+        data={"login_id": "25044459", "password": "password123"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/homepage")
+
+
+def test_registering_new_account_works(client, app):
+    response = client.post(
+        "/register",
+        data={
+            "name": "New Student",
+            "username": "newstudent",
+            "email": "newstudent@myrp.edu.sg",
+            "student_id": "S99999",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+    )
+
+    users = read_users(app)
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/")
+    assert any(user["username"] == "newstudent" for user in users)
+
+
+def test_duplicate_email_is_blocked(client):
+    response = client.post(
+        "/register",
+        data={
+            "name": "Other Student",
+            "username": "otherstudent",
+            "email": " STUDENT1@MYRP.EDU.SG ",
+            "student_id": "S54321",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Username, email, or student ID already exists." in response.data
+
+
+def test_duplicate_username_is_blocked(client):
+    response = client.post(
+        "/register",
+        data={
+            "name": "Other Student",
+            "username": " STUDENT1 ",
+            "email": "otherstudent@myrp.edu.sg",
+            "student_id": "S54321",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Username, email, or student ID already exists." in response.data
+
+
+def test_duplicate_student_id_is_blocked(client):
+    response = client.post(
+        "/register",
+        data={
+            "name": "Other Student",
+            "username": "otherstudent",
+            "email": "otherstudent@myrp.edu.sg",
+            "student_id": " S12345 ",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Username, email, or student ID already exists." in response.data
+
+
+def test_blank_registration_fields_are_rejected_clearly(client):
+    response = client.post(
+        "/register",
+        data={
+            "name": "",
+            "username": "blankstudent",
+            "email": "blankstudent@myrp.edu.sg",
+            "student_id": "S77777",
+            "school": "School of Infocomm",
+            "password": "password123",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Name, username, email, student ID, and password are required." in response.data
+
+
+def test_invalid_login_shows_error_page(client):
+    response = client.post(
+        "/login",
+        data={"login_id": "student1", "password": "wrong"},
+    )
+
+    assert response.status_code == 200
+    assert b"Login Failed" in response.data or b"Invalid" in response.data
+
+
+def test_wrong_password_logs_clear_reason(client, app):
+    response = client.post(
+        "/login",
+        data={"login_id": "student1", "password": "wrong"},
+    )
+
+    failed_logs_path = app.config["DATA_DIR"] + "/failed_logins.json"
+    with open(failed_logs_path, "r", encoding="utf-8") as file:
+        logs = json.load(file)
+
+    assert response.status_code == 200
+    assert logs[-1]["reason"] == "Wrong password"
+
+
+def test_unknown_account_logs_clear_reason(client, app):
+    client.post(
+        "/login",
+        data={"login_id": "missing-user", "password": "password123"},
+    )
+
+    failed_logs_path = app.config["DATA_DIR"] + "/failed_logins.json"
+    with open(failed_logs_path, "r", encoding="utf-8") as file:
+        logs = json.load(file)
+
+    assert logs[-1]["reason"] == "Account not found"
+
+
+def test_forgot_password_logs_reset_request(client, app):
+    response = client.post(
+        "/forgot-password",
+        data={"login_id": "student1"},
+    )
+
+    failed_logs_path = app.config["DATA_DIR"] + "/failed_logins.json"
+    with open(failed_logs_path, "r", encoding="utf-8") as file:
+        logs = json.load(file)
+
+    assert response.status_code == 302
+    assert logs[-1]["reason"] == "Password reset requested"
+
+    notifications_path = app.config["DATA_DIR"] + "/notifications.json"
+    with open(notifications_path, "r", encoding="utf-8") as file:
+        notifications = json.load(file)
+
+    assert notifications[-1]["status"] == "Info"
+
+
+def test_product_request_filter_empty_state(client):
+    login_student(client)
+
+    response = client.get("/seller_requests?status=pending")
+
+    assert response.status_code == 200
+    assert b"No pending product requests." in response.data
+
+
+def test_product_request_route_still_creates_request(client, app):
+    login_user(client, "student2")
+
+    response = client.post("/request_buy/1")
+
+    requests_path = app.config["DATA_DIR"] + "/requests.json"
+    notifications_path = app.config["DATA_DIR"] + "/notifications.json"
+
+    with open(requests_path, "r", encoding="utf-8") as file:
+        requests = json.load(file)
+
+    with open(notifications_path, "r", encoding="utf-8") as file:
+        notifications = json.load(file)
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/marketplace")
+    assert requests[-1]["status"] == "Pending"
+    assert requests[-1]["buyer"] == "student2"
+    assert notifications[-1]["status"] == "Pending"
