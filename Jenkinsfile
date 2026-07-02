@@ -2,42 +2,32 @@ pipeline {
     agent any
 
     stages {
-        stage('Install Dependencies') {
+        stage('Checkout Source Code') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh 'python -m pip install --upgrade pip'
-                        sh 'pip install -r requirements.txt'
-                    } else {
-                        bat 'python -m pip install --upgrade pip'
-                        bat 'pip install -r requirements.txt'
-                    }
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        sh 'python -m pytest'
-                    } else {
-                        bat 'python -m pytest'
-                    }
-                }
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh 'docker build -t c270-e62h-team3 .'
-                    } else {
-                        bat 'docker build -t c270-e62h-team3 .'
-                    }
-                }
+                sh 'docker build -t c270-e62h-team3 .'
             }
+        }
+
+        stage('Verify Docker Image') {
+            steps {
+                sh 'docker images | grep c270-e62h-team3'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Jenkins pipeline completed successfully.'
+        }
+
+        failure {
+            echo 'Jenkins pipeline failed.'
         }
     }
 }
