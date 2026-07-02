@@ -46,7 +46,7 @@
 
     - name: Verify the app is reachable
       uri:
-        url: http://host.docker.internal:5000
+        url: http://host.docker.internal:5000/login
         status_code: 200
       register: app_check
       retries: 10
