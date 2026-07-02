@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout Source Code') {
             steps {
                 checkout scm
@@ -19,6 +20,13 @@ pipeline {
                 sh 'docker images | grep c270-e62h-team3'
             }
         }
+
+        stage('Deploy with Ansible') {
+            steps {
+                sh 'ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml'
+            }
+        }
+
     }
 
     post {
