@@ -1,0 +1,284 @@
+.sell-items-page {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.82)),
+        url("images/rp-background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #1f2937;
+    font-family: "Fredoka", Arial, sans-serif;
+}
+button,
+input,
+textarea,
+select {
+    font-family: "Fredoka", Arial, sans-serif;
+}
+.sell-header {
+    background: linear-gradient(135deg, #009b63, #006241);
+    color: white;
+    padding: 30px 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 8px 24px rgba(0, 98, 65, 0.25);
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+}
+
+.sell-header h1 {
+    margin: 0 0 6px;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.sell-header p {
+    margin: 0;
+    color: #d7f5e8;
+}
+
+.sell-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sell-nav a {
+    color: white;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.16);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.sell-nav a:hover,
+.sell-nav .active {
+    background: white;
+    color: #006241;
+}
+
+.sell-container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 30px auto;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-weight: bold;
+}
+
+.sell-panel {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: 24px;
+    padding: 26px;
+    margin-bottom: 26px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(8px);
+}
+
+.sell-panel h2 {
+    margin: 0 0 8px;
+    color: #006241;
+}
+
+.panel-desc {
+    margin: 0 0 18px;
+    color: #64748b;
+}
+
+.sell-form,
+.edit-form {
+    display: grid;
+    gap: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.form-group textarea {
+    min-height: 95px;
+    resize: vertical;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 6px;
+    color: #64748b;
+}
+
+.primary-btn,
+.danger-btn {
+    border: none;
+    border-radius: 9px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 12px 16px;
+}
+
+.primary-btn {
+    background: #006241;
+}
+
+.primary-btn:hover {
+    background: #004d33;
+}
+
+.danger-btn {
+    background: #dc2626;
+    margin-top: 12px;
+}
+
+.danger-btn:hover {
+    background: #991b1b;
+}
+
+.section-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 16px;
+}
+
+.listing-count {
+    background: #e6f6ef;
+    color: #006241;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: bold;
+}
+
+.listing-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.listing-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 13px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.listing-image {
+    height: 220px;
+    background: linear-gradient(135deg, #00a85a, #006241);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 54px;
+}
+
+.listing-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.listing-content {
+    padding: 18px;
+}
+
+.listing-content h3 {
+    margin: 0 0 8px;
+    color: #111827;
+}
+
+.listing-meta {
+    margin: 0 0 10px;
+    color: #006241;
+    font-weight: bold;
+}
+
+.listing-desc {
+    margin: 0;
+    color: #64748b;
+}
+
+.edit-box {
+    border-top: 1px solid #e5e7eb;
+    padding: 16px 18px;
+}
+
+.edit-box summary {
+    cursor: pointer;
+    color: #006241;
+    font-weight: bold;
+    margin-bottom: 14px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 36px;
+    color: #64748b;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.empty-state h3 {
+    color: #006241;
+    margin: 0 0 8px;
+}
+
+@media (max-width: 800px) {
+    .sell-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .section-title-row {
+        flex-direction: column;
+    }
+}
+.brand-area {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.rp-logo {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    background: white;
+    padding: 8px;
+    border-radius: 12px;
+}
+
