@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Account - RP Marketplace</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-body">
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <!-- RP Logo -->
+
+            <img src="{{ url_for('static', filename='images/rp-logo.png') }}" alt="RP Logo" class="rp-logo">
+
+            <!-- Title -->
+
+            <h1>Create Account</h1>
+
+            <p class="auth-kicker">Join the RP student marketplace</p>
+
+            <p class="subtitle">
+                Register using your official RP email.
+            </p>
+
+            <!-- Register Form -->
+
+            <form action="/register" method="POST" class="login-form register-form">
+
+                <!-- Name -->
+
+                <label>Full Name</label>
+
+                <input type="text" name="name" placeholder="Enter your full name" required>
+
+                <!-- Username -->
+
+                <label>Username</label>
+
+                <input type="text" name="username" placeholder="Create a username" required>
+
+                <!-- Student ID -->
+
+                <label>RP Student ID</label>
+
+                <input type="text" name="student_id" placeholder="Enter your student ID" required>
+
+                <!-- Email -->
+
+                <label>RP Email</label>
+
+                <input type="email" name="email" placeholder="Enter your RP email" required>
+
+                <!-- School -->
+
+                <label>School</label>
+
+                <select name="school" required>
+                    <option value="">Select your school</option>
+                    <option value="School of Infocomm">School of Infocomm</option>
+                    <option value="School of Applied Science">School of Applied Science</option>
+                    <option value="School of Business">School of Business</option>
+                    <option value="School of Engineering">School of Engineering</option>
+                    <option value="School of Hospitality">School of Hospitality</option>
+                    <option value="School of Sports, Health and Leisure">School of Sports, Health and Leisure</option>
+                    <option value="School of Technology for the Arts">School of Technology for the Arts</option>
+                </select>
+
+                <!-- Password -->
+
+                <label for="register-password">Password</label>
+
+                <input
+                    id="register-password"
+                    type="password"
+                    name="password"
+                    placeholder="Create a password"
+                    required
+                    oninput="updatePasswordStrength()"
+                >
+
+                <div class="password-guidance">
+                    Use at least 8 characters with letters and numbers.
+                </div>
+
+                <div class="password-strength" aria-live="polite">
+                    <div class="strength-track">
+                        <span id="strength-fill" class="strength-fill"></span>
+                    </div>
+                    <p id="strength-text" class="strength-text weak">
+                        Password strength: Weak
+                    </p>
+                </div>
+
+                <!-- Submit Button -->
+
+                <button type="submit">
+                    Create Account
+                </button>
+
+            </form>
+
+            <!-- Footer -->
+
+            <p class="footer-text">
+
+                Already have an account?
+
+                <a href="/">
+                    Back to Login
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+<script>
+    function updatePasswordStrength() {
+        const password = document.getElementById("register-password").value;
+        const fill = document.getElementById("strength-fill");
+        const text = document.getElementById("strength-text");
+
+        let score = 0;
+
+        if (password.length >= 8) {
+            score += 1;
+        }
+
+        if (/[A-Za-z]/.test(password) && /[0-9]/.test(password)) {
+            score += 1;
+        }
+
+        if (/[^A-Za-z0-9]/.test(password) || password.length >= 12) {
+            score += 1;
+        }
+
+        fill.className = "strength-fill";
+        text.className = "strength-text";
+
+        if (score >= 3) {
+            fill.classList.add("strong");
+            text.classList.add("strong");
+            text.textContent = "Password strength: Strong";
+        } else if (score >= 2) {
+            fill.classList.add("medium");
+            text.classList.add("medium");
+            text.textContent = "Password strength: Medium";
+        } else {
+            fill.classList.add("weak");
+            text.classList.add("weak");
+            text.textContent = "Password strength: Weak";
+        }
+    }
+</script>
+
+</body>
+
+</html>
