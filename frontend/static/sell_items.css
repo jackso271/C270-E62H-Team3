@@ -1,24 +1,39 @@
 .sell-items-page {
     margin: 0;
     min-height: 100vh;
-    background: #f4f7f6;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.82)),
+        url("images/rp-background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     color: #1f2937;
-    font-family: Arial, sans-serif;
+    font-family: "Fredoka", Arial, sans-serif;
 }
-
+button,
+input,
+textarea,
+select {
+    font-family: "Fredoka", Arial, sans-serif;
+}
 .sell-header {
-    background: #006241;
+    background: linear-gradient(135deg, #009b63, #006241);
     color: white;
-    padding: 28px 8%;
+    padding: 30px 8%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 24px;
+    box-shadow: 0 8px 24px rgba(0, 98, 65, 0.25);
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
 }
 
 .sell-header h1 {
     margin: 0 0 6px;
-    font-size: 30px;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
 }
 
 .sell-header p {
@@ -64,12 +79,13 @@
 }
 
 .sell-panel {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: 24px;
+    padding: 26px;
+    margin-bottom: 26px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(8px);
 }
 
 .sell-panel h2 {
@@ -265,3 +281,4 @@
     padding: 8px;
     border-radius: 12px;
 }
+
