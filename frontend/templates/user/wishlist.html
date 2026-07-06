@@ -6,6 +6,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wishlist</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .wishlist-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border-left: 4px solid #007bff;
+        }
+
+        .stat-card.available {
+            border-left-color: #28a745;
+        }
+
+        .stat-card.sold {
+            border-left-color: #dc3545;
+        }
+
+        .stat-card.value {
+            border-left-color: #ffc107;
+        }
+
+        .stat-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .wishlist-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .sort-dropdown {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .sort-dropdown:hover {
+            border-color: #007bff;
+            background-color: #f9f9f9;
+        }
+    </style>
 </head>
 
 <body class="marketplace-body">
@@ -37,6 +100,40 @@
             <h2>Your Wishlist</h2>
             <p>Saved items are private to your account and stay here until you remove them.</p>
         </section>
+
+        {% if stats.total_items > 0 %}
+            <!-- Wishlist Statistics -->
+            <section class="wishlist-stats">
+                <div class="stat-card">
+                    <h4>Total Items</h4>
+                    <div class="value">{{ stats.total_items }}</div>
+                </div>
+                <div class="stat-card available">
+                    <h4>Available</h4>
+                    <div class="value">{{ stats.available_items }}</div>
+                </div>
+                <div class="stat-card sold">
+                    <h4>Sold</h4>
+                    <div class="value">{{ stats.sold_items }}</div>
+                </div>
+                <div class="stat-card value">
+                    <h4>Total Value</h4>
+                    <div class="value">${{ "%.2f"|format(stats.total_value) }}</div>
+                </div>
+            </section>
+
+            <!-- Sorting Controls -->
+            <section class="wishlist-controls">
+                <label for="sort-select">Sort by:</label>
+                <form method="GET" action="/wishlist" style="display: flex; gap: 10px;">
+                    <select id="sort-select" name="sort" class="sort-dropdown" onchange="this.form.submit()">
+                        <option value="date_added" {% if sort_by == 'date_added' %}selected{% endif %}>Date Added (Newest)</option>
+                        <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                    </select>
+                </form>
+            </section>
+        {% endif %}
 
         <section class="marketplace-grid">
         {% for product in wishlist_items %}
