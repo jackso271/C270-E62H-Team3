@@ -13,6 +13,7 @@ DATA_FILES = {
     "requests": "requests.json",
     "notifications": "notifications.json",
     "wishlists": "wishlists.json",
+    "messages": "messages.json",
     "account_creation_logs": "account_creation_logs.json",
     "successful_logins": "successful_logins.json",
 }

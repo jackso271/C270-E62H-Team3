@@ -1,0 +1,17 @@
+[
+    {
+        "product_id": 2,
+        "sender": "buyer",
+        "text": "Hello Product 2"
+    },
+    {
+        "product_id": 1,
+        "sender": "buyer",
+        "text": "Hello Product 1"
+    },
+    {
+        "product_id": 1,
+        "sender": "buyer",
+        "text": "Hi!! Is this item still available?"
+    }
+]
