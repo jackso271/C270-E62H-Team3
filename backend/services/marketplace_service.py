@@ -47,12 +47,61 @@ def get_wishlist_ids(user):
     ]
 
 
-def get_wishlist_products(user):
+def get_wishlist_products(user, sort_by="date_added"):
+    """Get wishlist products with optional sorting.
+    
+    Args:
+        user: Current user object
+        sort_by: Sorting method ('date_added', 'price_low', 'price_high')
+    
+    Returns:
+        List of products in user's wishlist, sorted as requested
+    """
     saved_ids = set(get_wishlist_ids(user))
-    return [
+    products = [
         product for product in get_marketplace_products(user)
         if product.get("id") in saved_ids
     ]
+    
+    # Apply sorting
+    if sort_by == "price_low":
+        products = sorted(products, key=lambda p: float(p.get("price", 0)))
+    elif sort_by == "price_high":
+        products = sorted(products, key=lambda p: float(p.get("price", 0)), reverse=True)
+    # "date_added" is default (maintains original order from wishlist)
+    
+    return products
+
+
+def get_wishlist_statistics(user):
+    """Calculate wishlist statistics for display.
+    
+    Args:
+        user: Current user object
+    
+    Returns:
+        Dictionary with total_items, total_value, available_items, sold_items
+    """
+    if not user:
+        return {
+            "total_items": 0,
+            "total_value": 0.0,
+            "available_items": 0,
+            "sold_items": 0,
+        }
+    
+    products = get_wishlist_products(user)
+    
+    total_value = sum(float(p.get("price", 0)) for p in products)
+    available_items = sum(1 for p in products if p.get("status") == "Available")
+    sold_items = sum(1 for p in products if p.get("status") == "Sold")
+    
+    return {
+        "total_items": len(products),
+        "total_value": round(total_value, 2),
+        "available_items": available_items,
+        "sold_items": sold_items,
+    }
 
 
 def add_to_wishlist(product_id, user):
