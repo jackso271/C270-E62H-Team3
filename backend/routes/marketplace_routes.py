@@ -6,6 +6,7 @@ from backend.services.marketplace_service import (
     get_marketplace_products,
     get_seller_requests,
     get_wishlist_products,
+    get_wishlist_statistics,
     request_counts,
     reject_request,
     remove_from_wishlist,
@@ -77,9 +78,18 @@ def wishlist():
     if not user:
         return redirect("/")
 
+    sort_by = request.args.get("sort", "date_added")
+    if sort_by not in ["date_added", "price_low", "price_high"]:
+        sort_by = "date_added"
+
+    wishlist_items = get_wishlist_products(user, sort_by)
+    stats = get_wishlist_statistics(user)
+
     return render_template(
         "user/wishlist.html",
-        wishlist_items=get_wishlist_products(user),
+        wishlist_items=wishlist_items,
+        sort_by=sort_by,
+        stats=stats,
     )
 
 
