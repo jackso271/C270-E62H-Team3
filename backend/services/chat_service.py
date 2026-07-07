@@ -69,3 +69,54 @@ def get_product(product_id):
             return product
 
     return None
+
+def get_seller_conversations(username):
+
+    messages = get_messages()
+
+    products = load_json(data_file("products"))
+
+    conversations = []
+
+    seen = set()
+
+    for message in messages:
+
+        if message.get("receiver") != username:
+            continue
+
+        key = (
+            message["product_id"],
+            message["sender"]
+        )
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+
+        product_name = "Unknown Product"
+
+        for product in products:
+
+            if product["id"] == message["product_id"]:
+
+                product_name = product["title"]
+
+                break
+
+        conversations.append({
+
+            "product_id": message["product_id"],
+
+            "product_name": product_name,
+
+            "sender": message["sender"],
+
+            "text": message["text"],
+
+            "timestamp": message.get("timestamp", "")
+
+        })
+
+    return conversations

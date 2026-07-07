@@ -1,9 +1,12 @@
-from flask import Blueprint, render_template, request, redirect
+from datetime import datetime
+
+from flask import Blueprint, render_template, request, redirect, session
 
 from backend.services.chat_service import (
     get_messages,
     save_messages,
-    get_product
+    get_product,
+    get_seller_conversations
 )
 
 chat_bp = Blueprint("chat", __name__)
@@ -30,8 +33,10 @@ def chat(product_id):
 
             all_messages.append({
                 "product_id": product_id,
-                "sender": "buyer",
-                "text": text
+                "sender": session.get("username"),
+                "receiver": product["seller"],
+                "text": text,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
 
             save_messages(all_messages)
@@ -42,4 +47,22 @@ def chat(product_id):
         "user/chat.html",
         messages=messages,
         product=product
+    )
+
+@chat_bp.route("/seller/chats")
+def seller_chats():
+
+    if "username" not in session:
+        return redirect("/")
+
+    conversations = get_seller_conversations(
+        session["username"]
+    )
+
+    return render_template(
+
+        "user/seller_chats.html",
+
+        conversations=conversations
+
     )

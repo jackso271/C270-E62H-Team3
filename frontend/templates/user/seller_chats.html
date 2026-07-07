@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Chats</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="marketplace-body">
+
+    <div class="marketplace-container">
+
+        <h1>💬 Seller Chats</h1>
+
+        <p class="page-subtitle">
+            View conversations from buyers interested in your products.
+        </p>
+
+        {% if conversations %}
+
+            <div class="marketplace-grid">
+
+                {% for conversation in conversations %}
+
+                    <div class="product-card">
+
+                        <div class="product-info">
+
+                            <h3>{{ conversation.product_name }}</h3>
+
+                            <p>
+                                <strong>Buyer:</strong>
+                                {{ conversation.sender }}
+                            </p>
+
+                            <p>
+                                <strong>Last Message:</strong><br>
+                                {{ conversation.text }}
+                            </p>
+
+                            <p>
+                                <strong>Sent:</strong>
+                                {{ conversation.timestamp }}
+                            </p>
+
+                        </div>
+
+                        <a href="/chat/{{ conversation.product_id }}" class="chat-btn">
+                            Open Chat
+                        </a>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="marketplace-empty">
+
+                <h3>No conversations yet</h3>
+
+                <p>
+                    Buyers haven't contacted you yet.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+        <br>
+
+        <a href="/seller/dashboard" class="chat-btn">
+            ← Back to Seller Dashboard
+        </a>
+
+    </div>
+
+</body>
+</html>
