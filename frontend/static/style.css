@@ -3985,3 +3985,10 @@ html {
     font-size: 11px;
     color: rgba(255, 255, 255, 0.65);
 }
+
+.empty-chat {
+    text-align: center;
+    color: #777;
+    padding: 30px;
+    font-style: italic;
+}

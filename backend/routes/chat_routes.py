@@ -19,6 +19,11 @@ def chat(product_id):
 
     product = get_product(product_id)
 
+    if "username" not in session:
+        return redirect("/")
+
+    username = session.get("username")
+
     messages = [
         msg
         for msg in all_messages
@@ -59,7 +64,9 @@ def chat(product_id):
     return render_template(
         "user/chat.html",
         messages=messages,
-        product=product
+        product=product,
+        chat_with=product["seller"],
+        back_url="/marketplace"
     )
 
 @chat_bp.route("/seller/chats")
@@ -86,6 +93,12 @@ def seller_chat(product_id, buyer):
     all_messages = get_messages()
 
     product = get_product(product_id)
+
+    if "username" not in session:
+        return redirect("/")
+
+    if product["seller"] != session.get("username"):
+        return redirect("/seller/chats")
 
     messages = [
         msg
@@ -127,5 +140,7 @@ def seller_chat(product_id, buyer):
     return render_template(
         "user/chat.html",
         messages=messages,
-        product=product
+        product=product,
+        chat_with=buyer,
+        back_url="/seller/chats"
     )

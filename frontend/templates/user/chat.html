@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with Seller</title>
+    <title>Chat</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
@@ -14,9 +14,15 @@
 <div class="chat-page">
 
     <div class="chat-header">
-        <a href="/marketplace" class="back-btn">← Back to Marketplace</a>
+        <a href="{{ back_url }}" class="back-btn">
+            {% if back_url == "/seller/chats" %}
+                ← Back to Seller Chats
+            {% else %}
+                ← Back to Marketplace
+            {% endif %}
+        </a>
 
-        <h2>Chat with {{ product.seller }}</h2>
+        <h2>Chat with {{ chat_with }}</h2>
 
         <p style="margin-top:5px; color:#666;">
             Product: {{ product.title }}
@@ -26,33 +32,44 @@
 
     <div class="chat-box">
 
-        {% for message in messages %}
+        {% if messages %}
 
-            <div class="message {% if message.sender == session.get('username') %}buyer{% else %}seller{% endif %}">
+            {% for message in messages %}
 
-                <strong>
-                    {% if message.sender == session.get('username') %}
-                        You
-                    {% else %}
-                        {{ message.sender }}
-                    {% endif %}
-                </strong><br>
+                <div class="message {% if message.sender == session.get('username') %}buyer{% else %}seller{% endif %}">
 
-                {{ message.text }}
+                    <strong>
+                        {% if message.sender == session.get('username') %}
+                            You
+                        {% else %}
+                            {{ message.sender }}
+                        {% endif %}
+                    </strong><br>
 
-                <br>
+                    {{ message.text }}
 
-                <small class="message-time">
-                    {{ message.timestamp }}
-                </small>
+                    <br>
 
-            </div>
+                    <small class="message-time">
+                        {{ message.timestamp|default("Unknown time")|replace("-", "/") }}
+                    </small>
 
-        {% endfor %}
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p class="empty-chat">
+                No messages yet.<br>
+                Start the conversation!
+            </p>
+
+        {% endif %}
 
     </div>
 
-    
+
     <form method="POST" class="chat-form">
 
         <input
