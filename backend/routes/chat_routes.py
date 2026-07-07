@@ -22,7 +22,20 @@ def chat(product_id):
     messages = [
         msg
         for msg in all_messages
-        if msg.get("product_id") == product_id
+        if (
+            msg.get("product_id") == product_id
+            and (
+                (
+                    msg.get("sender") == session.get("username")
+                    and msg.get("receiver") == product["seller"]
+                )
+                or
+                (
+                    msg.get("sender") == product["seller"]
+                    and msg.get("receiver") == session.get("username")
+                )
+            )
+        )
     ]
 
     if request.method == "POST":
@@ -65,4 +78,54 @@ def seller_chats():
 
         conversations=conversations
 
+    )
+
+@chat_bp.route("/seller/chat/<int:product_id>/<buyer>", methods=["GET", "POST"])
+def seller_chat(product_id, buyer):
+
+    all_messages = get_messages()
+
+    product = get_product(product_id)
+
+    messages = [
+        msg
+        for msg in all_messages
+        if (
+            msg.get("product_id") == product_id
+            and (
+                (
+                    msg.get("sender") == buyer
+                    and msg.get("receiver") == session.get("username")
+                )
+                or
+                (
+                    msg.get("sender") == session.get("username")
+                    and msg.get("receiver") == buyer
+                )
+            )
+        )
+    ]
+
+    if request.method == "POST":
+
+        text = request.form.get("message")
+
+        if text:
+
+            all_messages.append({
+                "product_id": product_id,
+                "sender": session.get("username"),
+                "receiver": buyer,
+                "text": text,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+
+            save_messages(all_messages)
+
+        return redirect(f"/seller/chat/{product_id}/{buyer}")
+
+    return render_template(
+        "user/chat.html",
+        messages=messages,
+        product=product
     )

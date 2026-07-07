@@ -3978,3 +3978,10 @@ html {
     cursor:pointer;
 
 }
+
+.message-time {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.65);
+}

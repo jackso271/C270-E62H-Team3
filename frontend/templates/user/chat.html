@@ -28,15 +28,31 @@
 
         {% for message in messages %}
 
-            <div class="message {% if message.sender == session.get('name') %}buyer{% else %}seller{% endif %}">
-                <strong>{{ message.sender }}</strong><br>
+            <div class="message {% if message.sender == session.get('username') %}buyer{% else %}seller{% endif %}">
+
+                <strong>
+                    {% if message.sender == session.get('username') %}
+                        You
+                    {% else %}
+                        {{ message.sender }}
+                    {% endif %}
+                </strong><br>
+
                 {{ message.text }}
+
+                <br>
+
+                <small class="message-time">
+                    {{ message.timestamp }}
+                </small>
+
             </div>
 
         {% endfor %}
 
     </div>
 
+    
     <form method="POST" class="chat-form">
 
         <input
