@@ -4,30 +4,30 @@
         "title": "Used Laptop",
         "name": "Used Laptop",
         "price": 450,
-        "seller": "seller1",
+        "seller": "user2",
         "status": "Reserved",
         "category": "Electronics",
-        "description": "Pre-owned laptop listed by seller1"
+        "description": "Pre-owned laptop listed by user2"
     },
     {
         "id": 2,
         "title": "Keyboard",
         "name": "Keyboard",
         "price": 25,
-        "seller": "seller1",
+        "seller": "user2",
         "status": "Reserved",
         "category": "Electronics",
-        "description": "Keyboard listed by seller1"
+        "description": "Keyboard listed by user2"
     },
     {
         "id": 3,
         "title": "iPad Case",
         "name": "iPad Case",
         "price": 10,
-        "seller": "seller2",
+        "seller": "user3",
         "status": "Reserved",
         "category": "Electronics",
-        "description": "iPad case listed by seller2"
+        "description": "iPad case listed by user3"
     },
     {
         "id": 4,
