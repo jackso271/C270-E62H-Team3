@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout Source Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Deploy to Staging with Ansible') {
+            steps {
+                sh '''
+                docker exec -u root jenkins_server bash -c "
+                cd /var/jenkins_home/workspace/RPMarketplacePipeline &&
+                ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml
+                "
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Staging deployment completed successfully.'
+        }
+
+        failure {
+            echo 'Staging pipeline failed.'
+        }
+    }
+}
