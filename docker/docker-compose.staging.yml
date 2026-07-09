@@ -1,0 +1,17 @@
+name: staging
+
+services:
+  backend:
+    container_name: backend-staging
+    ports: !override
+      - "5001:5000"
+
+  frontend:
+    container_name: frontend-staging
+    ports: !override
+      - "8081:80"
+
+networks:
+  app-network:
+    name: staging-network
+    driver: bridge
