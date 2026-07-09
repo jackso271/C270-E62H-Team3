@@ -43,7 +43,7 @@
 
     - name: Verify staging app is reachable
       uri:
-        url: http://localhost:5002/login
+        url: http://localhost:5002/
         status_code: 200
       register: app_check
       retries: 10
