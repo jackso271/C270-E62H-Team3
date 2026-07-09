@@ -1,8 +1,5 @@
 ---
-# Deploy the RP Marketplace app locally with Docker.
-# The playbook keeps the demo simple: verify Docker, rebuild the image,
-# replace the existing container, then confirm the Flask app responds.
-- name: Deploy RP Marketplace Docker container
+- name: Deploy RP Marketplace staging container
   hosts: all
   gather_facts: false
 
@@ -11,42 +8,42 @@
       command: docker --version
       changed_when: false
 
-    - name: Stop existing rpmarketplace container if it exists
-      command: docker stop rpmarketplace
+    - name: Stop existing staging container if it exists
+      command: docker stop rpmarketplace-staging
       register: stop_container
       failed_when: false
       changed_when: stop_container.rc == 0
 
-    - name: Remove existing rpmarketplace container if it exists
-      command: docker rm rpmarketplace
+    - name: Remove existing staging container if it exists
+      command: docker rm rpmarketplace-staging
       register: remove_container
       failed_when: false
       changed_when: remove_container.rc == 0
 
-    - name: Build Docker image rp-marketplace
+    - name: Build staging Docker image
       command:
         argv:
           - docker
           - build
           - -t
-          - rp-marketplace
+          - rp-marketplace-staging
           - "{{ playbook_dir }}/.."
 
-    - name: Run rpmarketplace container on port 5000
+    - name: Run staging container on port 5002
       command:
         argv:
           - docker
           - run
           - -d
           - --name
-          - rpmarketplace
+          - rpmarketplace-staging
           - -p
-          - "5000:5000"
-          - rp-marketplace
+          - "5002:5000"
+          - rp-marketplace-staging
 
-    - name: Verify the app is reachable
+    - name: Verify staging app is reachable
       uri:
-        url: http://host.docker.internal:5000/login
+        url: http://localhost:5002/login
         status_code: 200
       register: app_check
       retries: 10
