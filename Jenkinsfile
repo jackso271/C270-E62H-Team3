@@ -2,45 +2,37 @@ pipeline {
     agent any
 
     stages {
-
         stage('Checkout Source Code') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build Staging Docker Image') {
+        stage('Deploy to Production') {
             steps {
-                sh 'docker build -t rp-marketplace-staging .'
+                sh '''
+                docker exec -u root jenkins_server bash -c "
+                cd /var/jenkins_home/workspace/RPMarketplace-Production &&
+                ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml
+                "
+                '''
             }
         }
 
-        stage('Verify Staging Docker Image') {
+        stage('Confirm Production URL') {
             steps {
-                sh 'docker images | grep rp-marketplace-staging'
-            }
-        }
-
-        stage('Deploy to Staging with Ansible') {
-            steps {
-                sh 'ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml'
-            }
-        }
-
-        stage('Verify Staging Container') {
-            steps {
-                sh 'docker ps --format "table {{.Names}}\\t{{.Ports}}" | grep rpmarketplace-staging'
+                echo 'Production is available at: http://localhost:5000'
             }
         }
     }
 
     post {
         success {
-            echo 'Staging pipeline completed successfully.'
+            echo 'Production deployment completed successfully.'
         }
 
         failure {
-            echo 'Staging pipeline failed.'
+            echo 'Production deployment failed.'
         }
     }
 }
