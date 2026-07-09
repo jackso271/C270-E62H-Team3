@@ -1,0 +1,110 @@
+---
+- name: Deploy RP Marketplace staging environment
+  hosts: staging
+  become: false
+  gather_facts: false
+
+  vars:
+    project_root: "{{ playbook_dir }}/.."
+    compose_files:
+      - docker/docker-compose.yml
+      - docker/docker-compose.staging.yml
+
+  tasks:
+    - name: Verify Docker is installed
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Show Docker version
+      debug:
+        msg: "{{ docker_version.stdout }}"
+
+    - name: Verify Docker Compose is available
+      command:
+        argv:
+          - docker
+          - compose
+          - version
+      register: compose_version
+      changed_when: false
+
+    - name: Show Docker Compose version
+      debug:
+        msg: "{{ compose_version.stdout }}"
+
+    - name: Stop existing staging containers
+      command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_files[0] }}"
+          - -f
+          - "{{ compose_files[1] }}"
+          - down
+        chdir: "{{ project_root }}"
+      register: compose_down
+      changed_when: "'Removed' in compose_down.stdout or 'Removing' in compose_down.stdout or 'Stopped' in compose_down.stdout"
+
+    - name: Start staging containers
+      command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_files[0] }}"
+          - -f
+          - "{{ compose_files[1] }}"
+          - up
+          - --build
+          - -d
+        chdir: "{{ project_root }}"
+      register: compose_up
+      changed_when: true
+
+    - name: Show staging compose output
+      debug:
+        msg: "{{ compose_up.stdout_lines }}"
+
+    - name: Wait for staging containers to start
+      pause:
+        seconds: 5
+
+    - name: Show running containers
+      command:
+        argv:
+          - docker
+          - ps
+      register: running_containers
+      changed_when: false
+
+    - name: Display running containers
+      debug:
+        msg: "{{ running_containers.stdout_lines }}"
+
+    - name: Verify staging frontend is reachable
+      uri:
+        url: http://localhost:8081
+        status_code: 200
+      register: frontend_check
+      retries: 10
+      delay: 3
+      until: frontend_check.status == 200
+      changed_when: false
+
+    - name: Verify staging backend is reachable
+      uri:
+        url: http://localhost:5001
+        status_code: 200
+      register: backend_check
+      retries: 10
+      delay: 3
+      until: backend_check.status == 200
+      changed_when: false
+
+    - name: Show staging health check result
+      debug:
+        msg:
+          - "Frontend staging URL returned {{ frontend_check.status }}: http://localhost:8081"
+          - "Backend staging URL returned {{ backend_check.status }}: http://localhost:5001"

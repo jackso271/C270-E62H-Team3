@@ -1,2 +1,5 @@
 [local]
 localhost ansible_connection=local
+
+[staging]
+localhost ansible_connection=local
