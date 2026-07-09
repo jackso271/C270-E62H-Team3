@@ -9,33 +9,38 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Staging Docker Image') {
             steps {
-                sh 'docker build -t c270-e62h-team3 .'
+                sh 'docker build -t rp-marketplace-staging .'
             }
         }
 
-        stage('Verify Docker Image') {
+        stage('Verify Staging Docker Image') {
             steps {
-                sh 'docker images | grep c270-e62h-team3'
+                sh 'docker images | grep rp-marketplace-staging'
             }
         }
 
-        stage('Deploy with Ansible') {
+        stage('Deploy to Staging with Ansible') {
             steps {
                 sh 'ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml'
             }
         }
 
+        stage('Verify Staging Container') {
+            steps {
+                sh 'docker ps --format "table {{.Names}}\\t{{.Ports}}" | grep rpmarketplace-staging'
+            }
+        }
     }
 
     post {
         success {
-            echo 'Jenkins pipeline completed successfully.'
+            echo 'Staging pipeline completed successfully.'
         }
 
         failure {
-            echo 'Jenkins pipeline failed.'
+            echo 'Staging pipeline failed.'
         }
     }
 }
