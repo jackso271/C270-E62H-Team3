@@ -10,7 +10,12 @@ pipeline {
 
         stage('Deploy to Staging with Ansible') {
             steps {
-                sh 'ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml'
+                sh '''
+                docker exec -u root jenkins_server bash -c "
+                cd /var/jenkins_home/workspace/RPMarketplacePipeline &&
+                ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml
+                "
+                '''
             }
         }
     }
