@@ -12,7 +12,7 @@ pipeline {
             steps {
                 sh '''
                 docker exec -u root jenkins_server bash -c "
-                cd /var/jenkins_home/workspace/RPMarketplacePipeline &&
+                cd /var/jenkins_home/workspace/RPMarketplace-Staging &&
                 ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml
                 "
                 '''
