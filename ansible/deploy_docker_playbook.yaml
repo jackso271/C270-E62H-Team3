@@ -1,5 +1,5 @@
 ---
-- name: Deploy RP Marketplace staging container
+- name: Deploy RP Marketplace production container
   hosts: all
   gather_facts: false
 
@@ -8,42 +8,42 @@
       command: docker --version
       changed_when: false
 
-    - name: Stop existing staging container if it exists
-      command: docker stop rpmarketplace-staging
+    - name: Stop existing production container if it exists
+      command: docker stop rpmarketplace
       register: stop_container
       failed_when: false
       changed_when: stop_container.rc == 0
 
-    - name: Remove existing staging container if it exists
-      command: docker rm rpmarketplace-staging
+    - name: Remove existing production container if it exists
+      command: docker rm rpmarketplace
       register: remove_container
       failed_when: false
       changed_when: remove_container.rc == 0
 
-    - name: Build staging Docker image
+    - name: Build production Docker image
       command:
         argv:
           - docker
           - build
           - -t
-          - rp-marketplace-staging
+          - rp-marketplace
           - "{{ playbook_dir }}/.."
 
-    - name: Run staging container on port 5002
+    - name: Run production container on port 5000
       command:
         argv:
           - docker
           - run
           - -d
           - --name
-          - rpmarketplace-staging
+          - rpmarketplace
           - -p
-          - "5002:5000"
-          - rp-marketplace-staging
+          - "5000:5000"
+          - rp-marketplace
 
-    - name: Verify staging app is reachable
+    - name: Verify production app is reachable
       uri:
-        url: http://localhost:5002/login
+        url: http://host.docker.internal:5000/
         status_code: 200
       register: app_check
       retries: 10
