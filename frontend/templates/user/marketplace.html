@@ -75,6 +75,10 @@
                     </form>
                 {% endif %}
 
+                <a href="/chat/{{ product.id }}" class="chat-btn">
+                    Contact Seller
+                </a>
+
                 {% if product.status == "Available" %}
                     <span class="status available">{{ product.status }}</span>
                     {% if product.request_state == "requestable" %}

@@ -2,40 +2,37 @@ pipeline {
     agent any
 
     stages {
-
         stage('Checkout Source Code') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Deploy to Production') {
             steps {
-                sh 'docker build -t c270-e62h-team3 .'
+                sh '''
+                docker exec -u root jenkins_server bash -c "
+                cd /var/jenkins_home/workspace/RPMarketplace-Production &&
+                ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml
+                "
+                '''
             }
         }
 
-        stage('Verify Docker Image') {
+        stage('Confirm Production URL') {
             steps {
-                sh 'docker images | grep c270-e62h-team3'
+                echo 'Production is available at: http://localhost:5000'
             }
         }
-
-        stage('Deploy with Ansible') {
-            steps {
-                sh 'ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml'
-            }
-        }
-
     }
 
     post {
         success {
-            echo 'Jenkins pipeline completed successfully.'
+            echo 'Production deployment completed successfully.'
         }
 
         failure {
-            echo 'Jenkins pipeline failed.'
+            echo 'Production deployment failed.'
         }
     }
 }

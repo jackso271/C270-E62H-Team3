@@ -1,18 +1,5 @@
 [
     {
-        "id": 1,
-        "name": "25044459",
-        "username": "25044459",
-        "student_id": "25044459",
-        "email": "25044459@myrp.edu.sg",
-        "school": "N/A",
-        "password": "password123",
-        "role": "user",
-        "blocked": false,
-        "created_at": "N/A",
-        "last_login": "N/A"
-    },
-    {
         "id": 2,
         "name": "Admin",
         "username": "admin",
@@ -23,46 +10,19 @@
         "role": "admin",
         "blocked": false,
         "created_at": "N/A",
-        "last_login": "2026-06-11 06:06:24"
+        "last_login": "2026-07-09 08:12:32"
     },
     {
-        "id": 7,
-        "name": "testuser01",
-        "username": "testuser1",
-        "email": "12345@myrp.edu.sg",
-        "student_id": "12345",
-        "school": "School of Sports, Health and Leisure",
-        "password": "1234",
-        "role": "student",
-        "blocked": false,
-        "created_at": "2026-06-07 19:16:05",
-        "status_updated_at": "2026-06-07 20:00:41",
-        "last_login": "2026-06-07 20:28:49"
-    },
-    {
-        "id": 4,
-        "name": "user02",
-        "username": "user2",
-        "email": "22345@myrp.edu.sg",
-        "student_id": "22345",
-        "school": "School of Engineering",
+        "id": 2,
+        "name": "Jason Tan",
+        "username": "jason",
+        "email": "25044459@myrp.edu.sg",
+        "student_id": "25044459",
+        "school": "School of Infocomm",
         "password": "123456",
         "role": "student",
         "blocked": false,
-        "created_at": "2026-06-10 09:54:53",
-        "last_login": "2026-06-10 11:46:23"
-    },
-    {
-        "id": 5,
-        "name": "user03",
-        "username": "user3",
-        "email": "23345@myrp.edu.sg",
-        "student_id": "23345",
-        "school": "School of Applied Science",
-        "password": "123456",
-        "role": "student",
-        "blocked": false,
-        "created_at": "2026-06-10 10:54:44",
-        "last_login": "2026-06-10 11:11:49"
+        "created_at": "2026-07-09 06:49:45",
+        "last_login": "N/A"
     }
 ]
