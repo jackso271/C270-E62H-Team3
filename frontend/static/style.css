@@ -3992,3 +3992,31 @@ html {
     padding: 30px;
     font-style: italic;
 }
+
+.seller-chat-button{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+}
+
+.unread-badge{
+    position:absolute;
+    top:-8px;
+    right:-10px;
+
+    width:20px;
+    height:20px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:#ff3b30;
+    color:#fff;
+
+    border-radius:50%;
+    border:2px solid #111827;
+
+    font-size:11px;
+    font-weight:bold;
+}

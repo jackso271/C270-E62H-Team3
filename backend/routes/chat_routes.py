@@ -6,7 +6,8 @@ from backend.services.chat_service import (
     get_messages,
     save_messages,
     get_product,
-    get_seller_conversations
+    get_seller_conversations,
+    get_unread_count
 )
 
 chat_bp = Blueprint("chat", __name__)
@@ -54,7 +55,8 @@ def chat(product_id):
                 "sender": session.get("username"),
                 "receiver": product["seller"],
                 "text": text,
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "read": False
             })
 
             save_messages(all_messages)
@@ -79,13 +81,16 @@ def seller_chats():
         session["username"]
     )
 
+    count = get_unread_count(session["username"])
+
+    print("Unread from route:", count)
+
     return render_template(
-
         "user/seller_chats.html",
-
-        conversations=conversations
-
+        conversations=conversations,
+        unread_count=count
     )
+
 
 @chat_bp.route("/seller/chat/<int:product_id>/<buyer>", methods=["GET", "POST"])
 def seller_chat(product_id, buyer):
@@ -93,6 +98,10 @@ def seller_chat(product_id, buyer):
     all_messages = get_messages()
 
     product = get_product(product_id)
+
+    print("Logged in:", session.get("username"))
+    print("Product seller:", product["seller"])
+    print("Buyer:", buyer)
 
     if "username" not in session:
         return redirect("/")
@@ -119,6 +128,15 @@ def seller_chat(product_id, buyer):
         )
     ]
 
+    for message in messages:
+        if (
+            message["receiver"] == session.get("username")
+            and not message.get("read", False)
+        ):
+            message["read"] = True
+
+    save_messages(all_messages)
+
     if request.method == "POST":
 
         text = request.form.get("message")
@@ -130,7 +148,8 @@ def seller_chat(product_id, buyer):
                 "sender": session.get("username"),
                 "receiver": buyer,
                 "text": text,
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "read": False
             })
 
             save_messages(all_messages)

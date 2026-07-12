@@ -1,5 +1,7 @@
 from flask import Blueprint, redirect, render_template, request, session
 
+from backend.services.chat_service import get_unread_count
+
 from backend.services.seller_dashboard_service import (
     add_product,
     count_products,
@@ -48,11 +50,14 @@ def seller_dashboard():
     all_seller_products = get_seller_products(user)
     products = get_seller_products(user, status_filter)
 
+    unread_count = get_unread_count(session["username"])
+
     return render_template(
         "seller_dashboard.html",
         products=products,
         stats=count_products(all_seller_products),
         status_filter=status_filter,
+        unread_count=unread_count
     )
 
 

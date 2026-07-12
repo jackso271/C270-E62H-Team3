@@ -33,5 +33,85 @@
         "receiver": "testuser1",
         "text": "Yea sure alright..",
         "timestamp": "2026-07-07 17:42:01"
+    },
+    {
+        "product_id": 1,
+        "sender": "user2",
+        "receiver": "user2",
+        "text": "Hi!! Is this item still available?",
+        "timestamp": "2026-07-12 05:58:09",
+        "read": false
+    },
+    {
+        "product_id": 1,
+        "sender": "user2",
+        "receiver": "user2",
+        "text": "I want it!!!",
+        "timestamp": "2026-07-12 05:58:50",
+        "read": false
+    },
+    {
+        "product_id": 2,
+        "sender": "buyer1",
+        "receiver": "user2",
+        "text": "Hi, can you gimme this item for free pls",
+        "timestamp": "2026-07-12 06:05:46",
+        "read": false
+    },
+    {
+        "product_id": 1,
+        "sender": "user2",
+        "receiver": "user2",
+        "text": "Hello??",
+        "timestamp": "2026-07-12 06:22:56",
+        "read": false
+    },
+    {
+        "product_id": 3,
+        "sender": "user2",
+        "receiver": "user3",
+        "text": "Hi!! Is this item still available?",
+        "timestamp": "2026-07-12 06:24:22",
+        "read": true
+    },
+    {
+        "product_id": 3,
+        "sender": "user2",
+        "receiver": "user3",
+        "text": "I want it!",
+        "timestamp": "2026-07-12 06:25:28",
+        "read": true
+    },
+    {
+        "product_id": 1,
+        "sender": "user3",
+        "receiver": "user2",
+        "text": "Hii!!",
+        "timestamp": "2026-07-12 06:31:28",
+        "read": false
+    },
+    {
+        "product_id": 3,
+        "sender": "user3",
+        "receiver": "user2",
+        "text": "yes.",
+        "timestamp": "2026-07-12 07:34:12",
+        "read": false
+    },
+    {
+        "product_id": 3,
+        "sender": "user3",
+        "receiver": "user2",
+        "text": "sure",
+        "timestamp": "2026-07-12 07:34:16",
+        "read": false
+    },
+    {
+        "product_id": 3,
+        "sender": "user2",
+        "receiver": "user3",
+        "text": "is there any discounts??",
+        "timestamp": "2026-07-12 07:56:22",
+        "read": false
     }
 ]

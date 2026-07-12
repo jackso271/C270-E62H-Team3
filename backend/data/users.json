@@ -1,6 +1,6 @@
 [
     {
-        "id": 2,
+        "id": 1,
         "name": "Admin",
         "username": "admin",
         "email": "admin@rp.edu.sg",
@@ -10,7 +10,7 @@
         "role": "admin",
         "blocked": false,
         "created_at": "N/A",
-        "last_login": "2026-07-09 08:12:32"
+        "last_login": "N/A"
     },
     {
         "id": 2,
@@ -24,5 +24,57 @@
         "blocked": false,
         "created_at": "2026-07-09 06:49:45",
         "last_login": "N/A"
+    },
+    {
+        "id": 3,
+        "name": "Test User 1",
+        "username": "testuser1",
+        "email": "12345@myrp.edu.sg",
+        "student_id": "12345",
+        "school": "School of Sports, Health and Leisure",
+        "password": "123",
+        "role": "student",
+        "blocked": false,
+        "created_at": "N/A",
+        "last_login": "N/A"
+    },
+    {
+        "id": 4,
+        "name": "Buyer",
+        "username": "user2",
+        "email": "user2@myrp.edu.sg",
+        "student_id": "22222",
+        "school": "School of Engineering",
+        "password": "123456",
+        "role": "student",
+        "blocked": false,
+        "created_at": "N/A",
+        "last_login": "2026-07-12 07:56:03"
+    },
+    {
+        "id": 5,
+        "name": "Seller",
+        "username": "user3",
+        "email": "user3@myrp.edu.sg",
+        "student_id": "33333",
+        "school": "School of Infocomm",
+        "password": "123456",
+        "role": "student",
+        "blocked": false,
+        "created_at": "N/A",
+        "last_login": "2026-07-12 08:26:34"
+    },
+    {
+        "id": 6,
+        "name": "Buyer Account",
+        "username": "buyer1",
+        "email": "buyer1@myrp.edu.sg",
+        "student_id": "44444",
+        "school": "School of Infocomm",
+        "password": "password123",
+        "role": "student",
+        "blocked": false,
+        "created_at": "N/A",
+        "last_login": "2026-07-12 06:05:14"
     }
 ]
