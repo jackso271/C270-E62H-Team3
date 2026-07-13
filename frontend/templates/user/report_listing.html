@@ -1,0 +1,44 @@
+<h1>Report Listing</h1>
+
+<h3>{{ product.title }}</h3>
+
+<form action="/submit_report/{{ product.id }}" method="POST">
+
+    <label>Reason</label>
+    <br>
+
+    <select name="reason" required>
+        <option value="">-- Select a reason --</option>
+        <option>Spam</option>
+        <option>Fake Item</option>
+        <option>Wrong Category</option>
+        <option>Inappropriate Content</option>
+        <option>Suspected Scam</option>
+        <option>Other</option>
+    </select>
+
+    <br><br>
+
+    <label>Comments</label>
+    <br>
+
+    <textarea
+        name="comments"
+        rows="5"
+        cols="40"
+        placeholder="Tell us why you are reporting this listing."
+    ></textarea>
+
+    <br><br>
+
+    <button type="submit">
+        Submit Report
+    </button>
+
+</form>
+
+<br>
+
+<a href="/product/{{ product.id }}">
+    Cancel
+</a>
