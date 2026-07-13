@@ -112,6 +112,14 @@
         "receiver": "user3",
         "text": "is there any discounts??",
         "timestamp": "2026-07-12 07:56:22",
-        "read": false
+        "read": true
+    },
+    {
+        "product_id": 3,
+        "sender": "user2",
+        "receiver": "user3",
+        "text": "aaaaaaaaa",
+        "timestamp": "2026-07-13 07:55:02",
+        "read": true
     }
 ]
