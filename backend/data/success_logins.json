@@ -216,102 +216,6 @@
         "time": "2026-07-09 08:12:32"
     },
     {
-<<<<<<< HEAD
-        "name": "Buyer",
-        "username": "user2",
-        "role": "student",
-        "time": "2026-07-12 05:57:50"
-    },
-    {
-        "name": "Buyer Account",
-        "username": "buyer1",
-        "role": "student",
-        "time": "2026-07-12 06:05:14"
-    },
-    {
-        "name": "Buyer",
-        "username": "user2",
-        "role": "student",
-        "time": "2026-07-12 06:22:43"
-    },
-    {
-        "name": "Seller",
-        "username": "user3",
-        "role": "student",
-        "time": "2026-07-12 06:23:43"
-    },
-    {
-        "name": "Buyer",
-        "username": "user2",
-        "role": "student",
-        "time": "2026-07-12 06:24:10"
-    },
-    {
-        "name": "Seller",
-        "username": "user3",
-        "role": "student",
-        "time": "2026-07-12 06:24:30"
-    },
-    {
-        "name": "Buyer",
-        "username": "user2",
-        "role": "student",
-        "time": "2026-07-12 06:25:08"
-    },
-    {
-        "name": "Seller",
-        "username": "user3",
-        "role": "student",
-        "time": "2026-07-12 06:25:37"
-    },
-    {
-        "name": "Buyer",
-        "username": "user2",
-        "role": "student",
-        "time": "2026-07-12 06:32:36"
-    },
-    {
-        "name": "Seller",
-        "username": "user3",
-        "role": "student",
-        "time": "2026-07-12 07:03:10"
-    },
-    {
-        "name": "Seller",
-        "username": "user3",
-        "role": "student",
-        "time": "2026-07-12 07:43:44"
-    },
-    {
-        "name": "Buyer",
-        "username": "user2",
-        "role": "student",
-        "time": "2026-07-12 07:56:03"
-    },
-    {
-        "name": "Seller",
-        "username": "user3",
-        "role": "student",
-        "time": "2026-07-12 07:56:38"
-    },
-    {
-        "name": "Seller",
-        "username": "user3",
-        "role": "student",
-        "time": "2026-07-12 08:26:34"
-    },
-    {
-        "name": "Buyer",
-        "username": "user2",
-        "role": "student",
-        "time": "2026-07-13 07:54:53"
-    },
-    {
-        "name": "Seller",
-        "username": "user3",
-        "role": "student",
-        "time": "2026-07-13 07:55:12"
-=======
         "name": "John",
         "username": "John.Doe",
         "role": "student",
@@ -351,6 +255,6 @@
         "role": "admin",
         "time": "2026-07-09 16:20:32"
 
->>>>>>> 803c7e3aa76d088452432ff78aed0bde314da4a7
+
     }
 ]

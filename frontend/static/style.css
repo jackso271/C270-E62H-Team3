@@ -3993,7 +3993,6 @@ html {
     font-style: italic;
 }
 
-<<<<<<< HEAD
 .seller-chat-button{
     position:relative;
     display:inline-flex;
@@ -4020,7 +4019,6 @@ html {
 
     font-size:11px;
     font-weight:bold;
-=======
 /* =========================
    SELL ITEMS PAGE
    Added by Hakeem
@@ -4208,5 +4206,5 @@ html {
     .sell-items-page .sell-submit-btn {
         width: 100%;
     }
->>>>>>> 803c7e3aa76d088452432ff78aed0bde314da4a7
+
 }
