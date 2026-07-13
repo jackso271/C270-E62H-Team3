@@ -16,6 +16,7 @@ DATA_FILES = {
     "messages": "messages.json",
     "account_creation_logs": "account_creation_logs.json",
     "successful_logins": "successful_logins.json",
+    "reports": "reports.json",
 }
 
 

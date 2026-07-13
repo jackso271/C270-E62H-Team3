@@ -216,6 +216,7 @@
         "time": "2026-07-09 08:12:32"
     },
     {
+<<<<<<< HEAD
         "name": "John",
         "username": "John.Doe",
         "role": "student",
@@ -250,5 +251,11 @@
         "username": "John.Doe",
         "role": "student",
         "time": "2026-07-13 14:45:44"
+=======
+        "name": "Admin",
+        "username": "admin",
+        "role": "admin",
+        "time": "2026-07-09 16:20:32"
+>>>>>>> ede7455869a3bde418737ec60b937dbbf27824c7
     }
 ]
