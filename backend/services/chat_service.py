@@ -74,6 +74,11 @@ def get_seller_conversations(username):
 
     messages = get_messages()
 
+    print("Seller =", username)
+
+    for message in messages:
+        print(message)
+
     products = load_json(data_file("products"))
 
     conversations = []
@@ -86,8 +91,8 @@ def get_seller_conversations(username):
             continue
 
         key = (
-            message["product_id"],
-            message["sender"]
+            message.get("product_id"),
+            message.get("sender")
         )
 
         if key in seen:
@@ -98,25 +103,42 @@ def get_seller_conversations(username):
         product_name = "Unknown Product"
 
         for product in products:
-
-            if product["id"] == message["product_id"]:
-
+            if product["id"] == message.get("product_id"):
                 product_name = product["title"]
-
                 break
 
         conversations.append({
-
-            "product_id": message["product_id"],
-
+            "product_id": message.get("product_id"),
             "product_name": product_name,
-
-            "sender": message["sender"],
-
-            "text": message["text"],
-
+            "sender": message.get("sender"),
+            "text": message.get("text"),
             "timestamp": message.get("timestamp", "")
-
         })
 
+    print("Conversations:", conversations)
+
     return conversations
+
+def get_unread_count(username):
+    messages = get_messages()
+
+    print("========== ALL MESSAGES ==========")
+
+    for message in messages:
+        print(message)
+
+    print("========== USER ==========")
+    print(username)
+
+    count = 0
+
+    for message in messages:
+        if (
+            message.get("receiver") == username
+            and not message.get("read", False)
+        ):
+            count += 1
+
+    print("Unread =", count)
+
+    return count
