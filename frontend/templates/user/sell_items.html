@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sell Items</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Existing team CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    
+</head>
+
+<body class="marketplace-body sell-items-page">
+
+    <!-- Shared App Navbar Style -->
+    <nav class="app-navbar">
+        <a href="/homepage" class="app-brand">
+            <span class="brand-dot"></span>
+            <span>
+                <strong>RP Marketplace</strong>
+                <small>Buy and sell items within Republic Polytechnic</small>
+            </span>
+        </a>
+
+        <div class="app-nav-links">
+            <a href="/homepage">Home</a>
+            <a href="/marketplace">Marketplace</a>
+            <a href="/wishlist">Wishlist</a>
+            <a href="/sell-items" class="active">Sell Items</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <main class="marketplace-shell sell-items-shell">
+
+        <!-- Page Intro -->
+        <section class="marketplace-intro sell-items-intro">
+            <h2>Sell Unwanted Items</h2>
+            <p>
+                Create listings for items you no longer need. Other RP students can view your products in the marketplace.
+            </p>
+        </section>
+
+        {% if error %}
+            <div class="sell-error-box">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <!-- Create Listing Form -->
+        <section class="sell-panel">
+            <h2>Create New Listing</h2>
+            <p class="sell-muted-text">
+                Add the product details below. Your item will be saved into the marketplace product data.
+            </p>
+
+            <form action="/sell-items/create" method="POST" enctype="multipart/form-data" class="sell-form">
+
+                <div class="sell-field">
+                    <label for="title">Product Title</label>
+                    <input
+                        id="title"
+                        name="title"
+                        type="text"
+                        placeholder="Example: Used textbook"
+                        required
+                    >
+                </div>
+
+                <div class="sell-field">
+                    <label for="description">Description</label>
+                    <textarea
+                        id="description"
+                        name="description"
+                        placeholder="Describe the item condition and details"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="sell-form-row">
+                    <div class="sell-field">
+                        <label for="category">Category</label>
+                        <select id="category" name="category" required>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Books">Books</option>
+                            <option value="Food">Food</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="School Supplies">School Supplies</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+
+                    <div class="sell-field">
+                        <label for="price">Price ($)</label>
+                        <input
+                            id="price"
+                            name="price"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Example: 10"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="sell-field">
+                    <label for="image">Product Image</label>
+                    <input
+                        id="image"
+                        name="image"
+                        type="file"
+                        accept="image/*"
+                    >
+                    <small>Accepted formats: JPG, PNG, GIF, WEBP.</small>
+                </div>
+
+                <button type="submit" class="request-btn sell-submit-btn">
+                    Publish Listing
+                </button>
+            </form>
+        </section>
+
+        <!-- My Listings -->
+        <section class="sell-panel">
+            <div class="sell-section-header">
+                <div>
+                    <h2>My Listings</h2>
+                    <p class="sell-muted-text">
+                        Edit, update status, or delete your own listings.
+                    </p>
+                </div>
+
+                <span class="sell-count-badge">
+                    {{ items|length }} listing(s)
+                </span>
+            </div>
+
+            <div class="marketplace-grid sell-listing-grid">
+                {% for item in items %}
+                    <article class="product-card sell-product-card">
+
+                        <div class="product-img sell-product-img">
+                            {% if item.image_url %}
+                                <img
+                                    src="{{ url_for('static', filename=item.image_url) }}"
+                                    alt="{{ item.title or item.name }}"
+                                >
+                            {% else %}
+                                <span>SALE</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-info">
+                            <h3>{{ item.title or item.name }}</h3>
+
+                            <p class="price">
+                                ${{ item.price }}
+                            </p>
+
+                            <p class="seller-line">
+                                Category: {{ item.category }}
+                            </p>
+
+                            <p class="product-description">
+                                {{ item.description }}
+                            </p>
+
+                            {% if item.status == "Available" %}
+                                <span class="status available">Available</span>
+                            {% elif item.status == "Reserved" %}
+                                <span class="status reserved">Reserved</span>
+                            {% else %}
+                                <span class="status status-sold">Sold</span>
+                            {% endif %}
+                        </div>
+
+                        <details class="sell-edit-box">
+                            <summary>Edit Listing</summary>
+
+                            <form
+                                action="/sell-items/update/{{ item.id }}"
+                                method="POST"
+                                enctype="multipart/form-data"
+                                class="sell-edit-form"
+                            >
+
+                                <div class="sell-field">
+                                    <label for="edit-title-{{ item.id }}">Product Title</label>
+                                    <input
+                                        id="edit-title-{{ item.id }}"
+                                        name="title"
+                                        type="text"
+                                        value="{{ item.title or item.name }}"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="sell-field">
+                                    <label for="edit-description-{{ item.id }}">Description</label>
+                                    <textarea
+                                        id="edit-description-{{ item.id }}"
+                                        name="description"
+                                        required
+                                    >{{ item.description }}</textarea>
+                                </div>
+
+                                <div class="sell-form-row">
+                                    <div class="sell-field">
+                                        <label for="edit-category-{{ item.id }}">Category</label>
+                                        <select id="edit-category-{{ item.id }}" name="category">
+                                            <option value="Electronics" {% if item.category == "Electronics" %}selected{% endif %}>Electronics</option>
+                                            <option value="Books" {% if item.category == "Books" %}selected{% endif %}>Books</option>
+                                            <option value="Food" {% if item.category == "Food" %}selected{% endif %}>Food</option>
+                                            <option value="Clothing" {% if item.category == "Clothing" %}selected{% endif %}>Clothing</option>
+                                            <option value="School Supplies" {% if item.category == "School Supplies" %}selected{% endif %}>School Supplies</option>
+                                            <option value="Others" {% if item.category == "Others" %}selected{% endif %}>Others</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="sell-field">
+                                        <label for="edit-price-{{ item.id }}">Price ($)</label>
+                                        <input
+                                            id="edit-price-{{ item.id }}"
+                                            name="price"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value="{{ item.price }}"
+                                            required
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="sell-form-row">
+                                    <div class="sell-field">
+                                        <label for="edit-status-{{ item.id }}">Status</label>
+                                        <select id="edit-status-{{ item.id }}" name="status">
+                                            <option value="Available" {% if item.status == "Available" %}selected{% endif %}>Available</option>
+                                            <option value="Reserved" {% if item.status == "Reserved" %}selected{% endif %}>Reserved</option>
+                                            <option value="Sold" {% if item.status == "Sold" %}selected{% endif %}>Sold</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="sell-field">
+                                        <label for="edit-image-{{ item.id }}">Change Image</label>
+                                        <input
+                                            id="edit-image-{{ item.id }}"
+                                            name="image"
+                                            type="file"
+                                            accept="image/*"
+                                        >
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="request-btn sell-submit-btn">
+                                    Save Changes
+                                </button>
+                            </form>
+
+                            <form action="/sell-items/delete/{{ item.id }}" method="POST" class="sell-delete-form">
+                                <button type="submit" class="delete-btn sell-delete-btn">
+                                    Delete Listing
+                                </button>
+                            </form>
+                        </details>
+                    </article>
+                {% else %}
+                    <div class="marketplace-empty sell-empty-box">
+                        <h3>No listings yet</h3>
+                        <p>Create your first listing using the form above.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

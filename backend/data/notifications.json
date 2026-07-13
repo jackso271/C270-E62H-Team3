@@ -61,5 +61,19 @@
         "message": "New request submitted for Apple Watch Series 8.",
         "status": "Pending",
         "time": "2026-06-10 11:46:34"
+    },
+    {
+        "id": 10,
+        "title": "Product request submitted",
+        "message": "New request submitted for Textbook.",
+        "status": "Pending",
+        "time": "2026-07-13 14:45:23"
+    },
+    {
+        "id": 11,
+        "title": "Product request approved",
+        "message": "Textbook was approved.",
+        "status": "Approved",
+        "time": "2026-07-13 14:45:50"
     }
 ]
