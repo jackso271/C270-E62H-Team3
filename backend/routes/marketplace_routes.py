@@ -12,7 +12,7 @@ from backend.services.marketplace_service import (
     request_buy,
 )
 from backend.services.notification_service import get_notifications
-
+from backend.services.report_service import submit_report
 
 marketplace_bp = Blueprint("marketplace", __name__)
 
@@ -202,3 +202,51 @@ def product_details(product_id):
         "user/product_details.html",
         product=product
     )
+
+@marketplace_bp.route("/report/<int:product_id>")
+def report_listing(product_id):
+    user = current_user()
+
+    if not user:
+        return redirect("/")
+
+    products = get_marketplace_products(user)
+
+    product = next(
+        (p for p in products if p["id"] == product_id),
+        None
+    )
+
+    if not product:
+        return access_denied("Product not found.")
+
+    return render_template(
+        "user/report_listing.html",
+        product=product
+    )
+
+@marketplace_bp.route("/submit_report/<int:product_id>", methods=["POST"])
+def submit_report_route(product_id):
+    user = current_user()
+
+    if not user:
+        return redirect("/")
+
+    products = get_marketplace_products(user)
+
+    product = next(
+        (p for p in products if p["id"] == product_id),
+        None
+    )
+
+    if not product:
+        return access_denied("Product not found.")
+
+    submit_report(
+        product,
+        user,
+        request.form.get("reason"),
+        request.form.get("comments"),
+    )
+
+    return redirect("/product/" + str(product_id))
