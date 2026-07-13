@@ -35,11 +35,9 @@
         "time": "2026-07-09 06:48:33"
     },
     {
-<<<<<<< HEAD
         "username": "123456",
         "reason": "Account not found",
         "time": "2026-07-13 14:14:43"
-=======
         "username": "testuser1",
         "reason": "Account not found",
         "time": "2026-07-09 16:19:56"
@@ -53,6 +51,6 @@
         "username": "testuser1",
         "reason": "Account not found",
         "time": "2026-07-09 16:20:16"
->>>>>>> ede7455869a3bde418737ec60b937dbbf27824c7
+
     }
 ]
