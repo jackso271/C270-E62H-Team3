@@ -12,7 +12,15 @@
 
     <div class="marketplace-container">
 
-        <h1>💬 Seller Chats</h1>
+        <h1>
+            💬 Seller Chats
+
+            {% if unread_count > 0 %}
+                <span class="unread-badge">
+                    {{ unread_count }}
+                </span>
+            {% endif %}
+        </h1>
 
         <p class="page-subtitle">
             View conversations from buyers interested in your products.

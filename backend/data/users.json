@@ -1,6 +1,6 @@
 [
     {
-        "id": 2,
+        "id": 1,
         "name": "Admin",
         "username": "admin",
         "email": "admin@rp.edu.sg",
@@ -50,5 +50,6 @@
         "blocked": false,
         "created_at": "2026-07-13 14:44:21",
         "last_login": "2026-07-13 14:44:29"
+
     }
 ]

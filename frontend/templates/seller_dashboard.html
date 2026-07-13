@@ -307,8 +307,20 @@
             <a href="/wishlist">Wishlist</a>
             <a href="/seller/dashboard" class="active">Seller Dashboard</a>
             <a href="/seller_requests">Requests</a>
-            <a href="/seller/chats">Seller Chats</a>
-            
+            <a href="/seller/chats" class="seller-dashboard-button">
+
+                <span class="seller-chat-button">
+                    Seller Chats
+
+                    {% if unread_count > 0 %}
+                        <span class="unread-badge">
+                            {{ unread_count }}
+                        </span>
+                    {% endif %}
+                </span>
+
+            </a>
+
             <details class="user-menu">
                 <summary>Seller</summary>
                 <a href="/notifications">Notifications</a>
