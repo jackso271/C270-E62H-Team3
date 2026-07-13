@@ -148,5 +148,16 @@
         "status": "Available",
         "category": "Food",
         "description": "Unused campus cafe drink voucher"
+    },
+    {
+        "id": 16,
+        "title": "Textbook",
+        "name": "Textbook",
+        "description": "Ethical Hacking",
+        "category": "Books",
+        "price": 100.0,
+        "image_url": "",
+        "seller": "John.Doe",
+        "status": "Sold"
     }
 ]
