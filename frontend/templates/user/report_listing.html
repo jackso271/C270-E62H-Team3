@@ -1,44 +1,213 @@
-<h1>Report Listing</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Listing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-<h3>{{ product.title }}</h3>
+    <style>
+        .report-wrapper{
+            max-width:850px;
+            margin:40px auto;
+        }
 
-<form action="/submit_report/{{ product.id }}" method="POST">
+        .report-card{
+            background:#1b212c;
+            border:1px solid rgba(0,255,150,.15);
+            border-radius:18px;
+            padding:40px;
+        }
 
-    <label>Reason</label>
-    <br>
+        .report-card h2{
+            margin-top:0;
+            margin-bottom:10px;
+        }
 
-    <select name="reason" required>
-        <option value="">-- Select a reason --</option>
-        <option>Spam</option>
-        <option>Fake Item</option>
-        <option>Wrong Category</option>
-        <option>Inappropriate Content</option>
-        <option>Suspected Scam</option>
-        <option>Other</option>
-    </select>
+        .report-card p{
+            color:#c7d0d9;
+            margin-bottom:30px;
+        }
 
-    <br><br>
+        .report-form{
+            display:flex;
+            flex-direction:column;
+            gap:22px;
+        }
 
-    <label>Comments</label>
-    <br>
+        .form-row{
+            display:grid;
+            grid-template-columns:170px 1fr;
+            align-items:center;
+            gap:20px;
+        }
 
-    <textarea
-        name="comments"
-        rows="5"
-        cols="40"
-        placeholder="Tell us why you are reporting this listing."
-    ></textarea>
+        .form-row label{
+            font-weight:600;
+            color:white;
+        }
 
-    <br><br>
+        .form-row select,
+        .form-row textarea{
+            width:100%;
+            padding:12px;
+            border-radius:10px;
+            border:1px solid #3a4452;
+            background:#10161f;
+            color:white;
+            font-size:15px;
+            box-sizing:border-box;
+        }
 
-    <button type="submit">
-        Submit Report
-    </button>
+        .form-row textarea{
+            resize:vertical;
+            min-height:150px;
+        }
 
-</form>
+        .button-group{
+            margin-top:25px;
+        }
 
-<br>
+        .button-group .request-btn{
+            width:100%;
+        }
 
-<a href="/product/{{ product.id }}">
-    Cancel
-</a>
+        .button-group .chat-btn{
+            display:block;
+            margin-top:15px;
+            text-align:center;
+        }
+
+        @media (max-width:700px){
+
+            .form-row{
+                grid-template-columns:1fr;
+                gap:8px;
+            }
+
+        }
+    </style>
+
+</head>
+
+<body class="marketplace-body">
+
+<header class="app-navbar">
+
+    <a href="/homepage" class="app-brand">
+        <span class="brand-dot"></span>
+        <span>
+            <strong>RP Marketplace</strong>
+            <small>Buy and request items from other RP students</small>
+        </span>
+    </a>
+
+    <nav class="app-nav-links">
+        <a href="/homepage">Home</a>
+        <a href="/marketplace" class="active">Marketplace</a>
+        <a href="/wishlist">Wishlist</a>
+        <a href="/seller/dashboard">Seller Dashboard</a>
+        <a href="/seller_requests">Requests</a>
+
+        <details class="user-menu">
+            <summary>Account</summary>
+            <a href="/notifications">Notifications</a>
+            <a href="/logout">Logout</a>
+        </details>
+    </nav>
+
+</header>
+
+<main class="marketplace-shell">
+
+    <section class="marketplace-intro">
+        <h2>Report Listing</h2>
+        <p>Help us keep the RP Marketplace safe by reporting suspicious or inappropriate listings.</p>
+    </section>
+
+    <div class="report-wrapper">
+
+        <div class="report-card">
+
+            <h2 style="color: white;">{{ product.title }}</h2><br>
+
+            <p>
+                <strong>Seller:</strong> {{ product.seller }}
+                &nbsp;&nbsp;&nbsp;
+                <strong>Price:</strong> ${{ product.price }}
+                &nbsp;&nbsp;&nbsp;
+                <strong>Category:</strong> {{ product.category }}
+            </p>
+
+            <form
+                action="/submit_report/{{ product.id }}"
+                method="POST"
+                class="report-form">
+
+                <div class="form-row">
+
+                    <label for="reason">
+                        Reason
+                    </label>
+
+                    <select
+                        id="reason"
+                        name="reason"
+                        required>
+
+                        <option value="">Select a reason</option>
+                        <option>Spam</option>
+                        <option>Fake Item</option>
+                        <option>Wrong Category</option>
+                        <option>Inappropriate Content</option>
+                        <option>Suspected Scam</option>
+                        <option>Other</option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-row">
+
+                    <label for="comments">
+                        Comments
+                    </label>
+
+                    <textarea
+                        id="comments"
+                        name="comments"
+                        placeholder="Tell us why you are reporting this listing."
+                    ></textarea>
+
+                </div>
+
+                <div class="button-group">
+
+                    <button
+                        type="submit"
+                        class="request-btn">
+
+                        Submit Report
+
+                    </button>
+
+                    <a
+                        href="/product/{{ product.id }}"
+                        class="chat-btn">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>

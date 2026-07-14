@@ -1,22 +1,202 @@
-<h1>{{ product.title }}</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }}</title>
 
-<p>Price: ${{ product.price }}</p>
-<p>Seller: {{ product.seller }}</p>
-<p>Category: {{ product.category }}</p>
-<p>{{ product.description }}</p>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-<br>
+    <style>
 
-<a href="/chat">
-    <button>Contact Seller</button>
-</a>
+        .product-wrapper{
+            max-width:850px;
+            margin:40px auto;
+        }
 
-<br><br>
+        .product-card{
+            background:#1b212c;
+            border:1px solid rgba(0,255,150,.15);
+            border-radius:18px;
+            padding:40px;
+        }
 
-<a href="/report/{{ product.id }}">
-    <button>Report Listing</button>
-</a>
+        .product-card h1{
+            color:white;
+            margin-top:0;
+            margin-bottom:35px;
+            font-size:42px;
+        }
 
-<br><br>
+        .product-info{
+            display:grid;
+            grid-template-columns:170px 1fr;
+            row-gap:22px;
+            column-gap:25px;
+            margin-bottom:40px;
+        }
 
-<a href="/marketplace">Back to Marketplace</a>
+        .product-info strong{
+            color:white;
+            font-size:24px;
+        }
+
+        .product-info span{
+            color:#d4d4d4;
+            font-size:24px;
+        }
+
+        .product-description{
+            color:#c8c8c8;
+            line-height:1.8;
+            font-size:22px;
+            margin-bottom:45px;
+        }
+
+        .button-group{
+            display:flex;
+            gap:20px;
+        }
+
+        .detail-btn{
+            flex:1;
+            height:60px;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            border-radius:14px;
+            text-decoration:none;
+
+            font-size:22px;
+            font-weight:600;
+
+            transition:.2s;
+        }
+
+        .contact-btn{
+            background:#3b73b9;
+            color:white;
+        }
+
+        .contact-btn:hover{
+            background:#4b83c8;
+        }
+
+        .report-btn{
+            background:#0b8c43;
+            color:white;
+        }
+
+        .report-btn:hover{
+            background:#12a24f;
+        }
+
+        .back-btn{
+            background:white;
+            color:#065f46;
+            border:2px solid #0b8c43;
+        }
+
+        .back-btn:hover{
+            background:#f3f3f3;
+        }
+
+        @media (max-width:700px){
+
+            .product-info{
+                grid-template-columns:1fr;
+            }
+
+            .button-group{
+                flex-direction:column;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body class="marketplace-body">
+
+<header class="app-navbar">
+
+    <a href="/homepage" class="app-brand">
+        <span class="brand-dot"></span>
+
+        <span>
+            <strong>RP Marketplace</strong>
+            <small>Buy and request items from other RP students</small>
+        </span>
+
+    </a>
+
+    <nav class="app-nav-links">
+
+        <a href="/homepage">Home</a>
+        <a href="/marketplace" class="active">Marketplace</a>
+        <a href="/wishlist">Wishlist</a>
+        <a href="/seller/dashboard">Seller Dashboard</a>
+        <a href="/seller_requests">Requests</a>
+
+        <details class="user-menu">
+            <summary>Account</summary>
+            <a href="/notifications">Notifications</a>
+            <a href="/logout">Logout</a>
+        </details>
+
+    </nav>
+
+</header>
+
+<main class="marketplace-shell">
+
+    <div class="product-wrapper">
+
+        <div class="product-card">
+
+            <h1>{{ product.title }}</h1>
+
+            <div class="product-info">
+
+                <strong>Price</strong>
+                <span>${{ product.price }}</span>
+
+                <strong>Seller</strong>
+                <span>{{ product.seller }}</span>
+
+                <strong>Category</strong>
+                <span>{{ product.category }}</span>
+
+            </div>
+
+            <div class="product-description">
+                {{ product.description }}
+            </div>
+
+            <div class="button-group">
+
+                <a href="/chat" class="detail-btn contact-btn">
+                    Contact Seller
+                </a>
+
+                <a href="/report/{{ product.id }}" class="detail-btn report-btn">
+                    Report Listing
+                </a>
+
+                <a href="/marketplace" class="detail-btn back-btn">
+                    Back to Marketplace
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>
