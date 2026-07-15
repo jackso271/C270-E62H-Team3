@@ -4019,6 +4019,7 @@ html {
 
     font-size:11px;
     font-weight:bold;
+}
 /* =========================
    SELL ITEMS PAGE
    Added by Hakeem
@@ -4207,4 +4208,176 @@ html {
         width: 100%;
     }
 
+}
+
+/* =========================
+   Two-Factor Authentication
+   ========================= */
+
+.twofa-body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #e8f5e9, #ffffff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.twofa-card {
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    padding: 36px;
+    border-radius: 18px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    border-top: 6px solid #198754;
+    box-sizing: border-box;
+}
+
+.twofa-icon {
+    width: 64px;
+    height: 64px;
+    background: #198754;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 18px;
+}
+
+.twofa-card h1 {
+    text-align: center;
+    color: #102a43;
+    margin-bottom: 10px;
+}
+
+.twofa-subtitle {
+    text-align: center;
+    color: #52616b;
+    font-size: 15px;
+    margin-bottom: 24px;
+}
+
+.twofa-setup-box {
+    background: #f1f8f4;
+    border: 1px dashed #198754;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 18px 0;
+}
+
+.twofa-setup-box small {
+    display: block;
+    color: #52616b;
+    margin-bottom: 8px;
+}
+
+.twofa-secret-key {
+    font-weight: bold;
+    color: #0f5132;
+    word-break: break-all;
+    letter-spacing: 1px;
+    font-size: 15px;
+}
+
+.twofa-card label {
+    display: block;
+    font-weight: bold;
+    color: #102a43;
+    margin-bottom: 8px;
+}
+
+.twofa-card input {
+    width: 100%;
+    padding: 13px;
+    border-radius: 10px;
+    border: 1px solid #cfd8dc;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 4px;
+    box-sizing: border-box;
+    margin-bottom: 18px;
+}
+
+.twofa-card input:focus {
+    outline: none;
+    border-color: #198754;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.18);
+}
+
+.twofa-card button {
+    width: 100%;
+    padding: 13px;
+    background: #198754;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.twofa-card button:hover {
+    background: #146c43;
+}
+
+.twofa-error {
+    background: #ffe5e5;
+    color: #b00020;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.twofa-cancel-link {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    color: #198754;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.twofa-cancel-link:hover {
+    text-decoration: underline;
+}
+.twofa-qr-box {
+    text-align: center;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+.twofa-qr-image {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    padding: 12px;
+    background: white;
+    border: 1px solid #d9e2ec;
+    border-radius: 16px;
+    box-sizing: border-box;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
+}
+
+.twofa-copy-btn {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px;
+    background: #e8f5e9;
+    color: #198754;
+    border: 1px solid #198754;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.twofa-copy-btn:hover {
+    background: #d1e7dd;
 }

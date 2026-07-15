@@ -1,17 +1,80 @@
+import base64
+from io import BytesIO
+
+import pyotp
+import qrcode
+
 from flask import Blueprint, redirect, render_template, request, session
 
 from backend.services.auth_service import (
+    find_user_by_id,
     find_user_by_login_id,
     find_matching_user,
+    generate_2fa_secret,
     log_failed,
     log_password_reset_request,
     log_success,
     register_user,
+    save_user_2fa_secret,
+    user_has_2fa_enabled,
+    verify_2fa_code,
 )
 
 
 auth_bp = Blueprint("auth", __name__)
 
+
+def store_pending_2fa_user(user):
+    """Store user temporarily before 2FA is completed."""
+    session.clear()
+    session["pending_2fa_user_id"] = user.get("id")
+
+
+def complete_login(user):
+    """Create the normal login session only after 2FA passes."""
+    session.pop("pending_2fa_user_id", None)
+    session.pop("pending_2fa_secret", None)
+
+    session["user_id"] = user.get("id")
+    session["name"] = user.get("name")
+    session["username"] = user.get("username")
+    session["email"] = user.get("email")
+    session["student_id"] = user.get("student_id")
+    session["role"] = user.get("role")
+
+    log_success(user)
+
+    if user.get("role") == "admin":
+        return redirect("/admin/dashboard")
+
+    return redirect("/homepage")
+
+
+def get_pending_2fa_user():
+    """Get the user who passed password login but has not passed 2FA yet."""
+    user_id = session.get("pending_2fa_user_id")
+
+    if not user_id:
+        return None
+
+    return find_user_by_id(user_id)
+
+def generate_2fa_qr_code(username, secret):
+    """Generate QR code image for authenticator apps."""
+    totp = pyotp.TOTP(secret)
+
+    setup_uri = totp.provisioning_uri(
+        name=username or "RP Marketplace User",
+        issuer_name="RP Marketplace",
+    )
+
+    qr_image = qrcode.make(setup_uri)
+    buffer = BytesIO()
+    qr_image.save(buffer, format="PNG")
+
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    return f"data:image/png;base64,{qr_base64}"
 
 @auth_bp.route("/")
 def login_page():
@@ -63,19 +126,14 @@ def login():
                 "&back_url=/"
             )
 
-        session["user_id"] = user.get("id")
-        session["name"] = user.get("name")
-        session["username"] = user.get("username")
-        session["email"] = user.get("email")
-        session["student_id"] = user.get("student_id")
-        session["role"] = user.get("role")
+        # Password is correct, but user is NOT fully logged in yet.
+        # User must complete mandatory 2FA first.
+        store_pending_2fa_user(user)
 
-        log_success(user)
+        if user_has_2fa_enabled(user):
+            return redirect("/verify-2fa")
 
-        if user.get("role") == "admin":
-            return redirect("/admin/dashboard")
-
-        return redirect("/homepage")
+        return redirect("/setup-2fa")
 
     existing_user = find_user_by_login_id(login_id)
     if existing_user:
@@ -84,6 +142,73 @@ def login():
         log_failed(login_id, "Account not found")
 
     return render_template("user/login_error.html")
+
+
+@auth_bp.route("/setup-2fa", methods=["GET", "POST"])
+def setup_2fa():
+    user = get_pending_2fa_user()
+
+    if not user:
+        return redirect("/")
+
+    if user_has_2fa_enabled(user):
+        return redirect("/verify-2fa")
+
+    if "pending_2fa_secret" not in session:
+        session["pending_2fa_secret"] = generate_2fa_secret()
+
+    secret = session["pending_2fa_secret"]
+    qr_code = generate_2fa_qr_code(user.get("username"), secret)
+
+    if request.method == "POST":
+        code = request.form.get("code", "").strip()
+
+        if verify_2fa_code(secret, code):
+            save_user_2fa_secret(user.get("id"), secret)
+            updated_user = find_user_by_id(user.get("id"))
+            return complete_login(updated_user)
+
+        return render_template(
+            "user/setup_2fa.html",
+            secret=secret,
+            qr_code=qr_code,
+            error="Invalid authentication code. Please try again.",
+        )
+
+    return render_template(
+        "user/setup_2fa.html",
+        secret=secret,
+        qr_code=qr_code,
+        error=None,
+    )
+
+
+@auth_bp.route("/verify-2fa", methods=["GET", "POST"])
+def verify_2fa():
+    user = get_pending_2fa_user()
+
+    if not user:
+        return redirect("/")
+
+    if not user_has_2fa_enabled(user):
+        return redirect("/setup-2fa")
+
+    if request.method == "POST":
+        code = request.form.get("code", "").strip()
+        secret = user.get("two_factor_secret")
+
+        if verify_2fa_code(secret, code):
+            return complete_login(user)
+
+        return render_template(
+            "user/verify_2fa.html",
+            error="Invalid authentication code. Please try again.",
+        )
+
+    return render_template(
+        "user/verify_2fa.html",
+        error=None,
+    )
 
 
 @auth_bp.route("/forgot-password", methods=["POST"])

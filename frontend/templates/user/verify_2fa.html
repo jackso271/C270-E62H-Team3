@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Two-Factor Authentication</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="twofa-body">
+    <main class="twofa-card">
+        <div class="twofa-icon">🛡️</div>
+
+        <h1>Verify 2FA</h1>
+
+        <p class="twofa-subtitle">
+            Enter the 6-digit code from your authenticator app to continue.
+        </p>
+
+        {% if error %}
+            <p class="twofa-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="/verify-2fa">
+            <label for="code">Authentication Code</label>
+
+            <input
+                type="text"
+                id="code"
+                name="code"
+                maxlength="6"
+                required
+                inputmode="numeric"
+                pattern="[0-9]{6}"
+                placeholder="123456"
+            >
+
+            <button type="submit">Verify</button>
+        </form>
+
+        <a class="twofa-cancel-link" href="/logout">Cancel and return to login</a>
+    </main>
+</body>
+</html>

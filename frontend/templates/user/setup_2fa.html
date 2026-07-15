@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Set Up Two-Factor Authentication</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="twofa-body">
+    <main class="twofa-card">
+        <div class="twofa-icon">🔐</div>
+
+        <h1>Set Up 2FA</h1>
+
+        <p class="twofa-subtitle">
+            Two-Factor Authentication is required before you can access your account.
+        </p>
+
+        <!-- QR CODE SECTION -->
+        <div class="twofa-qr-box">
+            <p class="twofa-subtitle">
+                Scan this QR code using Google Authenticator or Microsoft Authenticator.
+            </p>
+
+            <img class="twofa-qr-image" src="{{ qr_code }}" alt="2FA QR Code">
+        </div>
+
+        <!-- MANUAL SETUP KEY SECTION -->
+        <div class="twofa-setup-box">
+            <small>Manual setup key</small>
+
+            <div class="twofa-secret-key" id="secretKey">
+                {{ secret }}
+            </div>
+
+            <button type="button" class="twofa-copy-btn" onclick="copySecretKey()">
+                Copy Setup Key
+            </button>
+        </div>
+
+        <p class="twofa-subtitle">
+            After adding the account, enter the 6-digit code from your authenticator app.
+        </p>
+
+        {% if error %}
+            <p class="twofa-error">{{ error }}</p>
+        {% endif %}
+
+        <!-- VERIFY SETUP FORM -->
+        <form method="POST" action="/setup-2fa">
+            <label for="code">Authentication Code</label>
+
+            <input
+                type="text"
+                id="code"
+                name="code"
+                maxlength="6"
+                required
+                inputmode="numeric"
+                pattern="[0-9]{6}"
+                placeholder="123456"
+            >
+
+            <button type="submit">Verify and Continue</button>
+        </form>
+
+        <a class="twofa-cancel-link" href="/logout">
+            Cancel and return to login
+        </a>
+    </main>
+
+    <script>
+        function copySecretKey() {
+            const key = document.getElementById("secretKey").innerText.trim();
+
+            navigator.clipboard.writeText(key).then(function () {
+                alert("Setup key copied.");
+            });
+        }
+    </script>
+</body>
+</html>

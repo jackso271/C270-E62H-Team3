@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pyotp
+
 from backend.services.notification_service import add_notification
 from backend.utils.json_storage import data_file, load_json, save_json
 
@@ -58,6 +60,58 @@ def ensure_user_shape(user):
     user["last_login"] = normalize_text(user.get("last_login")) or "N/A"
     return user
 
+def find_user_by_id(user_id):
+    """Return a user by ID, or None."""
+    users = load_json(data_file("users"))
+
+    for user in users:
+        ensure_user_shape(user)
+        if str(user.get("id")) == str(user_id):
+            return user
+
+    return None
+
+
+def generate_2fa_secret():
+    """Generate a new secret for authenticator apps."""
+    return pyotp.random_base32()
+
+
+def is_valid_2fa_code(code):
+    """Check that the 2FA code is exactly 6 digits."""
+    clean_code = normalize_text(code)
+    return clean_code.isdigit() and len(clean_code) == 6
+
+
+def verify_2fa_code(secret, code):
+    """Verify a 6-digit TOTP code."""
+    if not secret or not is_valid_2fa_code(code):
+        return False
+
+    totp = pyotp.TOTP(secret)
+    return totp.verify(normalize_text(code))
+
+
+def save_user_2fa_secret(user_id, secret):
+    """Save the confirmed 2FA secret into users.json."""
+    users = load_json(data_file("users"))
+
+    for user in users:
+        if str(user.get("id")) == str(user_id):
+            user["two_factor_enabled"] = True
+            user["two_factor_secret"] = secret
+            save_json(data_file("users"), users)
+            return True
+
+    return False
+
+
+def user_has_2fa_enabled(user):
+    """Return True only if the user already has 2FA setup."""
+    return (
+        user.get("two_factor_enabled") is True
+        and bool(normalize_text(user.get("two_factor_secret")))
+    )
 
 def create_admin():
     """Ensure the default admin account exists for demonstrations and marking."""
