@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from backend.db import execute_mysql_query, mysql_products_enabled
 from backend.utils.json_storage import data_file, load_json, save_json
 
 
@@ -60,11 +63,89 @@ def clean_product(product):
     }
 
 
+def product_from_mysql(row):
+    price = row.get("price", 0)
+    if isinstance(price, Decimal):
+        price = float(price)
+
+    return clean_product({
+        "id": row.get("id"),
+        "title": row.get("title"),
+        "name": row.get("title"),
+        "description": row.get("description"),
+        "price": price,
+        "image_url": row.get("image_url") or "",
+        "seller": row.get("seller_identifier"),
+        "seller_id": row.get("seller_id"),
+        "status": row.get("status"),
+        "category": row.get("category_name") or "Others",
+    })
+
+
+def category_id_for_name(category):
+    execute_mysql_query(
+        """
+        INSERT INTO categories (name)
+        VALUES (%s)
+        ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
+        """,
+        (category,),
+    )
+    rows = execute_mysql_query(
+        "SELECT id FROM categories WHERE name = %s LIMIT 1",
+        (category,),
+        fetch=True,
+    )
+    return rows[0]["id"] if rows else None
+
+
 def load_products():
+    if mysql_products_enabled():
+        rows = execute_mysql_query(
+            """
+            SELECT p.id, p.seller_id, p.seller_identifier, p.title,
+                   p.description, p.price, p.image_url, p.status, c.name AS category_name
+            FROM products p
+            LEFT JOIN categories c ON c.id = p.category_id
+            ORDER BY p.id
+            """,
+            fetch=True,
+        )
+        return [product_from_mysql(row) for row in rows]
+
     return [clean_product(product) for product in load_json(data_file("products"))]
 
 
 def save_products(products):
+    if mysql_products_enabled():
+        for product in products:
+            category = normalize_text(product.get("category")) or "Others"
+            category_id = category_id_for_name(category)
+            execute_mysql_query(
+                """
+                UPDATE products
+                SET title = %s,
+                    description = %s,
+                    price = %s,
+                    image_url = %s,
+                    seller_identifier = %s,
+                    status = %s,
+                    category_id = %s
+                WHERE id = %s
+                """,
+                (
+                    normalize_text(product.get("title")) or normalize_text(product.get("name")),
+                    normalize_text(product.get("description")),
+                    product.get("price", 0),
+                    normalize_text(product.get("image_url")),
+                    normalize_text(product.get("seller")),
+                    normalize_text(product.get("status")) or "Available",
+                    category_id,
+                    product.get("id"),
+                ),
+            )
+        return
+
     save_json(data_file("products"), products)
 
 
@@ -132,6 +213,28 @@ def add_product(form, user):
     if category not in VALID_CATEGORIES:
         category = "Others"
 
+    if mysql_products_enabled():
+        category_id = category_id_for_name(category)
+        execute_mysql_query(
+            """
+            INSERT INTO products (
+                seller_id, seller_identifier, category_id, title,
+                description, price, status
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                user.get("user_id"),
+                seller_name(user),
+                category_id,
+                title,
+                description,
+                price,
+                "Available",
+            ),
+        )
+        return True, None
+
     products.append({
         "id": next_product_id(products),
         "title": title,
@@ -162,6 +265,40 @@ def edit_product(product_id, form, user):
     if category not in VALID_CATEGORIES:
         category = "Others"
 
+    if mysql_products_enabled():
+        product = next(
+            (
+                item for item in products
+                if item.get("id") == product_id
+                and product_belongs_to_seller(item, user)
+            ),
+            None,
+        )
+        if product is None:
+            return False, "Product not found."
+
+        category_id = category_id_for_name(category)
+        execute_mysql_query(
+            """
+            UPDATE products
+            SET title = %s,
+                description = %s,
+                price = %s,
+                status = %s,
+                category_id = %s
+            WHERE id = %s
+            """,
+            (
+                title,
+                normalize_text(form.get("description")),
+                price,
+                status,
+                category_id,
+                product_id,
+            ),
+        )
+        return True, None
+
     for product in products:
         if product.get("id") == product_id and product_belongs_to_seller(product, user):
             product["title"] = title
@@ -178,6 +315,22 @@ def edit_product(product_id, form, user):
 
 def delete_product(product_id, user):
     products = load_products()
+
+    if mysql_products_enabled():
+        product = next(
+            (
+                item for item in products
+                if item.get("id") == product_id
+                and product_belongs_to_seller(item, user)
+            ),
+            None,
+        )
+        if product is None:
+            return False, "Product not found."
+
+        execute_mysql_query("DELETE FROM products WHERE id = %s", (product_id,))
+        return True, None
+
     kept_products = [
         product for product in products
         if not (

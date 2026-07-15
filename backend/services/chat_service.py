@@ -5,6 +5,7 @@ from backend.utils.json_storage import (
     load_json,
     save_json,
 )
+from backend.services.seller_dashboard_service import load_products
 
 
 def get_messages():
@@ -58,11 +59,8 @@ def get_conversation(user1, user2, product_id):
 
     return conversation
 
-from backend.utils.json_storage import data_file, load_json
-
-
 def get_product(product_id):
-    products = load_json(data_file("products"))
+    products = load_products()
 
     for product in products:
         if product["id"] == product_id:
@@ -79,7 +77,7 @@ def get_seller_conversations(username):
     for message in messages:
         print(message)
 
-    products = load_json(data_file("products"))
+    products = load_products()
 
     conversations = []
 

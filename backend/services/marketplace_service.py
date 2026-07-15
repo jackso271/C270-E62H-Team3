@@ -3,8 +3,10 @@ from datetime import datetime
 from backend.services.notification_service import add_notification
 from backend.services.seller_dashboard_service import (
     clean_product,
+    load_products,
     product_belongs_to_seller,
     seller_name,
+    save_products,
 )
 from backend.utils.json_storage import data_file, load_json, save_json
 
@@ -14,7 +16,7 @@ SOLD_STATUSES = ["Sold"]
 
 
 def get_products():
-    return [clean_product(product) for product in load_json(data_file("products"))]
+    return [clean_product(product) for product in load_products()]
 
 
 def get_requests():
@@ -271,7 +273,7 @@ def accept_request(request_id, user):
             break
 
     save_json(data_file("requests"), requests_list)
-    save_json(data_file("products"), products)
+    save_products(products)
     if reviewed_title:
         add_notification(
             "Product request approved",
