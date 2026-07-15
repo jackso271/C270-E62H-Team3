@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from backend.services.notification_service import get_notifications
 from backend.utils.json_storage import data_file, load_json, save_json
 
 
@@ -162,7 +163,7 @@ def recent_activity(limit=8):
                 "detail": request_item.get("product_title") or "Marketplace item",
             })
 
-    for notification in load_json(data_file("notifications")):
+    for notification in get_notifications():
         notification_time = parse_time(notification.get("time", ""))
         if notification_time:
             activities.append({

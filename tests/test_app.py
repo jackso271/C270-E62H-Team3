@@ -1,12 +1,16 @@
 import json
+from datetime import datetime
 
 import pytest
 
 from backend.app import create_app
+from backend.services import notification_service
 
 
 @pytest.fixture()
-def app(tmp_path):
+def app(tmp_path, monkeypatch):
+    monkeypatch.setenv("USE_MYSQL_NOTIFICATIONS", "false")
+
     data_dir = tmp_path / "data"
     data_dir.mkdir()
 
@@ -648,6 +652,52 @@ def test_forgot_password_logs_reset_request(client, app):
         notifications = json.load(file)
 
     assert notifications[-1]["status"] == "Info"
+
+
+def test_notifications_can_use_mysql_when_enabled(monkeypatch):
+    calls = []
+
+    def fake_enabled():
+        return True
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        calls.append({
+            "query": " ".join(query.split()),
+            "params": params,
+            "fetch": fetch,
+            "dictionary": dictionary,
+        })
+        if fetch:
+            return [{
+                "id": 7,
+                "title": "MySQL notification",
+                "message": "Stored in MySQL",
+                "status": "Info",
+                "created_at": datetime(2026, 7, 15, 12, 30, 0),
+            }]
+        return 7
+
+    monkeypatch.setattr(
+        notification_service,
+        "mysql_notifications_enabled",
+        fake_enabled,
+    )
+    monkeypatch.setattr(notification_service, "execute_mysql_query", fake_execute)
+
+    notification_service.add_notification("Created", "From test", "Pending")
+    notifications = notification_service.get_notifications()
+
+    assert calls[0]["query"].startswith("INSERT INTO notifications")
+    assert calls[0]["params"] == ("Created", "From test", "Pending")
+    assert calls[1]["query"].startswith("SELECT id, title, message, status")
+    assert calls[1]["fetch"] is True
+    assert notifications == [{
+        "id": 7,
+        "title": "MySQL notification",
+        "message": "Stored in MySQL",
+        "status": "Info",
+        "time": "2026-07-15 12:30:00",
+    }]
 
 
 def test_product_request_filter_empty_state(client):
