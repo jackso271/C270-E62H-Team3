@@ -1,7 +1,11 @@
 # Docker Notes
 
-Docker files are kept at the project root because Docker expects them there by default.
+The RP Marketplace runtime database is MySQL. Docker containers must receive
+the MySQL environment variables at runtime; do not bake credentials into an
+image.
 
 - `Dockerfile` builds the Flask application image.
-- `docker-compose.yml` runs the app locally on port 5000.
-- `backend/data` is mounted as a volume so JSON data remains editable during development.
+- `.env` is required for local Docker runs and must not be committed.
+- Use `MYSQL_HOST=host.docker.internal` when MySQL Server runs on the Windows host.
+- Legacy JSON files are migration archives under `database/legacy_seed_data/`;
+  Docker must not mount `backend/data` as runtime storage.

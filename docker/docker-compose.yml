@@ -1,15 +1,18 @@
 services:
   backend:
-    container_name: backend
+    container_name: rpmarketplace-compose-backend
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
+    env_file:
+      - ../.env
     environment:
       FLASK_ENV: production
+      MYSQL_HOST: host.docker.internal
     expose:
       - "5000"
-    volumes:
-      - ../backend/data:/app/backend/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - app-network
     healthcheck:
@@ -20,7 +23,7 @@ services:
       start_period: 10s
 
   frontend:
-    container_name: frontend
+    container_name: rpmarketplace-compose-frontend
     build:
       context: ..
       dockerfile: docker/Dockerfile.frontend

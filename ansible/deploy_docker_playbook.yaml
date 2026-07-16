@@ -8,6 +8,16 @@
       command: docker --version
       changed_when: false
 
+    - name: Verify production environment file exists
+      stat:
+        path: "{{ playbook_dir }}/../.env"
+      register: production_env_file
+
+    - name: Stop deployment when production environment file is missing
+      fail:
+        msg: "Missing .env file. Create it from .env.example and provide MySQL credentials before deploying."
+      when: not production_env_file.stat.exists
+
     - name: Stop existing production container if it exists
       command: docker stop rpmarketplace
       register: stop_container
@@ -37,6 +47,12 @@
           - -d
           - --name
           - rpmarketplace
+          - --env-file
+          - "{{ playbook_dir }}/../.env"
+          - -e
+          - MYSQL_HOST=host.docker.internal
+          - --add-host
+          - host.docker.internal:host-gateway
           - -p
           - "5000:5000"
           - rp-marketplace
