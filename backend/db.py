@@ -10,43 +10,8 @@ if load_dotenv:
     load_dotenv()
 
 
-TRUE_VALUES = {"1", "true", "yes", "on"}
-
-
 class MySQLDatabaseError(RuntimeError):
-    """Raised when MySQL notification storage cannot be used."""
-
-
-def mysql_notifications_enabled():
-    return os.getenv("USE_MYSQL_NOTIFICATIONS", "").strip().lower() in TRUE_VALUES
-
-
-def mysql_reports_enabled():
-    return os.getenv("USE_MYSQL_REPORTS", "").strip().lower() in TRUE_VALUES
-
-
-def mysql_users_enabled():
-    return os.getenv("USE_MYSQL_USERS", "").strip().lower() in TRUE_VALUES
-
-
-def mysql_login_logs_enabled():
-    return os.getenv("USE_MYSQL_LOGIN_LOGS", "").strip().lower() in TRUE_VALUES
-
-
-def mysql_products_enabled():
-    return os.getenv("USE_MYSQL_PRODUCTS", "").strip().lower() in TRUE_VALUES
-
-
-def mysql_requests_enabled():
-    return os.getenv("USE_MYSQL_REQUESTS", "").strip().lower() in TRUE_VALUES
-
-
-def mysql_wishlists_enabled():
-    return os.getenv("USE_MYSQL_WISHLISTS", "").strip().lower() in TRUE_VALUES
-
-
-def mysql_messages_enabled():
-    return os.getenv("USE_MYSQL_MESSAGES", "").strip().lower() in TRUE_VALUES
+    """Raised when MySQL runtime storage cannot be used."""
 
 
 def mysql_config():
@@ -77,7 +42,7 @@ def get_mysql_connection():
             f"{config['database']}"
         )
         raise MySQLDatabaseError(
-            f"Unable to connect to MySQL notifications database ({safe_target})."
+            f"Unable to connect to MySQL runtime database ({safe_target})."
         ) from error
 
 
@@ -98,9 +63,7 @@ def execute_mysql_query(query, params=None, fetch=False, dictionary=True):
     except MySQLDatabaseError:
         raise
     except Exception as error:
-        raise MySQLDatabaseError(
-            "MySQL notifications query failed."
-        ) from error
+        raise MySQLDatabaseError("MySQL runtime query failed.") from error
     finally:
         if cursor is not None:
             cursor.close()

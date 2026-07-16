@@ -9,7 +9,7 @@
 
 ## Project Overview
 
-RP Marketplace is a Flask web application for Republic Polytechnic students to browse, list, request, and manage second-hand marketplace items. The application uses server-rendered Jinja templates, JSON data files, and Flask blueprints to support student marketplace workflows.
+RP Marketplace is a Flask web application for Republic Polytechnic students to browse, list, request, and manage second-hand marketplace items. The application uses server-rendered Jinja templates, Flask blueprints, and MySQL as the only runtime data store.
 
 This repository also contains the completed DevOps implementation for the C270 project: Git branch workflow, Docker containerization, Jenkins automation, Ansible deployment, staging deployment, production deployment, and automated tests.
 
@@ -45,7 +45,7 @@ The DevOps implementation in this repository is complete and working for the loc
 | Flask | Backend web framework for routes, sessions, templates, and HTTP responses. |
 | Jinja | Server-rendered HTML templates stored under `frontend/templates`. |
 | HTML and CSS | User, seller, and admin interface pages and styling. |
-| JSON files | Application data storage under `backend/data`. |
+| MySQL | Single source of truth for runtime application data. |
 | Pytest | Automated test suite in `tests/test_app.py`. |
 | Docker | Packages and runs the Flask application in containers. |
 | Jenkins | Runs the configured staging and production pipelines. |
@@ -55,7 +55,7 @@ The DevOps implementation in this repository is complete and working for the loc
 
 ## System Architecture
 
-The main application entry point is `app.py`. It imports `create_app()` from `backend/app.py`, which creates the Flask application, configures template and static directories, initializes JSON data files, creates the default admin account if needed, and registers blueprints from `backend/routes`.
+The main application entry point is `app.py`. It imports `create_app()` from `backend/app.py`, which creates the Flask application, configures template and static directories, ensures the default admin account exists in MySQL, and registers blueprints from `backend/routes`.
 
 ```mermaid
 flowchart LR
@@ -63,14 +63,14 @@ flowchart LR
     Flask[Flask app.py]
     Blueprints[Route Blueprints]
     Services[Service Layer]
-    JSON[(backend/data JSON files)]
+    MySQL[(MySQL via backend/db.py)]
     Templates[Jinja Templates]
     Static[Static CSS and Images]
 
     Browser -->|HTTP request| Flask
     Flask --> Blueprints
     Blueprints --> Services
-    Services --> JSON
+    Services --> MySQL
     Blueprints --> Templates
     Templates --> Static
     Flask -->|HTML response| Browser
@@ -84,8 +84,9 @@ flowchart LR
 | `backend/app.py` | Flask application factory and blueprint registration. |
 | `backend/routes/` | Route blueprints for auth, admin, marketplace, seller dashboard, and chat pages. |
 | `backend/services/` | Business logic for accounts, products, requests, notifications, sellers, admin, and chat. |
-| `backend/utils/` | JSON storage and date filtering helpers. |
-| `backend/data/` | JSON data files for users, products, requests, wishlists, notifications, messages, and logs. |
+| `backend/utils/` | Shared backend utilities such as date filters. |
+| `database/legacy_seed_data/` | Archived JSON seed data used only by migration scripts and migration tests. |
+| `database/schema.sql` | Authoritative MySQL schema. |
 | `frontend/templates/` | Jinja templates rendered by Flask. |
 | `frontend/static/` | CSS and image assets, including `rp-logo.png`. |
 | `tests/test_app.py` | Pytest coverage for app startup, routes, auth, marketplace, wishlist, seller, and product request behavior. |
@@ -361,6 +362,21 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+Create local environment configuration:
+
+```bash
+copy .env.example .env
+```
+
+Fill in your local MySQL credentials in `.env`. Do not commit `.env`.
+
+Start your local MySQL Server, then initialize and verify the database:
+
+```bash
+python database/init_database.py
+python database/init_database.py --verify
+```
+
 Run the Flask application locally:
 
 ```bash
@@ -378,6 +394,20 @@ Run tests:
 ```bash
 python -m pytest
 ```
+
+## Runtime Data Store
+
+MySQL is now the only runtime data store. Normal application execution follows:
+
+```text
+Flask routes -> service layer -> backend/db.py -> MySQL
+```
+
+Archived JSON files live under `database/legacy_seed_data/` only as migration seed data, backup, and reference material. Do not edit those JSON files for new application data.
+
+New features requiring database changes must update `database/schema.sql`, the relevant module SQL file when appropriate, migration/setup logic, service-layer MySQL queries, and tests.
+
+Docker, Jenkins, Ansible, staging, and production database integration remains deferred until local MySQL-only runtime is fully approved.
 
 ## Staging And Production Access URLs
 

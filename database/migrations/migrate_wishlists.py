@@ -11,7 +11,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from backend.db import MySQLDatabaseError, get_mysql_connection
 
 
-SOURCE_FILE = PROJECT_ROOT / "backend" / "data" / "wishlists.json"
+LEGACY_DATA_DIR = PROJECT_ROOT / "database" / "legacy_seed_data"
+SOURCE_FILE = LEGACY_DATA_DIR / "wishlists.json"
 
 
 def load_source_records():
@@ -37,7 +38,7 @@ def valid_positive_int(value):
 
 
 def load_json_rows(filename):
-    path = PROJECT_ROOT / "backend" / "data" / filename
+    path = LEGACY_DATA_DIR / filename
     try:
         with open(path, "r", encoding="utf-8") as file:
             rows = json.load(file)
@@ -218,7 +219,7 @@ def print_summary(summary, missing_users, missing_products, dry_run=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Migrate backend/data/wishlists.json to MySQL."
+        description="Migrate database/legacy_seed_data/wishlists.json to MySQL."
     )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
