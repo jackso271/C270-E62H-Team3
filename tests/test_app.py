@@ -5,10 +5,14 @@ import pytest
 
 from backend.app import create_app
 from backend.services import auth_service
+from backend.services import marketplace_service
 from backend.services import notification_service
 from backend.services import report_service
 from backend.services import seller_dashboard_service
+from database.migrations import migrate_messages
+from database.migrations import migrate_purchase_requests
 from database.migrations import migrate_products
+from database.migrations import migrate_wishlists
 
 
 @pytest.fixture()
@@ -18,6 +22,9 @@ def app(tmp_path, monkeypatch):
     monkeypatch.setenv("USE_MYSQL_USERS", "false")
     monkeypatch.setenv("USE_MYSQL_LOGIN_LOGS", "false")
     monkeypatch.setenv("USE_MYSQL_PRODUCTS", "false")
+    monkeypatch.setenv("USE_MYSQL_REQUESTS", "false")
+    monkeypatch.setenv("USE_MYSQL_WISHLISTS", "false")
+    monkeypatch.setenv("USE_MYSQL_MESSAGES", "false")
 
     data_dir = tmp_path / "data"
     data_dir.mkdir()
@@ -139,6 +146,7 @@ def app(tmp_path, monkeypatch):
         "notifications.json": [],
         "reports.json": [],
         "wishlists.json": {},
+        "messages.json": [],
         "success_logins.json": [],
         "failed_logins.json": [],
     }
@@ -179,6 +187,12 @@ def read_requests(app):
 def read_wishlists(app):
     wishlists_path = app.config["DATA_DIR"] + "/wishlists.json"
     with open(wishlists_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def read_messages(app):
+    messages_path = app.config["DATA_DIR"] + "/messages.json"
+    with open(messages_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
@@ -365,6 +379,143 @@ def test_wishlist_add_remove_still_works(client, app):
     assert remove_response.status_code == 302
     assert wishlists["3"] == []
     assert b"Keyboard" not in wishlist_response.data
+
+
+def test_mysql_wishlist_add_remove_does_not_write_json(monkeypatch, app):
+    monkeypatch.setenv("USE_MYSQL_WISHLISTS", "true")
+    calls = []
+    original_wishlists = read_wishlists(app)
+
+    monkeypatch.setattr(
+        marketplace_service,
+        "get_product_by_id",
+        lambda product_id: {"id": product_id, "title": "Keyboard"},
+    )
+    monkeypatch.setattr(
+        marketplace_service,
+        "execute_mysql_query",
+        lambda query, params=None, **kwargs: calls.append((query, params)),
+    )
+
+    user = {"user_id": 3, "username": "student2"}
+
+    with app.app_context():
+        assert marketplace_service.add_to_wishlist(1, user) is True
+        assert marketplace_service.remove_from_wishlist(1, user) is True
+
+    assert "INSERT INTO wishlists" in calls[0][0]
+    assert calls[0][1] == (3, 1)
+    assert "DELETE FROM wishlists" in calls[1][0]
+    assert calls[1][1] == (3, 1)
+    assert read_wishlists(app) == original_wishlists
+
+
+def test_wishlist_migration_reports_missing_products(monkeypatch):
+    monkeypatch.setattr(
+        migrate_wishlists,
+        "load_source_records",
+        lambda: {"3": [1, 99, 1], "999": [1]},
+    )
+    monkeypatch.setattr(
+        migrate_wishlists,
+        "load_json_rows",
+        lambda filename: (
+            [{"id": 3, "username": "student2"}]
+            if filename == "users.json"
+            else [{"id": 1, "title": "Keyboard"}]
+        ),
+    )
+
+    summary, missing_users, missing_products = migrate_wishlists.migrate(
+        dry_run=True
+    )
+
+    assert summary["source"] == 4
+    assert summary["missing_users"] == 1
+    assert summary["missing_products"] == 1
+    assert missing_users == [999]
+    assert missing_products == [99]
+
+
+def test_seller_chat_blocks_non_seller(client):
+    login_user(client, "student2")
+
+    response = client.get("/seller/chat/1/student3")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/seller/chats")
+
+
+def test_mysql_message_send_does_not_write_json(monkeypatch, app):
+    monkeypatch.setenv("USE_MYSQL_MESSAGES", "true")
+    calls = []
+    original_messages = read_messages(app)
+
+    monkeypatch.setattr(
+        marketplace_service,
+        "execute_mysql_query",
+        lambda query, params=None, **kwargs: [],
+    )
+
+    from backend.services import chat_service
+
+    def fake_execute(query, params=None, fetch=False, **kwargs):
+        if fetch:
+            return [{"id": 1}] if "FROM users" in query else []
+        calls.append((query, params))
+        return 1
+
+    monkeypatch.setattr(chat_service, "execute_mysql_query", fake_execute)
+
+    with app.app_context():
+        message = chat_service.send_chat_message(
+            1,
+            {"user_id": 3, "username": "student2"},
+            "student1",
+            "Is this available?",
+        )
+
+    assert message["sender"] == "student2"
+    assert message["receiver"] == "student1"
+    assert "INSERT INTO messages" in calls[0][0]
+    assert calls[0][1][0] == 1
+    assert calls[0][1][1] == 3
+    assert calls[0][1][2] == 1
+    assert read_messages(app) == original_messages
+
+
+def test_message_migration_reports_unresolved_participants(monkeypatch):
+    monkeypatch.setattr(
+        migrate_messages,
+        "load_source_records",
+        lambda: [
+            {
+                "product_id": 1,
+                "sender": "missing_sender",
+                "receiver": "missing_receiver",
+                "text": "Hello",
+                "timestamp": "2026-07-16 10:30:00",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        migrate_messages,
+        "load_json_rows",
+        lambda filename: (
+            [{"id": 1, "title": "Keyboard"}]
+            if filename == "products.json"
+            else [{"id": 2, "username": "student2"}]
+        ),
+    )
+
+    summary, senders, receivers, products = migrate_messages.migrate(dry_run=True)
+
+    assert summary["source"] == 1
+    assert summary["unresolved_senders"] == 1
+    assert summary["unresolved_receivers"] == 1
+    assert senders == ["missing_sender"]
+    assert receivers == ["missing_receiver"]
+    assert products == []
 
 
 def test_duplicate_product_request_is_blocked(client, app):
@@ -1164,3 +1315,110 @@ def test_product_request_route_still_creates_request(client, app):
     assert requests[-1]["status"] == "Pending"
     assert requests[-1]["buyer"] == "student2"
     assert notifications[-1]["status"] == "Pending"
+
+
+def test_mysql_request_row_keeps_template_shape():
+    row = {
+        "id": 7,
+        "product_id": 3,
+        "product_title": "Monitor",
+        "buyer_id": 4,
+        "buyer_identifier": "legacy_buyer",
+        "buyer_username": "student4",
+        "buyer_name": "Student Four",
+        "seller_id": 9,
+        "seller_identifier": "seller9",
+        "legacy_seller_name": None,
+        "seller_username": "seller_user",
+        "seller_name": "Seller User",
+        "status": "Pending",
+        "rejection_reason": None,
+        "requested_at": datetime(2026, 7, 16, 10, 30, 0),
+        "reviewed_at": None,
+    }
+
+    request_item = marketplace_service.request_from_mysql(row)
+
+    assert request_item["id"] == 7
+    assert request_item["product_title"] == "Monitor"
+    assert request_item["buyer"] == "student4"
+    assert request_item["buyer_id"] == 4
+    assert request_item["seller"] == "seller_user"
+    assert request_item["seller_id"] == 9
+    assert request_item["time"] == "2026-07-16 10:30:00"
+
+
+def test_mysql_request_submission_does_not_write_requests_json(monkeypatch, app):
+    monkeypatch.setenv("USE_MYSQL_REQUESTS", "true")
+    inserted = []
+    notifications = []
+    original_requests = read_requests(app)
+
+    monkeypatch.setattr(marketplace_service, "get_requests", lambda: [])
+    monkeypatch.setattr(
+        marketplace_service,
+        "execute_mysql_query",
+        lambda query, params=None, **kwargs: inserted.append((query, params)),
+    )
+    monkeypatch.setattr(
+        marketplace_service,
+        "add_notification",
+        lambda title, message, status="Info": notifications.append(
+            {"title": title, "message": message, "status": status}
+        ),
+    )
+
+    with app.app_context():
+        success, message = marketplace_service.request_buy(
+            1,
+            {
+                "user_id": 3,
+                "username": "student2",
+                "name": "Student Two",
+                "email": "student2@myrp.edu.sg",
+                "student_id": "S23456",
+            },
+        )
+
+    assert success is True
+    assert message is None
+    assert "INSERT INTO purchase_requests" in inserted[0][0]
+    assert inserted[0][1][0] == 1
+    assert inserted[0][1][1] == 3
+    assert inserted[0][1][2] == "student2"
+    assert notifications[-1]["status"] == "Pending"
+    assert read_requests(app) == original_requests
+
+
+def test_purchase_request_migration_reports_unresolved_buyer(monkeypatch):
+    monkeypatch.setattr(
+        migrate_purchase_requests,
+        "load_source_records",
+        lambda: [
+            {
+                "id": 1,
+                "product_id": 1,
+                "buyer": "missing_buyer",
+                "status": "Pending",
+                "time": "2026-07-16 10:30:00",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        migrate_purchase_requests,
+        "load_json_rows",
+        lambda filename: (
+            [{"id": 1, "title": "Keyboard"}]
+            if filename == "products.json"
+            else [{"id": 2, "username": "student2"}]
+        ),
+    )
+
+    summary, unresolved_buyers, missing_products = (
+        migrate_purchase_requests.migrate(dry_run=True)
+    )
+
+    assert summary["source"] == 1
+    assert summary["unresolved_buyers"] == 1
+    assert unresolved_buyers == ["missing_buyer"]
+    assert missing_products == []

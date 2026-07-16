@@ -155,7 +155,9 @@ def recent_activity(limit=8):
                 "detail": log.get("username") or "Unknown login ID",
             })
 
-    for request_item in load_json(data_file("requests")):
+    from backend.services.marketplace_service import get_requests
+
+    for request_item in get_requests():
         request_time = parse_time(request_item.get("time", ""))
         if request_time:
             status = request_item.get("status", "Submitted")

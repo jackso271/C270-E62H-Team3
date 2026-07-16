@@ -159,5 +159,16 @@
         "image_url": "",
         "seller": "John.Doe",
         "status": "Sold"
+    },
+    {
+        "id": 17,
+        "title": "MYSQL Test Item",
+        "name": "MYSQL Test Item",
+        "description": "Testing item",
+        "category": "Electronics",
+        "price": 99.0,
+        "image_url": "",
+        "seller": "jason",
+        "status": "Available"
     }
 ]

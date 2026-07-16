@@ -4,7 +4,7 @@ This folder contains local MySQL database setup and migration files for RP Marke
 
 ## Current Status
 
-Notifications, Reports, Users, Authentication, login logs, and Products use MySQL when their feature flags are enabled. Purchase Requests, Wishlists, Messages, and all other JSON files still use the existing JSON storage.
+Notifications, Reports, Users, Authentication, login logs, Products, Purchase Requests, Wishlists, and Messages use MySQL when their feature flags are enabled. JSON files remain as local backups and optional fallback storage while testing is completed.
 
 Do not update Docker, Docker Compose, Jenkins, Ansible, staging, production, or deployment configuration for database work yet.
 
@@ -18,12 +18,15 @@ USE_MYSQL_REPORTS=true
 USE_MYSQL_USERS=true
 USE_MYSQL_LOGIN_LOGS=true
 USE_MYSQL_PRODUCTS=true
+USE_MYSQL_REQUESTS=true
+USE_MYSQL_WISHLISTS=true
+USE_MYSQL_MESSAGES=true
+LEGACY_PRODUCT_OWNER_USERNAME=
 MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3306
 MYSQL_USER=root
 MYSQL_PASSWORD=
 MYSQL_DATABASE=rp_marketplace
-LEGACY_PRODUCT_OWNER_USERNAME=
 ```
 
 Put your real local MySQL password only in `.env`. Do not commit `.env`.
@@ -52,7 +55,7 @@ Using MySQL Workbench:
 2. Open `database/schema.sql`.
 3. Run the full script.
 
-`schema.sql` creates the `rp_marketplace` database and the current migrated tables only.
+`schema.sql` creates the `rp_marketplace` database and the migrated tables.
 
 You can also run `database/notifications.sql` when you only want the notifications table setup and verification queries.
 
@@ -61,6 +64,10 @@ Run `database/reports.sql` when you only want the reports table setup and verifi
 Run `database/users.sql` and `database/login_attempts.sql` for user/authentication table setup and verification.
 
 Run `database/products.sql` for categories/products setup and verification.
+
+Run `database/purchase_requests.sql`, `database/wishlists.sql`, and
+`database/messages.sql` for the remaining marketplace tables and verification
+queries.
 
 ## Migrate Existing Notifications
 
@@ -101,6 +108,17 @@ Migrate products after users:
 ```powershell
 python database\migrations\migrate_products.py --dry-run
 python database\migrations\migrate_products.py
+```
+
+Then migrate dependent marketplace data:
+
+```powershell
+python database\migrations\migrate_purchase_requests.py --dry-run
+python database\migrations\migrate_purchase_requests.py
+python database\migrations\migrate_wishlists.py --dry-run
+python database\migrations\migrate_wishlists.py
+python database\migrations\migrate_messages.py --dry-run
+python database\migrations\migrate_messages.py
 ```
 
 The product migration reports seller values that cannot be matched to a user. It preserves those original seller strings in `legacy_seller_name` and does not create fake users.
@@ -147,6 +165,9 @@ USE_MYSQL_REPORTS=true
 USE_MYSQL_USERS=true
 USE_MYSQL_LOGIN_LOGS=true
 USE_MYSQL_PRODUCTS=true
+USE_MYSQL_REQUESTS=true
+USE_MYSQL_WISHLISTS=true
+USE_MYSQL_MESSAGES=true
 ```
 
 Switch back to the JSON fallback:
@@ -157,17 +178,26 @@ USE_MYSQL_REPORTS=false
 USE_MYSQL_USERS=false
 USE_MYSQL_LOGIN_LOGS=false
 USE_MYSQL_PRODUCTS=false
+USE_MYSQL_REQUESTS=false
+USE_MYSQL_WISHLISTS=false
+USE_MYSQL_MESSAGES=false
 ```
 
-When JSON fallback is enabled, the app continues to use `backend/data/notifications.json`.
+When JSON fallback is enabled, the app continues to use the matching files in
+`backend/data`.
 
-## Future Migration Order
+## Migration Order
 
-1. Reports
-2. Users and Authentication
-3. Products
-4. Purchase Requests
-5. Wishlists
-6. Messages
-7. Remove JSON runtime storage
-8. Update Docker/Jenkins/Ansible only after local MySQL is complete
+1. Schema
+2. Notifications
+3. Reports
+4. Users and Authentication
+5. Login Attempts
+6. Products
+7. Purchase Requests
+8. Wishlists
+9. Messages
+
+`python database/init_database.py` runs this full order. `python
+database/init_database.py --verify` is read-only and only checks the connection,
+required tables, required columns, and row counts.

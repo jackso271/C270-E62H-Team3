@@ -37,6 +37,18 @@ def mysql_products_enabled():
     return os.getenv("USE_MYSQL_PRODUCTS", "").strip().lower() in TRUE_VALUES
 
 
+def mysql_requests_enabled():
+    return os.getenv("USE_MYSQL_REQUESTS", "").strip().lower() in TRUE_VALUES
+
+
+def mysql_wishlists_enabled():
+    return os.getenv("USE_MYSQL_WISHLISTS", "").strip().lower() in TRUE_VALUES
+
+
+def mysql_messages_enabled():
+    return os.getenv("USE_MYSQL_MESSAGES", "").strip().lower() in TRUE_VALUES
+
+
 def mysql_config():
     try:
         port = int(os.getenv("MYSQL_PORT", "3306"))

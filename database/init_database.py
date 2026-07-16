@@ -10,10 +10,13 @@ if str(PROJECT_ROOT) not in sys.path:
 from backend.db import MySQLDatabaseError, get_mysql_connection, mysql_config
 from database.migrations import (
     migrate_login_attempts,
+    migrate_messages,
     migrate_notifications,
     migrate_products,
+    migrate_purchase_requests,
     migrate_reports,
     migrate_users,
+    migrate_wishlists,
 )
 
 
@@ -23,7 +26,11 @@ VERIFY_TABLES = [
     "reports",
     "users",
     "login_attempts",
+    "categories",
     "products",
+    "purchase_requests",
+    "wishlists",
+    "messages",
 ]
 REQUIRED_COLUMNS = {
     "notifications": {"id", "title", "message", "status", "created_at"},
@@ -76,6 +83,28 @@ REQUIRED_COLUMNS = {
         "created_at",
         "updated_at",
     },
+    "purchase_requests": {
+        "id",
+        "product_id",
+        "buyer_id",
+        "buyer_identifier",
+        "status",
+        "rejection_reason",
+        "requested_at",
+        "reviewed_at",
+    },
+    "wishlists": {"user_id", "product_id", "added_at"},
+    "messages": {
+        "id",
+        "product_id",
+        "sender_id",
+        "receiver_id",
+        "sender_identifier",
+        "receiver_identifier",
+        "message_text",
+        "sent_at",
+        "read_at",
+    },
 }
 MIGRATIONS = [
     ("Notifications", migrate_notifications.migrate),
@@ -83,6 +112,9 @@ MIGRATIONS = [
     ("Users", migrate_users.migrate),
     ("Login Attempts", migrate_login_attempts.migrate),
     ("Products", migrate_products.migrate),
+    ("Purchase Requests", migrate_purchase_requests.migrate),
+    ("Wishlists", migrate_wishlists.migrate),
+    ("Messages", migrate_messages.migrate),
 ]
 
 
