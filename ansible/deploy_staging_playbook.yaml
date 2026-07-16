@@ -8,6 +8,16 @@
       command: docker --version
       changed_when: false
 
+    - name: Verify staging environment file exists
+      stat:
+        path: "{{ playbook_dir }}/../.env"
+      register: staging_env_file
+
+    - name: Stop deployment when staging environment file is missing
+      fail:
+        msg: "Missing .env file. Create it from .env.example and provide MySQL credentials before deploying."
+      when: not staging_env_file.stat.exists
+
     - name: Stop existing staging container if it exists
       command: docker stop rpmarketplace-staging
       register: stop_container
@@ -37,6 +47,12 @@
           - -d
           - --name
           - rpmarketplace-staging
+          - --env-file
+          - "{{ playbook_dir }}/../.env"
+          - -e
+          - MYSQL_HOST=host.docker.internal
+          - --add-host
+          - host.docker.internal:host-gateway
           - -p
           - "5002:5000"
           - rp-marketplace-staging

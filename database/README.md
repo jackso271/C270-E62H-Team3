@@ -6,18 +6,21 @@ This folder contains the local MySQL schema, setup command, module SQL files, an
 
 MySQL is the only runtime data store. Normal application routes and services must read and write through `backend/db.py` and the MySQL schema. JSON files are archived seed data only.
 
-Do not update Docker, Docker Compose, Jenkins, Ansible, staging, production, ports, or deployment configuration for database work yet. That integration is deferred until local MySQL-only runtime is fully approved.
+Docker containers must connect to the existing host MySQL Server with the same
+runtime MySQL settings. When MySQL runs on the Windows host, use
+`MYSQL_HOST=host.docker.internal` for Docker.
 
 ## Environment
 
 Create a local `.env` from `.env.example`:
 
 ```env
-MYSQL_HOST=127.0.0.1
+MYSQL_HOST=host.docker.internal
 MYSQL_PORT=3306
-MYSQL_USER=root
+MYSQL_USER=
 MYSQL_PASSWORD=
-MYSQL_DATABASE=rp_marketplace
+MYSQL_DATABASE=
+SESSION_SECRET=
 
 # Migration-only fallback owner for legacy product seed data.
 LEGACY_PRODUCT_OWNER_USERNAME=

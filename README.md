@@ -157,32 +157,47 @@ The active Jenkins/Ansible deployment uses the root `Dockerfile`.
 
 Build the root application image:
 
-```bash
+```powershell
 docker build -t rp-marketplace .
 ```
 
-Run the application locally on production port `5000`:
+Create Docker runtime configuration from the example and fill in local MySQL
+credentials. Do not commit `.env`.
 
-```bash
-docker run -d --name rpmarketplace -p 5000:5000 rp-marketplace
+```powershell
+copy .env.example .env
+```
+
+When MySQL Server runs on the Windows host, Docker must use
+`MYSQL_HOST=host.docker.internal`. Run the application on production port
+`5000`:
+
+```powershell
+docker run -d --name rpmarketplace --env-file .env -e MYSQL_HOST=host.docker.internal --add-host host.docker.internal:host-gateway -p 5000:5000 rp-marketplace
 ```
 
 Run a staging-style container on host port `5002`:
 
-```bash
+```powershell
 docker build -t rp-marketplace-staging .
-docker run -d --name rpmarketplace-staging -p 5002:5000 rp-marketplace-staging
+docker run -d --name rpmarketplace-staging --env-file .env -e MYSQL_HOST=host.docker.internal --add-host host.docker.internal:host-gateway -p 5002:5000 rp-marketplace-staging
 ```
 
 Verify running containers:
 
-```bash
+```powershell
 docker ps
+```
+
+Inspect logs:
+
+```powershell
+docker logs -f rpmarketplace
 ```
 
 Warning: the following commands stop and remove local containers. Use them only when replacing or cleaning up the local deployment.
 
-```bash
+```powershell
 docker stop rpmarketplace
 docker rm rpmarketplace
 docker stop rpmarketplace-staging
@@ -201,19 +216,19 @@ The repository also includes optional Docker Compose assets under `docker/`:
 
 Run the optional compose setup from the repository root:
 
-```bash
+```powershell
 docker compose -f docker/docker-compose.yml up --build
 ```
 
 Run the optional compose staging override:
 
-```bash
+```powershell
 docker compose -f docker/docker-compose.yml -f docker/docker-compose.staging.yml up --build
 ```
 
 Warning: `docker compose down -v` deletes compose-managed volumes. This repository's compose command does not require `-v` for normal shutdown.
 
-```bash
+```powershell
 docker compose -f docker/docker-compose.yml down
 ```
 
@@ -407,7 +422,10 @@ Archived JSON files live under `database/legacy_seed_data/` only as migration se
 
 New features requiring database changes must update `database/schema.sql`, the relevant module SQL file when appropriate, migration/setup logic, service-layer MySQL queries, and tests.
 
-Docker, Jenkins, Ansible, staging, and production database integration remains deferred until local MySQL-only runtime is fully approved.
+Docker, Jenkins, Ansible, staging, and production runs use the MySQL runtime
+database. Docker-based workflows must pass `.env` and override
+`MYSQL_HOST=host.docker.internal` when the MySQL Server runs on the Windows
+host.
 
 ## Staging And Production Access URLs
 
@@ -455,6 +473,7 @@ http://localhost:5000
 | Issue | Check |
 | --- | --- |
 | Jenkins job deploys the wrong code | Confirm the job branch: staging uses `staging-environment`, production uses `main`. |
+| Docker container exits during startup with MySQL connection errors | Confirm `.env` exists, contains the required `MYSQL_*` variables, and Docker is using `MYSQL_HOST=host.docker.internal` for a Windows-hosted MySQL Server. |
 | Staging URL is unavailable | Check that container `rpmarketplace-staging` is running and that port `5002` is mapped to container port `5000`. |
 | Production URL is unavailable | Check that container `rpmarketplace` is running and that port `5000` is mapped to container port `5000`. |
 | Ansible cannot reach Docker | Run `docker --version` and confirm Docker Desktop or Docker Engine is running. |

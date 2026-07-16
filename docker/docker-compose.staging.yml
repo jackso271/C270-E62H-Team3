@@ -2,12 +2,12 @@ name: staging
 
 services:
   backend:
-    container_name: backend-staging
+    container_name: rpmarketplace-compose-staging-backend
     ports: !override
       - "5001:5000"
 
   frontend:
-    container_name: frontend-staging
+    container_name: rpmarketplace-compose-staging-frontend
     ports: !override
       - "8081:80"
 

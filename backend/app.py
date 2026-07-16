@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from flask import Flask
@@ -24,7 +25,7 @@ def create_app(test_config=None):
     )
 
     app.config.from_mapping(
-        SECRET_KEY="rp_marketplace_secret_key",
+        SECRET_KEY=os.getenv("SESSION_SECRET", "rp_marketplace_secret_key"),
     )
 
     if test_config:
