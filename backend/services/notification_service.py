@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from backend.db import execute_mysql_query, mysql_notifications_enabled
-from backend.utils.json_storage import data_file, load_json, save_json
+from backend.db import execute_mysql_query
 
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -25,40 +24,22 @@ def notification_from_mysql(row):
 
 def add_notification(title, message, status="Info"):
     """Store a simple notification for users and admins to review."""
-    if mysql_notifications_enabled():
-        execute_mysql_query(
-            """
-            INSERT INTO notifications (title, message, status)
-            VALUES (%s, %s, %s)
-            """,
-            (title, message, status),
-        )
-        return
-
-    notifications = load_json(data_file("notifications"))
-
-    notifications.append({
-        "id": len(notifications) + 1,
-        "title": title,
-        "message": message,
-        "status": status,
-        "time": datetime.now().strftime(DATE_FORMAT),
-    })
-
-    save_json(data_file("notifications"), notifications)
+    execute_mysql_query(
+        """
+        INSERT INTO notifications (title, message, status)
+        VALUES (%s, %s, %s)
+        """,
+        (title, message, status),
+    )
 
 
 def get_notifications():
-    if mysql_notifications_enabled():
-        rows = execute_mysql_query(
-            """
-            SELECT id, title, message, status, created_at
-            FROM notifications
-            ORDER BY created_at DESC, id DESC
-            """,
-            fetch=True,
-        )
-        return [notification_from_mysql(row) for row in rows]
-
-    notifications = load_json(data_file("notifications"))
-    return list(reversed(notifications))
+    rows = execute_mysql_query(
+        """
+        SELECT id, title, message, status, created_at
+        FROM notifications
+        ORDER BY created_at DESC, id DESC
+        """,
+        fetch=True,
+    )
+    return [notification_from_mysql(row) for row in rows]

@@ -4,9 +4,9 @@ from uuid import uuid4
 from flask import current_app
 from werkzeug.utils import secure_filename
 
-from backend.db import mysql_products_enabled
-from backend.utils.json_storage import data_file, load_json, save_json
+from backend.db import execute_mysql_query
 from backend.services.seller_dashboard_service import (
+    category_id_for_name,
     delete_product as delete_dashboard_product,
     load_products,
     save_products as save_dashboard_products,
@@ -70,23 +70,11 @@ def same_product_id(product, product_id):
 
 
 def get_products():
-    if mysql_products_enabled():
-        return load_products()
-
-    products = load_json(data_file("products"))
-
-    if not isinstance(products, list):
-        return []
-
-    return products
+    return load_products()
 
 
 def save_products(products):
-    if mysql_products_enabled():
-        save_dashboard_products(products)
-        return
-
-    save_json(data_file("products"), products)
+    save_dashboard_products(products)
 
 
 def get_next_product_id(products):
@@ -157,8 +145,6 @@ def get_my_sell_items(user):
 
 
 def create_sell_item(form, files, user):
-    products = get_products()
-
     title = clean_text(form.get("title"))
     description = clean_text(form.get("description"))
     category = clean_text(form.get("category")) or "Others"
@@ -177,20 +163,26 @@ def create_sell_item(form, files, user):
     if category not in VALID_CATEGORIES:
         category = "Others"
 
-    new_product = {
-        "id": get_next_product_id(products),
-        "title": title,
-        "name": title,
-        "description": description,
-        "category": category,
-        "price": price,
-        "image_url": image_url,
-        "seller": get_seller_name(user),
-        "status": "Available",
-    }
-
-    products.append(new_product)
-    save_products(products)
+    category_id = category_id_for_name(category)
+    execute_mysql_query(
+        """
+        INSERT INTO products (
+            seller_id, seller_identifier, category_id, title,
+            description, price, image_url, status
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            user.get("user_id"),
+            get_seller_name(user),
+            category_id,
+            title,
+            description,
+            price,
+            image_url,
+            "Available",
+        ),
+    )
 
     return True, None
 
@@ -239,21 +231,4 @@ def update_sell_item(product_id, form, files, user):
 
 
 def delete_sell_item(product_id, user):
-    if mysql_products_enabled():
-        return delete_dashboard_product(product_id, user)
-
-    products = get_products()
-
-    updated_products = [
-        product for product in products
-        if not (
-            same_product_id(product, product_id)
-            and product_belongs_to_user(product, user)
-        )
-    ]
-
-    if len(updated_products) == len(products):
-        return False, "Product not found or you do not own this listing."
-
-    save_products(updated_products)
-    return True, None
+    return delete_dashboard_product(product_id, user)

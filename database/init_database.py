@@ -339,6 +339,7 @@ def print_success_summary(completed):
     print("======================================")
     print()
     print("Database Ready")
+    print("MySQL is mandatory for RP Marketplace runtime data.")
     print()
     print("======================================")
 
@@ -405,6 +406,7 @@ def main():
     args = parser.parse_args()
 
     if args.verify:
+        print("Verifying MySQL-only runtime database.")
         return 0 if verify_database() else 1
 
     if not verify_mysql_reachable():

@@ -3,8 +3,6 @@ from datetime import datetime
 from backend.db import (
     execute_mysql_query,
     get_mysql_connection,
-    mysql_requests_enabled,
-    mysql_wishlists_enabled,
 )
 from backend.services.notification_service import add_notification
 from backend.services.seller_dashboard_service import (
@@ -12,9 +10,7 @@ from backend.services.seller_dashboard_service import (
     load_products,
     product_belongs_to_seller,
     seller_name,
-    save_products,
 )
-from backend.utils.json_storage import data_file, load_json, save_json
 
 
 ACTIVE_REQUEST_STATUSES = ["Pending", "Accepted", "Approved"]
@@ -27,27 +23,24 @@ def get_products():
 
 
 def get_requests():
-    if mysql_requests_enabled():
-        rows = execute_mysql_query(
-            """
-            SELECT pr.id, pr.product_id, pr.buyer_id, pr.buyer_identifier,
-                   pr.status, pr.rejection_reason, pr.requested_at,
-                   pr.reviewed_at, p.title AS product_title,
-                   p.seller_id, p.seller_identifier, p.legacy_seller_name,
-                   u.username AS buyer_username, u.name AS buyer_name,
-                   seller.username AS seller_username,
-                   seller.name AS seller_name
-            FROM purchase_requests pr
-            JOIN products p ON p.id = pr.product_id
-            LEFT JOIN users u ON u.id = pr.buyer_id
-            LEFT JOIN users seller ON seller.id = p.seller_id
-            ORDER BY pr.requested_at DESC, pr.id DESC
-            """,
-            fetch=True,
-        )
-        return [request_from_mysql(row) for row in rows]
-
-    return load_json(data_file("requests"))
+    rows = execute_mysql_query(
+        """
+        SELECT pr.id, pr.product_id, pr.buyer_id, pr.buyer_identifier,
+               pr.status, pr.rejection_reason, pr.requested_at,
+               pr.reviewed_at, p.title AS product_title,
+               p.seller_id, p.seller_identifier, p.legacy_seller_name,
+               u.username AS buyer_username, u.name AS buyer_name,
+               seller.username AS seller_username,
+               seller.name AS seller_name
+        FROM purchase_requests pr
+        JOIN products p ON p.id = pr.product_id
+        LEFT JOIN users u ON u.id = pr.buyer_id
+        LEFT JOIN users seller ON seller.id = p.seller_id
+        ORDER BY pr.requested_at DESC, pr.id DESC
+        """,
+        fetch=True,
+    )
+    return [request_from_mysql(row) for row in rows]
 
 
 def format_datetime(value):
@@ -89,43 +82,21 @@ def request_from_mysql(row):
     }
 
 
-def get_wishlists():
-    wishlists = load_json(data_file("wishlists"))
-    if isinstance(wishlists, dict):
-        return wishlists
-    return {}
-
-
-def save_wishlists(wishlists):
-    save_json(data_file("wishlists"), wishlists)
-
-
-def wishlist_key(user):
-    return str(user.get("user_id"))
-
-
 def get_wishlist_ids(user):
     if not user:
         return []
 
-    if mysql_wishlists_enabled():
-        rows = execute_mysql_query(
-            """
-            SELECT product_id
-            FROM wishlists
-            WHERE user_id = %s
-            ORDER BY added_at DESC, product_id
-            """,
-            (user.get("user_id"),),
-            fetch=True,
-        )
-        return [row["product_id"] for row in rows]
-
-    wishlist = get_wishlists().get(wishlist_key(user), [])
-    return [
-        product_id for product_id in wishlist
-        if isinstance(product_id, int)
-    ]
+    rows = execute_mysql_query(
+        """
+        SELECT product_id
+        FROM wishlists
+        WHERE user_id = %s
+        ORDER BY added_at DESC, product_id
+        """,
+        (user.get("user_id"),),
+        fetch=True,
+    )
+    return [row["product_id"] for row in rows]
 
 
 def get_wishlist_products(user):
@@ -140,25 +111,14 @@ def add_to_wishlist(product_id, user):
     if not user or get_product_by_id(product_id) is None:
         return False
 
-    if mysql_wishlists_enabled():
-        execute_mysql_query(
-            """
-            INSERT INTO wishlists (user_id, product_id)
-            VALUES (%s, %s)
-            ON DUPLICATE KEY UPDATE user_id = user_id
-            """,
-            (user.get("user_id"), product_id),
-        )
-        return True
-
-    wishlists = get_wishlists()
-    key = wishlist_key(user)
-    saved_ids = wishlists.setdefault(key, [])
-
-    if product_id not in saved_ids:
-        saved_ids.append(product_id)
-        save_wishlists(wishlists)
-
+    execute_mysql_query(
+        """
+        INSERT INTO wishlists (user_id, product_id)
+        VALUES (%s, %s)
+        ON DUPLICATE KEY UPDATE user_id = user_id
+        """,
+        (user.get("user_id"), product_id),
+    )
     return True
 
 
@@ -166,24 +126,13 @@ def remove_from_wishlist(product_id, user):
     if not user:
         return False
 
-    if mysql_wishlists_enabled():
-        execute_mysql_query(
-            """
-            DELETE FROM wishlists
-            WHERE user_id = %s AND product_id = %s
-            """,
-            (user.get("user_id"), product_id),
-        )
-        return True
-
-    wishlists = get_wishlists()
-    key = wishlist_key(user)
-    saved_ids = wishlists.get(key, [])
-
-    if product_id in saved_ids:
-        saved_ids.remove(product_id)
-        save_wishlists(wishlists)
-
+    execute_mysql_query(
+        """
+        DELETE FROM wishlists
+        WHERE user_id = %s AND product_id = %s
+        """,
+        (user.get("user_id"), product_id),
+    )
     return True
 
 
@@ -317,7 +266,6 @@ def request_counts(requests_list):
 
 def request_buy(product_id, user):
     products = get_products()
-    requests_list = get_requests()
     product = None
 
     for item in products:
@@ -337,41 +285,22 @@ def request_buy(product_id, user):
     if user_has_active_request(product_id, user):
         return False, "You already have an active request for this item."
 
-    if mysql_requests_enabled():
-        requested_at = datetime.now().strftime(DATE_FORMAT)
-        execute_mysql_query(
-            """
-            INSERT INTO purchase_requests (
-                product_id, buyer_id, buyer_identifier, status, requested_at
-            )
-            VALUES (%s, %s, %s, %s, %s)
-            """,
-            (
-                product["id"],
-                user.get("user_id"),
-                get_request_buyer(user),
-                "Pending",
-                requested_at,
-            ),
+    requested_at = datetime.now().strftime(DATE_FORMAT)
+    execute_mysql_query(
+        """
+        INSERT INTO purchase_requests (
+            product_id, buyer_id, buyer_identifier, status, requested_at
         )
-        add_notification(
-            "Product request submitted",
-            f"New request submitted for {product['title']}.",
+        VALUES (%s, %s, %s, %s, %s)
+        """,
+        (
+            product["id"],
+            user.get("user_id"),
+            get_request_buyer(user),
             "Pending",
-        )
-        return True, None
-
-    requests_list.append({
-        "id": len(requests_list) + 1,
-        "product_id": product["id"],
-        "product_title": product["title"],
-        "buyer": get_request_buyer(user),
-        "seller": product["seller"],
-        "status": "Pending",
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    })
-
-    save_json(data_file("requests"), requests_list)
+            requested_at,
+        ),
+    )
     add_notification(
         "Product request submitted",
         f"New request submitted for {product['title']}.",
@@ -381,78 +310,11 @@ def request_buy(product_id, user):
 
 
 def accept_request(request_id, user):
-    if mysql_requests_enabled():
-        return accept_mysql_request(request_id, user)
-
-    requests_list = get_requests()
-    products = get_products()
-    reviewed_title = None
-
-    for req in requests_list:
-        if req.get("id") == request_id:
-            product = get_product_by_id(req.get("product_id"))
-            if product is None or not product_belongs_to_seller(product, user):
-                return False, "Access denied."
-
-            if req.get("status") != "Pending":
-                return False, "Request has already been reviewed."
-
-            req["status"] = "Accepted"
-            req["reviewed_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            reviewed_title = req.get("product_title", "Product request")
-
-            for product in products:
-                if product.get("id") == req.get("product_id"):
-                    product["status"] = "Sold"
-                    break
-
-            break
-
-    save_json(data_file("requests"), requests_list)
-    save_products(products)
-    if reviewed_title:
-        add_notification(
-            "Product request approved",
-            f"{reviewed_title} was approved.",
-            "Approved",
-        )
-        return True, None
-
-    return False, "Request not found."
+    return accept_mysql_request(request_id, user)
 
 
 def reject_request(request_id, user, reason=None):
-    if mysql_requests_enabled():
-        return reject_mysql_request(request_id, user, reason)
-
-    requests_list = get_requests()
-    reviewed_title = None
-
-    for req in requests_list:
-        if req.get("id") == request_id:
-            product = get_product_by_id(req.get("product_id"))
-            if product is None or not product_belongs_to_seller(product, user):
-                return False, "Access denied."
-
-            if req.get("status") != "Pending":
-                return False, "Request has already been reviewed."
-
-            req["status"] = "Rejected"
-            req["rejection_reason"] = reason or "Request rejected after review."
-            req["reviewed_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            reviewed_title = req.get("product_title", "Product request")
-            break
-
-    save_json(data_file("requests"), requests_list)
-    if reviewed_title:
-        add_notification(
-            "Product request rejected",
-            f"{reviewed_title} was rejected.",
-            "Rejected",
-        )
-        return True, None
-
-    return False, "Request not found."
+    return reject_mysql_request(request_id, user, reason)
 
 
 def request_row_for_review(cursor, request_id):

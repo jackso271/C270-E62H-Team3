@@ -1,12 +1,11 @@
 from datetime import datetime
 
-from backend.db import execute_mysql_query, mysql_messages_enabled
+from backend.db import execute_mysql_query
 from backend.services.seller_dashboard_service import (
     load_products,
     product_belongs_to_seller,
     seller_name,
 )
-from backend.utils.json_storage import data_file, load_json, save_json
 
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -77,32 +76,27 @@ def message_from_mysql(row):
 
 
 def get_messages():
-    if mysql_messages_enabled():
-        rows = execute_mysql_query(
-            """
-            SELECT m.id, m.product_id, m.sender_id, m.receiver_id,
-                   m.sender_identifier, m.receiver_identifier,
-                   m.message_text, m.sent_at, m.read_at,
-                   sender.username AS sender_username,
-                   sender.name AS sender_name,
-                   receiver.username AS receiver_username,
-                   receiver.name AS receiver_name
-            FROM messages m
-            LEFT JOIN users sender ON sender.id = m.sender_id
-            LEFT JOIN users receiver ON receiver.id = m.receiver_id
-            ORDER BY m.sent_at, m.id
-            """,
-            fetch=True,
-        )
-        return [message_from_mysql(row) for row in rows]
-
-    return load_json(data_file("messages"))
+    rows = execute_mysql_query(
+        """
+        SELECT m.id, m.product_id, m.sender_id, m.receiver_id,
+               m.sender_identifier, m.receiver_identifier,
+               m.message_text, m.sent_at, m.read_at,
+               sender.username AS sender_username,
+               sender.name AS sender_name,
+               receiver.username AS receiver_username,
+               receiver.name AS receiver_name
+        FROM messages m
+        LEFT JOIN users sender ON sender.id = m.sender_id
+        LEFT JOIN users receiver ON receiver.id = m.receiver_id
+        ORDER BY m.sent_at, m.id
+        """,
+        fetch=True,
+    )
+    return [message_from_mysql(row) for row in rows]
 
 
 def save_messages(messages):
-    if mysql_messages_enabled():
-        return
-    save_json(data_file("messages"), messages)
+    return None
 
 
 def get_product(product_id):
@@ -143,37 +137,25 @@ def send_chat_message(product_id, sender_user, receiver_identifier, text):
 
     timestamp = datetime.now().strftime(DATE_FORMAT)
 
-    if mysql_messages_enabled():
-        execute_mysql_query(
-            """
-            INSERT INTO messages (
-                product_id, sender_id, receiver_id, sender_identifier,
-                receiver_identifier, message_text, sent_at
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                product_id,
-                sender_user.get("user_id"),
-                mysql_user_for_identifier(receiver_identifier),
-                user_identity(sender_user),
-                receiver_identifier,
-                text,
-                timestamp,
-            ),
+    execute_mysql_query(
+        """
+        INSERT INTO messages (
+            product_id, sender_id, receiver_id, sender_identifier,
+            receiver_identifier, message_text, sent_at
         )
-        return {
-            "product_id": product_id,
-            "sender": user_identity(sender_user),
-            "receiver": receiver_identifier,
-            "text": text,
-            "timestamp": timestamp,
-            "read": False,
-        }
-
-    messages = get_messages()
-    new_message = {
-        "id": len(messages) + 1,
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            product_id,
+            sender_user.get("user_id"),
+            mysql_user_for_identifier(receiver_identifier),
+            user_identity(sender_user),
+            receiver_identifier,
+            text,
+            timestamp,
+        ),
+    )
+    return {
         "product_id": product_id,
         "sender": user_identity(sender_user),
         "receiver": receiver_identifier,
@@ -181,9 +163,6 @@ def send_chat_message(product_id, sender_user, receiver_identifier, text):
         "timestamp": timestamp,
         "read": False,
     }
-    messages.append(new_message)
-    save_messages(messages)
-    return new_message
 
 
 def send_message(sender_id, receiver_id, product_id, message):
@@ -292,9 +271,7 @@ def get_seller_conversations(user):
 
 
 def get_unread_count(username):
-    user_id = None
-    if mysql_messages_enabled():
-        user_id = mysql_user_for_identifier(username)
+    user_id = mysql_user_for_identifier(username)
 
     count = 0
     for message in get_messages():
@@ -313,37 +290,25 @@ def get_unread_count(username):
 
 
 def mark_conversation_read(product_id, user, other_identifier):
-    if mysql_messages_enabled():
-        execute_mysql_query(
-            """
-            UPDATE messages
-            SET read_at = COALESCE(read_at, %s)
-            WHERE product_id = %s
-              AND receiver_id = %s
-              AND (
-                  LOWER(sender_identifier) = %s
-                  OR sender_id = %s
-              )
-            """,
-            (
-                datetime.now().strftime(DATE_FORMAT),
-                product_id,
-                user.get("user_id"),
-                clean_key(other_identifier),
-                mysql_user_for_identifier(other_identifier),
-            ),
-        )
-        return
-
-    messages = get_messages()
-    for message in messages:
-        if (
-            message_in_conversation(message, product_id, user, other_identifier)
-            and identifier_matches_user(message.get("receiver"), user)
-            and not message.get("read", False)
-        ):
-            message["read"] = True
-    save_messages(messages)
+    execute_mysql_query(
+        """
+        UPDATE messages
+        SET read_at = COALESCE(read_at, %s)
+        WHERE product_id = %s
+          AND receiver_id = %s
+          AND (
+              LOWER(sender_identifier) = %s
+              OR sender_id = %s
+          )
+        """,
+        (
+            datetime.now().strftime(DATE_FORMAT),
+            product_id,
+            user.get("user_id"),
+            clean_key(other_identifier),
+            mysql_user_for_identifier(other_identifier),
+        ),
+    )
 
 
 def user_can_open_seller_chat(product, user):
