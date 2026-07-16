@@ -84,6 +84,15 @@ def seller_chat(product_id, buyer):
 
     mark_conversation_read(product_id, user, buyer)
 
+    for message in messages:
+        if (
+            message["receiver"] == session.get("username")
+            and not message.get("read", False)
+        ):
+            message["read"] = True
+
+    save_messages(all_messages)
+
     if request.method == "POST":
         send_chat_message(
             product_id,
