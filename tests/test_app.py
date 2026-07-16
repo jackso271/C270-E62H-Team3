@@ -8,6 +8,7 @@ from backend.services import auth_service
 from backend.services import notification_service
 from backend.services import report_service
 from backend.services import seller_dashboard_service
+from database.migrations import migrate_products
 
 
 @pytest.fixture()
@@ -906,6 +907,9 @@ def test_products_can_load_from_mysql(monkeypatch):
             "id": 1,
             "seller_id": 3,
             "seller_identifier": "student1",
+            "legacy_seller_name": "Jane Smith",
+            "seller_name": "Student One",
+            "seller_username": "student1",
             "title": "Keyboard",
             "description": "Compact keyboard",
             "price": 25,
@@ -926,7 +930,9 @@ def test_products_can_load_from_mysql(monkeypatch):
     assert products == [{
         "id": 1,
         "seller_id": 3,
-        "seller": "student1",
+        "seller": "Jane Smith",
+        "seller_identifier": "student1",
+        "legacy_seller_name": "Jane Smith",
         "title": "Keyboard",
         "name": "Keyboard",
         "description": "Compact keyboard",
@@ -985,6 +991,149 @@ def test_product_creation_uses_mysql(monkeypatch):
         4.5,
         "Available",
     )
+
+
+def test_mysql_product_ownership_uses_seller_id_not_legacy_display():
+    product = {
+        "id": 1,
+        "seller_id": 3,
+        "seller": "Jane Smith",
+        "legacy_seller_name": "Jane Smith",
+    }
+
+    assert seller_dashboard_service.product_belongs_to_seller(
+        product,
+        {"user_id": 3, "username": "student1"},
+    )
+    assert not seller_dashboard_service.product_belongs_to_seller(
+        product,
+        {"user_id": 9, "username": "Jane Smith"},
+    )
+
+
+def test_product_migration_maps_legacy_sellers_to_configured_fallback(monkeypatch):
+    monkeypatch.setenv("LEGACY_PRODUCT_OWNER_USERNAME", "DEMO")
+    monkeypatch.setattr(
+        migrate_products,
+        "load_source_records",
+        lambda: [
+            {
+                "id": 1,
+                "title": "Matched Book",
+                "description": "Matched seller",
+                "price": 5,
+                "seller": "student1",
+                "category": "Books",
+                "status": "Available",
+            },
+            {
+                "id": 2,
+                "title": "Legacy Laptop",
+                "description": "Legacy seller",
+                "price": 50,
+                "seller": "Jane Smith",
+                "category": "Electronics",
+                "status": "Available",
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        migrate_products,
+        "user_rows_from_json",
+        lambda: [
+            {
+                "id": 1,
+                "username": "admin",
+                "name": "Admin",
+                "email": "admin@rp.edu.sg",
+                "student_id": "admin",
+                "role": "admin",
+            },
+            {
+                "id": 2,
+                "username": "demo",
+                "name": "Demo User",
+                "email": "demo@myrp.edu.sg",
+                "student_id": "S22222",
+                "role": "student",
+            },
+            {
+                "id": 3,
+                "username": "student1",
+                "name": "Student One",
+                "email": "student1@myrp.edu.sg",
+                "student_id": "S11111",
+                "role": "student",
+            },
+        ],
+    )
+
+    summary, mappings = migrate_products.migrate(dry_run=True)
+
+    assert summary["source"] == 2
+    assert summary["normal_matches"] == 1
+    assert summary["fallback_mapped"] == 1
+    assert summary["invalid"] == 0
+    assert mappings == {"Jane Smith": "demo"}
+
+
+def test_product_migration_stops_when_fallback_config_missing(monkeypatch):
+    monkeypatch.delenv("LEGACY_PRODUCT_OWNER_USERNAME", raising=False)
+    monkeypatch.setattr(migrate_products, "load_source_records", lambda: [])
+    monkeypatch.setattr(
+        migrate_products,
+        "user_rows_from_json",
+        lambda: [
+            {
+                "id": 2,
+                "username": "jason",
+                "name": "Jason Tan",
+                "email": "25044459@myrp.edu.sg",
+                "student_id": "25044459",
+                "role": "student",
+            }
+        ],
+    )
+
+    with pytest.raises(ValueError) as error:
+        migrate_products.migrate(dry_run=True)
+
+    assert "LEGACY_PRODUCT_OWNER_USERNAME is required" in str(error.value)
+    assert "jason" in str(error.value)
+
+
+def test_product_migration_rejects_admin_fallback(monkeypatch):
+    monkeypatch.setenv("LEGACY_PRODUCT_OWNER_USERNAME", "admin")
+    monkeypatch.setattr(migrate_products, "load_source_records", lambda: [])
+    monkeypatch.setattr(
+        migrate_products,
+        "user_rows_from_json",
+        lambda: [
+            {
+                "id": 1,
+                "username": "admin",
+                "name": "Admin",
+                "email": "admin@rp.edu.sg",
+                "student_id": "admin",
+                "role": "admin",
+            },
+            {
+                "id": 2,
+                "username": "jason",
+                "name": "Jason Tan",
+                "email": "25044459@myrp.edu.sg",
+                "student_id": "25044459",
+                "role": "student",
+            },
+        ],
+    )
+
+    with pytest.raises(ValueError) as error:
+        migrate_products.migrate(dry_run=True)
+
+    assert "admin" in str(error.value)
+    assert "non-admin user" in str(error.value)
+    assert "jason" in str(error.value)
 
 
 def test_product_request_filter_empty_state(client):

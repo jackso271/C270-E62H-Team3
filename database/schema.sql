@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS products (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     seller_id BIGINT UNSIGNED NULL,
     seller_identifier VARCHAR(255) NOT NULL,
+    legacy_seller_name VARCHAR(150) NULL,
     category_id SMALLINT UNSIGNED NULL,
     title VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,

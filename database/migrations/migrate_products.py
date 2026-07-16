@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import sys
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -13,6 +14,7 @@ from backend.db import MySQLDatabaseError, get_mysql_connection
 
 
 SOURCE_FILE = PROJECT_ROOT / "backend" / "data" / "products.json"
+FALLBACK_USERNAME_ENV = "LEGACY_PRODUCT_OWNER_USERNAME"
 
 
 def load_source_records():
@@ -81,36 +83,105 @@ def normalize_record(record):
     }
 
 
-def user_lookup_from_json():
+def user_rows_from_json():
     path = PROJECT_ROOT / "backend" / "data" / "users.json"
     try:
         with open(path, "r", encoding="utf-8") as file:
             users = json.load(file)
     except Exception:
-        return {}
+        return []
 
+    if not isinstance(users, list):
+        return []
+
+    return users
+
+
+def user_lookup_from_rows(rows):
     lookup = {}
-    for user in users if isinstance(users, list) else []:
+    for user in rows:
         user_id = valid_positive_int(user.get("id"))
         if user_id is None:
             continue
         for key in ["username", "name", "email", "student_id"]:
             value = normalize_key(user.get(key))
             if value:
-                lookup[value] = user_id
+                lookup[value] = {
+                    "id": user_id,
+                    "username": normalize_text(user.get("username")),
+                    "name": normalize_text(user.get("name")),
+                    "role": normalize_text(user.get("role")) or "student",
+                }
     return lookup
 
 
-def user_lookup_from_mysql(cursor):
-    cursor.execute("SELECT id, name, username, email, student_id FROM users")
-    rows = cursor.fetchall()
-    lookup = {}
-    for row in rows:
-        for key in ["username", "name", "email", "student_id"]:
-            value = normalize_key(row.get(key))
-            if value:
-                lookup[value] = row.get("id")
-    return lookup
+def non_admin_users(rows):
+    return [
+        user for user in rows
+        if normalize_key(user.get("role")) != "admin"
+    ]
+
+
+def available_non_admin_usernames(rows):
+    usernames = []
+    for user in non_admin_users(rows):
+        username = normalize_text(user.get("username"))
+        if username:
+            usernames.append(username)
+    return usernames
+
+
+def configured_fallback_username():
+    return normalize_text(os.getenv(FALLBACK_USERNAME_ENV))
+
+
+def fallback_config_error(message, available):
+    return ValueError(
+        message
+        + "\nSet LEGACY_PRODUCT_OWNER_USERNAME in your local .env before "
+        "migrating legacy products."
+        + "\nAvailable non-admin usernames: "
+        + (", ".join(available) if available else "none")
+    )
+
+
+def fallback_user_from_rows(rows):
+    fallback_username = configured_fallback_username()
+    available = available_non_admin_usernames(rows)
+
+    if not fallback_username:
+        raise fallback_config_error(
+            "LEGACY_PRODUCT_OWNER_USERNAME is required for unmatched legacy "
+            "product sellers.",
+            available,
+        )
+
+    for user in non_admin_users(rows):
+        if normalize_key(user.get("username")) == normalize_key(fallback_username):
+            user_id = valid_positive_int(user.get("id"))
+            if user_id is None:
+                raise fallback_config_error(
+                    "Configured legacy product owner "
+                    f"'{fallback_username}' is invalid because it has no valid id.",
+                    available,
+                )
+            return {
+                "id": user_id,
+                "username": normalize_text(user.get("username")),
+                "name": normalize_text(user.get("name")),
+                "role": normalize_text(user.get("role")) or "student",
+            }
+
+    raise fallback_config_error(
+        "Configured legacy product owner "
+        f"'{fallback_username}' was not found as a non-admin user.",
+        available,
+    )
+
+
+def user_rows_from_mysql(cursor):
+    cursor.execute("SELECT id, name, username, email, student_id, role FROM users")
+    return cursor.fetchall()
 
 
 def category_id(cursor, category):
@@ -125,23 +196,24 @@ def category_id(cursor, category):
     return cursor.lastrowid
 
 
-def insert_product(cursor, product, seller_id):
+def insert_product(cursor, product, seller_id, seller_identifier, legacy_seller_name):
     cat_id = category_id(cursor, product["category"])
 
     if product["id"] is not None:
         cursor.execute(
             """
             INSERT INTO products (
-                id, seller_id, seller_identifier, category_id, title,
-                description, price, image_url, status
+                id, seller_id, seller_identifier, legacy_seller_name,
+                category_id, title, description, price, image_url, status
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE id = id
             """,
             (
                 product["id"],
                 seller_id,
-                product["seller_identifier"],
+                seller_identifier,
+                legacy_seller_name,
                 cat_id,
                 product["title"],
                 product["description"],
@@ -156,12 +228,12 @@ def insert_product(cursor, product, seller_id):
         """
         SELECT id
         FROM products
-        WHERE seller_identifier = %s
+        WHERE seller_id = %s
           AND title = %s
           AND price = %s
         LIMIT 1
         """,
-        (product["seller_identifier"], product["title"], product["price"]),
+        (seller_id, product["title"], product["price"]),
     )
     if cursor.fetchone() is not None:
         return False
@@ -169,14 +241,15 @@ def insert_product(cursor, product, seller_id):
     cursor.execute(
         """
         INSERT INTO products (
-            seller_id, seller_identifier, category_id, title,
-            description, price, image_url, status
+            seller_id, seller_identifier, legacy_seller_name, category_id,
+            title, description, price, image_url, status
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (
             seller_id,
-            product["seller_identifier"],
+            seller_identifier,
+            legacy_seller_name,
             cat_id,
             product["title"],
             product["description"],
@@ -208,17 +281,55 @@ def collect_products():
     return products, summary
 
 
+def resolve_product_owner(product, lookup, fallback_user):
+    matched_user = lookup.get(normalize_key(product["seller_identifier"]))
+    if matched_user:
+        return {
+            "seller_id": matched_user["id"],
+            "seller_identifier": (
+                matched_user.get("username")
+                or matched_user.get("name")
+                or product["seller_identifier"]
+            ),
+            "legacy_seller_name": None,
+            "fallback": False,
+        }
+
+    return {
+        "seller_id": fallback_user["id"],
+            "seller_identifier": (
+                fallback_user.get("username")
+                or fallback_user.get("name")
+                or configured_fallback_username()
+            ),
+        "legacy_seller_name": product["seller_identifier"],
+        "fallback": True,
+    }
+
+
 def migrate(dry_run=False):
     products, summary = collect_products()
-    unmatched_sellers = set()
+    fallback_mappings = {}
+    summary["normal_matches"] = 0
+    summary["fallback_mapped"] = 0
 
     if dry_run:
-        lookup = user_lookup_from_json()
+        users = user_rows_from_json()
+        lookup = user_lookup_from_rows(users)
+        fallback_user = fallback_user_from_rows(users)
+
         for product in products:
-            if normalize_key(product["seller_identifier"]) not in lookup:
-                unmatched_sellers.add(product["seller_identifier"])
+            owner = resolve_product_owner(product, lookup, fallback_user)
+            if owner["fallback"]:
+                summary["fallback_mapped"] += 1
+                fallback_mappings[product["seller_identifier"]] = (
+                    owner["seller_identifier"]
+                )
+            else:
+                summary["normal_matches"] += 1
+
         summary["skipped"] = len(products)
-        return summary, sorted(unmatched_sellers)
+        return summary, fallback_mappings
 
     connection = None
     cursor = None
@@ -227,20 +338,33 @@ def migrate(dry_run=False):
         connection = get_mysql_connection()
         cursor = connection.cursor(dictionary=True)
         connection.start_transaction()
-        lookup = user_lookup_from_mysql(cursor)
+        users = user_rows_from_mysql(cursor)
+        lookup = user_lookup_from_rows(users)
+        fallback_user = fallback_user_from_rows(users)
 
         for product in products:
-            seller_id = lookup.get(normalize_key(product["seller_identifier"]))
-            if seller_id is None:
-                unmatched_sellers.add(product["seller_identifier"])
+            owner = resolve_product_owner(product, lookup, fallback_user)
+            if owner["fallback"]:
+                summary["fallback_mapped"] += 1
+                fallback_mappings[product["seller_identifier"]] = (
+                    owner["seller_identifier"]
+                )
+            else:
+                summary["normal_matches"] += 1
 
-            if insert_product(cursor, product, seller_id):
+            if insert_product(
+                cursor,
+                product,
+                owner["seller_id"],
+                owner["seller_identifier"],
+                owner["legacy_seller_name"],
+            ):
                 summary["inserted"] += 1
             else:
                 summary["skipped"] += 1
 
         connection.commit()
-        return summary, sorted(unmatched_sellers)
+        return summary, fallback_mappings
     except Exception as error:
         if connection is not None:
             connection.rollback()
@@ -254,17 +378,19 @@ def migrate(dry_run=False):
             connection.close()
 
 
-def print_summary(summary, unmatched_sellers, dry_run=False):
+def print_summary(summary, fallback_mappings, dry_run=False):
     mode = "DRY RUN" if dry_run else "MIGRATION"
     print(f"{mode} product migration summary")
     print(f"source record count: {summary['source']}")
+    print(f"normally matched sellers: {summary['normal_matches']}")
+    print(f"fallback-mapped sellers: {summary['fallback_mapped']}")
     print(f"inserted count: {summary['inserted']}")
     print(f"skipped count: {summary['skipped']}")
     print(f"invalid count: {summary['invalid']}")
-    if unmatched_sellers:
-        print("unmatched sellers:")
-        for seller in unmatched_sellers:
-            print(f"- {seller}")
+    if fallback_mappings:
+        print("fallback seller mappings:")
+        for seller, fallback in sorted(fallback_mappings.items()):
+            print(f"- {seller} -> {fallback}")
 
 
 def main():
@@ -275,12 +401,12 @@ def main():
     args = parser.parse_args()
 
     try:
-        summary, unmatched_sellers = migrate(dry_run=args.dry_run)
+        summary, fallback_mappings = migrate(dry_run=args.dry_run)
     except Exception as error:
         print(str(error), file=sys.stderr)
         return 1
 
-    print_summary(summary, unmatched_sellers, dry_run=args.dry_run)
+    print_summary(summary, fallback_mappings, dry_run=args.dry_run)
     return 0
 
 

@@ -23,9 +23,26 @@ MYSQL_PORT=3306
 MYSQL_USER=root
 MYSQL_PASSWORD=
 MYSQL_DATABASE=rp_marketplace
+LEGACY_PRODUCT_OWNER_USERNAME=
 ```
 
 Put your real local MySQL password only in `.env`. Do not commit `.env`.
+
+## Quick Start
+
+1. Create `.env`.
+2. Start MySQL Server.
+3. Run:
+
+```powershell
+python database/init_database.py
+```
+
+4. Start Flask:
+
+```powershell
+python app.py
+```
 
 ## Create The Database And Table
 
@@ -86,7 +103,25 @@ python database\migrations\migrate_products.py --dry-run
 python database\migrations\migrate_products.py
 ```
 
-The product migration reports seller values that cannot be matched to a user. It preserves those seller strings in `seller_identifier` and does not create fake users.
+The product migration reports seller values that cannot be matched to a user. It preserves those original seller strings in `legacy_seller_name` and does not create fake users.
+
+Legacy demo sellers are handled with a controlled fallback. The migration first
+tries to match each product seller against existing users by username, email,
+student ID, or full name. If a seller cannot be matched, the product is assigned
+to the configured non-admin fallback user, and the original seller text is
+stored in `products.legacy_seller_name` for display. The migration stops with a
+clear list of available non-admin usernames if the configured fallback does not
+exist or is an admin. It never creates fake users and never uses an admin
+account as the fallback owner.
+
+Set this in the local `.env` before migrating legacy products:
+
+```env
+LEGACY_PRODUCT_OWNER_USERNAME=jason
+```
+
+Each teammate may select a valid local non-admin account, but the team should
+use the same agreed fallback username when consistent ownership is required.
 
 ## Verify Records
 

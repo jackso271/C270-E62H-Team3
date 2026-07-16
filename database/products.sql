@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS products (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     seller_id BIGINT UNSIGNED NULL,
     seller_identifier VARCHAR(255) NOT NULL,
+    legacy_seller_name VARCHAR(150) NULL,
     category_id SMALLINT UNSIGNED NULL,
     title VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,
@@ -45,7 +46,8 @@ FROM categories;
 SELECT COUNT(*) AS product_count
 FROM products;
 
-SELECT p.id, p.title, p.seller_identifier, c.name AS category, p.status, p.price
+SELECT p.id, p.title, p.seller_identifier, p.legacy_seller_name,
+       c.name AS category, p.status, p.price
 FROM products p
 LEFT JOIN categories c ON c.id = p.category_id
 ORDER BY p.id

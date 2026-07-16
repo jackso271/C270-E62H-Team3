@@ -40,6 +40,15 @@ def seller_name(user):
 
 
 def product_belongs_to_seller(product, user):
+    product_seller_id = product.get("seller_id")
+    user_id = user.get("user_id") or user.get("id")
+
+    if product_seller_id is not None and user_id is not None:
+        try:
+            return int(product_seller_id) == int(user_id)
+        except (TypeError, ValueError):
+            return False
+
     seller = normalize_key(product.get("seller"))
     return seller and seller in seller_identifiers(user)
 
@@ -68,6 +77,13 @@ def product_from_mysql(row):
     if isinstance(price, Decimal):
         price = float(price)
 
+    linked_seller = (
+        normalize_text(row.get("seller_username"))
+        or normalize_text(row.get("seller_name"))
+        or normalize_text(row.get("seller_identifier"))
+    )
+    display_seller = normalize_text(row.get("legacy_seller_name")) or linked_seller
+
     return clean_product({
         "id": row.get("id"),
         "title": row.get("title"),
@@ -75,8 +91,10 @@ def product_from_mysql(row):
         "description": row.get("description"),
         "price": price,
         "image_url": row.get("image_url") or "",
-        "seller": row.get("seller_identifier"),
+        "seller": display_seller,
         "seller_id": row.get("seller_id"),
+        "seller_identifier": row.get("seller_identifier"),
+        "legacy_seller_name": row.get("legacy_seller_name"),
         "status": row.get("status"),
         "category": row.get("category_name") or "Others",
     })
@@ -103,10 +121,13 @@ def load_products():
     if mysql_products_enabled():
         rows = execute_mysql_query(
             """
-            SELECT p.id, p.seller_id, p.seller_identifier, p.title,
-                   p.description, p.price, p.image_url, p.status, c.name AS category_name
+            SELECT p.id, p.seller_id, p.seller_identifier, p.legacy_seller_name,
+                   p.title, p.description, p.price, p.image_url, p.status,
+                   c.name AS category_name, u.name AS seller_name,
+                   u.username AS seller_username
             FROM products p
             LEFT JOIN categories c ON c.id = p.category_id
+            LEFT JOIN users u ON u.id = p.seller_id
             ORDER BY p.id
             """,
             fetch=True,
@@ -128,7 +149,6 @@ def save_products(products):
                     description = %s,
                     price = %s,
                     image_url = %s,
-                    seller_identifier = %s,
                     status = %s,
                     category_id = %s
                 WHERE id = %s
@@ -138,7 +158,6 @@ def save_products(products):
                     normalize_text(product.get("description")),
                     product.get("price", 0),
                     normalize_text(product.get("image_url")),
-                    normalize_text(product.get("seller")),
                     normalize_text(product.get("status")) or "Available",
                     category_id,
                     product.get("id"),
