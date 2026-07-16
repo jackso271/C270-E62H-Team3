@@ -13,7 +13,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from backend.db import MySQLDatabaseError, get_mysql_connection
 
 
-SOURCE_FILE = PROJECT_ROOT / "backend" / "data" / "products.json"
+LEGACY_DATA_DIR = PROJECT_ROOT / "database" / "legacy_seed_data"
+SOURCE_FILE = LEGACY_DATA_DIR / "products.json"
 FALLBACK_USERNAME_ENV = "LEGACY_PRODUCT_OWNER_USERNAME"
 
 
@@ -84,7 +85,7 @@ def normalize_record(record):
 
 
 def user_rows_from_json():
-    path = PROJECT_ROOT / "backend" / "data" / "users.json"
+    path = LEGACY_DATA_DIR / "users.json"
     try:
         with open(path, "r", encoding="utf-8") as file:
             users = json.load(file)
@@ -395,7 +396,7 @@ def print_summary(summary, fallback_mappings, dry_run=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Migrate backend/data/products.json to MySQL."
+        description="Migrate database/legacy_seed_data/products.json to MySQL."
     )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()

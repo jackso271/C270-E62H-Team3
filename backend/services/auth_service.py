@@ -4,11 +4,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import (
     execute_mysql_query,
-    mysql_login_logs_enabled,
-    mysql_users_enabled,
 )
 from backend.services.notification_service import add_notification
-from backend.utils.json_storage import data_file, load_json, save_json
 
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -119,63 +116,49 @@ def mysql_login_attempt_from_row(row):
 
 
 def get_all_users(include_password=False):
-    if mysql_users_enabled():
-        rows = execute_mysql_query(
-            """
-            SELECT id, name, username, email, student_id, school, password_hash,
-                   role, is_blocked, created_at, last_login_at, status_updated_at
-            FROM users
-            ORDER BY id
-            """,
-            fetch=True,
-        )
-        return [
-            mysql_user_from_row(row, include_password=include_password)
-            for row in rows
-        ]
-
-    users = load_json(data_file("users"))
-    for user in users:
-        ensure_user_shape(user)
-        if not include_password:
-            user.pop("password", None)
-    return users
+    rows = execute_mysql_query(
+        """
+        SELECT id, name, username, email, student_id, school, password_hash,
+               role, is_blocked, created_at, last_login_at, status_updated_at
+        FROM users
+        ORDER BY id
+        """,
+        fetch=True,
+    )
+    return [
+        mysql_user_from_row(row, include_password=include_password)
+        for row in rows
+    ]
 
 
 def get_success_logs():
-    if mysql_login_logs_enabled():
-        rows = execute_mysql_query(
-            """
-            SELECT la.login_identifier, la.was_successful, la.failure_reason,
-                   la.attempted_at, u.name, u.username, u.role
-            FROM login_attempts la
-            LEFT JOIN users u ON u.id = la.user_id
-            WHERE la.was_successful = TRUE
-            ORDER BY la.attempted_at DESC, la.id DESC
-            """,
-            fetch=True,
-        )
-        return [mysql_login_attempt_from_row(row) for row in rows]
-
-    return load_json(data_file("success_logs"))
+    rows = execute_mysql_query(
+        """
+        SELECT la.login_identifier, la.was_successful, la.failure_reason,
+               la.attempted_at, u.name, u.username, u.role
+        FROM login_attempts la
+        LEFT JOIN users u ON u.id = la.user_id
+        WHERE la.was_successful = TRUE
+        ORDER BY la.attempted_at DESC, la.id DESC
+        """,
+        fetch=True,
+    )
+    return [mysql_login_attempt_from_row(row) for row in rows]
 
 
 def get_failed_logs():
-    if mysql_login_logs_enabled():
-        rows = execute_mysql_query(
-            """
-            SELECT la.login_identifier, la.was_successful, la.failure_reason,
-                   la.attempted_at, u.name, u.username, u.role
-            FROM login_attempts la
-            LEFT JOIN users u ON u.id = la.user_id
-            WHERE la.was_successful = FALSE
-            ORDER BY la.attempted_at DESC, la.id DESC
-            """,
-            fetch=True,
-        )
-        return [mysql_login_attempt_from_row(row) for row in rows]
-
-    return load_json(data_file("failed_logs"))
+    rows = execute_mysql_query(
+        """
+        SELECT la.login_identifier, la.was_successful, la.failure_reason,
+               la.attempted_at, u.name, u.username, u.role
+        FROM login_attempts la
+        LEFT JOIN users u ON u.id = la.user_id
+        WHERE la.was_successful = FALSE
+        ORDER BY la.attempted_at DESC, la.id DESC
+        """,
+        fetch=True,
+    )
+    return [mysql_login_attempt_from_row(row) for row in rows]
 
 
 def password_matches(saved_password, password):
@@ -225,125 +208,54 @@ def insert_login_attempt(login_identifier, was_successful, reason=None, user_id=
 
 def create_admin():
     """Ensure the default admin account exists for demonstrations and marking."""
-    if mysql_users_enabled():
-        existing = find_mysql_user_by_login_id("admin")
-        if existing:
-            return
-
-        execute_mysql_query(
-            """
-            INSERT INTO users (
-                id, name, username, email, student_id, school, password_hash,
-                role, is_blocked, created_at
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-            ON DUPLICATE KEY UPDATE role = VALUES(role)
-            """,
-            (
-                1,
-                "Admin",
-                "admin",
-                "admin@rp.edu.sg",
-                "admin",
-                "N/A",
-                generate_password_hash("admin123"),
-                "admin",
-                False,
-            ),
-        )
+    existing = find_mysql_user_by_login_id("admin")
+    if existing:
         return
 
-    users = load_json(data_file("users"))
-    admin_exists = False
-
-    for user in users:
-        ensure_user_shape(user)
-        if user.get("username") == "admin":
-            admin_exists = True
-            user["name"] = user.get("name") or "Admin"
-            user["email"] = user.get("email") or "admin@rp.edu.sg"
-            user["student_id"] = user.get("student_id") or "admin"
-            user["role"] = "admin"
-            user["blocked"] = user.get("blocked", False)
-            user["school"] = user.get("school") or "N/A"
-            user["created_at"] = user.get("created_at") or "N/A"
-            user["last_login"] = user.get("last_login") or "N/A"
-
-    if not admin_exists:
-        users.append({
-            "id": 1,
-            "name": "Admin",
-            "username": "admin",
-            "email": "admin@rp.edu.sg",
-            "student_id": "admin",
-            "password": "admin123",
-            "role": "admin",
-            "blocked": False,
-            "school": "N/A",
-            "created_at": "N/A",
-            "last_login": "N/A",
-        })
-
-    save_json(data_file("users"), users)
+    execute_mysql_query(
+        """
+        INSERT INTO users (
+            id, name, username, email, student_id, school, password_hash,
+            role, is_blocked, created_at
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+        ON DUPLICATE KEY UPDATE role = VALUES(role)
+        """,
+        (
+            1,
+            "Admin",
+            "admin",
+            "admin@rp.edu.sg",
+            "admin",
+            "N/A",
+            generate_password_hash("admin123"),
+            "admin",
+            False,
+        ),
+    )
 
 
 def log_success(user):
     login_time = datetime.now().strftime(DATE_FORMAT)
-    use_mysql_logs = mysql_login_logs_enabled()
-    use_mysql_users = mysql_users_enabled()
-
-    if use_mysql_logs:
-        insert_login_attempt(
-            user.get("username") or user.get("email") or str(user.get("id")),
-            True,
-            user_id=user.get("id"),
-        )
-
-    if use_mysql_users:
-        execute_mysql_query(
-            "UPDATE users SET last_login_at = %s WHERE id = %s",
-            (login_time, user.get("id")),
-        )
-        return
-
-    if use_mysql_logs:
-        return
-
-    logs = load_json(data_file("success_logs"))
-    logs.append({
-        "name": user.get("name") or user.get("username") or "Unknown",
-        "username": user.get("username"),
-        "role": user.get("role"),
-        "time": login_time,
-    })
-    save_json(data_file("success_logs"), logs)
-
-    users = load_json(data_file("users"))
-    for saved_user in users:
-        if saved_user.get("id") == user.get("id"):
-            saved_user["last_login"] = login_time
-            break
-    save_json(data_file("users"), users)
+    insert_login_attempt(
+        user.get("username") or user.get("email") or str(user.get("id")),
+        True,
+        user_id=user.get("id"),
+    )
+    execute_mysql_query(
+        "UPDATE users SET last_login_at = %s WHERE id = %s",
+        (login_time, user.get("id")),
+    )
 
 
 def log_failed(username, reason):
-    if mysql_login_logs_enabled():
-        user = find_user_by_login_id(username) if mysql_users_enabled() else None
-        insert_login_attempt(
-            username or "Unknown",
-            False,
-            reason=reason,
-            user_id=user.get("id") if user else None,
-        )
-        return
-
-    logs = load_json(data_file("failed_logs"))
-    logs.append({
-        "username": username,
-        "reason": reason,
-        "time": datetime.now().strftime(DATE_FORMAT),
-    })
-    save_json(data_file("failed_logs"), logs)
+    user = find_user_by_login_id(username)
+    insert_login_attempt(
+        username or "Unknown",
+        False,
+        reason=reason,
+        user_id=user.get("id") if user else None,
+    )
 
 
 def log_password_reset_request(login_id):
@@ -357,28 +269,7 @@ def log_password_reset_request(login_id):
 
 def find_user_by_login_id(login_id):
     """Return a user matching the original login ID rules, or None."""
-    if mysql_users_enabled():
-        return find_mysql_user_by_login_id(login_id)
-
-    users = load_json(data_file("users"))
-    clean_login_id = normalize_text(login_id)
-    lower_login_id = clean_login_id.lower()
-
-    for user in users:
-        username = normalize_text(user.get("username")).lower()
-        email = normalize_email(user.get("email"))
-        student_id = normalize_text(user.get("student_id"))
-        name = normalize_text(user.get("name")).lower()
-
-        if (
-            lower_login_id == username
-            or lower_login_id == email
-            or clean_login_id == student_id
-            or lower_login_id == name
-        ):
-            return user
-
-    return None
+    return find_mysql_user_by_login_id(login_id)
 
 
 def find_matching_user(login_id, password):
@@ -415,75 +306,42 @@ def register_user(form):
 
     new_username = username.lower()
 
-    if mysql_users_enabled():
-        existing = execute_mysql_query(
-            """
-            SELECT id
-            FROM users
-            WHERE LOWER(username) = %s
-               OR LOWER(email) = %s
-               OR student_id = %s
-            LIMIT 1
-            """,
-            (new_username, email, student_id),
-            fetch=True,
+    existing = execute_mysql_query(
+        """
+        SELECT id
+        FROM users
+        WHERE LOWER(username) = %s
+           OR LOWER(email) = %s
+           OR student_id = %s
+        LIMIT 1
+        """,
+        (new_username, email, student_id),
+        fetch=True,
+    )
+    if existing:
+        return False, "Account Already Exists", (
+            "Username, email, or student ID already exists."
         )
-        if existing:
-            return False, "Account Already Exists", (
-                "Username, email, or student ID already exists."
-            )
 
-        execute_mysql_query(
-            """
-            INSERT INTO users (
-                name, username, email, student_id, school, password_hash,
-                role, is_blocked, created_at
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                name,
-                username,
-                email,
-                student_id,
-                school,
-                generate_password_hash(password),
-                "student",
-                False,
-                datetime.now().strftime(DATE_FORMAT),
-            ),
+    execute_mysql_query(
+        """
+        INSERT INTO users (
+            name, username, email, student_id, school, password_hash,
+            role, is_blocked, created_at
         )
-        return True, None, None
-
-    users = load_json(data_file("users"))
-
-    for user in users:
-        saved_username = normalize_text(user.get("username")).lower()
-        saved_email = normalize_email(user.get("email"))
-        saved_student_id = normalize_text(user.get("student_id"))
-
-        if (
-            (saved_username and saved_username == new_username)
-            or (saved_email and saved_email == email)
-            or (saved_student_id and saved_student_id == student_id)
-        ):
-            return False, "Account Already Exists", (
-                "Username, email, or student ID already exists."
-            )
-
-    users.append({
-        "id": len(users) + 1,
-        "name": name,
-        "username": username,
-        "email": email,
-        "student_id": student_id,
-        "school": school,
-        "password": password,
-        "role": "student",
-        "blocked": False,
-        "created_at": datetime.now().strftime(DATE_FORMAT),
-        "last_login": "N/A",
-    })
-    save_json(data_file("users"), users)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            name,
+            username,
+            email,
+            student_id,
+            school,
+            generate_password_hash(password),
+            "student",
+            False,
+            datetime.now().strftime(DATE_FORMAT),
+        ),
+    )
 
     return True, None, None

@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 
-from backend.db import execute_mysql_query, mysql_login_logs_enabled, mysql_users_enabled
+from backend.db import execute_mysql_query
 from backend.services.auth_service import get_all_users, get_failed_logs, get_success_logs
 from backend.services.notification_service import get_notifications
-from backend.utils.json_storage import data_file, load_json, save_json
 
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -125,7 +124,7 @@ def account_summary():
 
 
 def recent_activity(limit=8):
-    """Build a simple recent activity feed from available JSON data."""
+    """Build a simple recent activity feed from MySQL-backed services."""
     activities = []
 
     for user in get_all_users():
@@ -192,92 +191,50 @@ def get_user(user_id):
 
 
 def update_user(user_id, form):
-    if mysql_users_enabled():
-        execute_mysql_query(
-            """
-            UPDATE users
-            SET name = %s, username = %s, student_id = %s, role = %s
-            WHERE id = %s
-            """,
-            (
-                form.get("name"),
-                form.get("username"),
-                form.get("student_id"),
-                form.get("role"),
-                user_id,
-            ),
-        )
-        return
-
-    users = load_json(data_file("users"))
-
-    for user in users:
-        if user.get("id") == user_id:
-            user["name"] = form.get("name")
-            user["username"] = form.get("username")
-            user["student_id"] = form.get("student_id")
-            user["role"] = form.get("role")
-            break
-
-    save_json(data_file("users"), users)
+    execute_mysql_query(
+        """
+        UPDATE users
+        SET name = %s, username = %s, student_id = %s, role = %s
+        WHERE id = %s
+        """,
+        (
+            form.get("name"),
+            form.get("username"),
+            form.get("student_id"),
+            form.get("role"),
+            user_id,
+        ),
+    )
 
 
 def delete_user_by_id(user_id):
-    if mysql_users_enabled():
-        execute_mysql_query("DELETE FROM users WHERE id = %s", (user_id,))
-        return
-
-    users = [
-        user for user in load_json(data_file("users"))
-        if user.get("id") != user_id
-    ]
-    save_json(data_file("users"), users)
+    execute_mysql_query("DELETE FROM users WHERE id = %s", (user_id,))
 
 
 def toggle_user_block(user_id):
-    if mysql_users_enabled():
-        execute_mysql_query(
-            """
-            UPDATE users
-            SET is_blocked = NOT is_blocked,
-                status_updated_at = %s
-            WHERE id = %s
-            """,
-            (datetime.now().strftime(DATE_FORMAT), user_id),
-        )
-        return
-
-    users = load_json(data_file("users"))
-
-    for user in users:
-        if user.get("id") == user_id:
-            user["blocked"] = not user.get("blocked", False)
-            user["status_updated_at"] = datetime.now().strftime(DATE_FORMAT)
-            break
-
-    save_json(data_file("users"), users)
+    execute_mysql_query(
+        """
+        UPDATE users
+        SET is_blocked = NOT is_blocked,
+            status_updated_at = %s
+        WHERE id = %s
+        """,
+        (datetime.now().strftime(DATE_FORMAT), user_id),
+    )
 
 
 def delete_logs(log_type, selected_times):
-    if mysql_login_logs_enabled() and log_type in ["success_logs", "failed_logs"]:
-        if not selected_times:
-            return
-
-        was_successful = log_type == "success_logs"
-        placeholders = ", ".join(["%s"] * len(selected_times))
-        execute_mysql_query(
-            f"""
-            DELETE FROM login_attempts
-            WHERE was_successful = %s
-              AND DATE_FORMAT(attempted_at, '%%Y-%%m-%%d %%H:%%i:%%s')
-                  IN ({placeholders})
-            """,
-            tuple([was_successful] + list(selected_times)),
-        )
+    if log_type not in ["success_logs", "failed_logs"] or not selected_times:
         return
 
-    logs = [
-        log for log in load_json(data_file(log_type))
-        if log.get("time") not in selected_times
-    ]
-    save_json(data_file(log_type), logs)
+    was_successful = log_type == "success_logs"
+    placeholders = ", ".join(["%s"] * len(selected_times))
+    execute_mysql_query(
+        f"""
+        DELETE FROM login_attempts
+        WHERE was_successful = %s
+          AND DATE_FORMAT(attempted_at, '%%Y-%%m-%%d %%H:%%i:%%s')
+              IN ({placeholders})
+        """,
+        tuple([was_successful] + list(selected_times)),
+    )

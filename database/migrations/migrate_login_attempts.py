@@ -13,6 +13,7 @@ from backend.db import MySQLDatabaseError, get_mysql_connection
 
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+LEGACY_DATA_DIR = PROJECT_ROOT / "database" / "legacy_seed_data"
 SOURCE_FILES = [
     ("success_logins.json", True),
     ("successful_logins.json", True),
@@ -141,7 +142,7 @@ def collect_attempts():
     invalid_sources = []
 
     for filename, was_successful in SOURCE_FILES:
-        path = PROJECT_ROOT / "backend" / "data" / filename
+        path = LEGACY_DATA_DIR / filename
         records, error = load_json_file(path)
         if error:
             invalid_sources.append(error)

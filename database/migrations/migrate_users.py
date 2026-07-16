@@ -14,7 +14,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from backend.db import MySQLDatabaseError, get_mysql_connection
 
 
-SOURCE_FILE = PROJECT_ROOT / "backend" / "data" / "users.json"
+LEGACY_DATA_DIR = PROJECT_ROOT / "database" / "legacy_seed_data"
+SOURCE_FILE = LEGACY_DATA_DIR / "users.json"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
@@ -200,7 +201,7 @@ def print_summary(summary, dry_run=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Migrate backend/data/users.json to MySQL."
+        description="Migrate database/legacy_seed_data/users.json to MySQL."
     )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
