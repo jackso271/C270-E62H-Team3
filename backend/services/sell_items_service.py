@@ -4,7 +4,13 @@ from uuid import uuid4
 from flask import current_app
 from werkzeug.utils import secure_filename
 
+from backend.db import mysql_products_enabled
 from backend.utils.json_storage import data_file, load_json, save_json
+from backend.services.seller_dashboard_service import (
+    delete_product as delete_dashboard_product,
+    load_products,
+    save_products as save_dashboard_products,
+)
 
 
 VALID_CATEGORIES = [
@@ -64,6 +70,9 @@ def same_product_id(product, product_id):
 
 
 def get_products():
+    if mysql_products_enabled():
+        return load_products()
+
     products = load_json(data_file("products"))
 
     if not isinstance(products, list):
@@ -73,6 +82,10 @@ def get_products():
 
 
 def save_products(products):
+    if mysql_products_enabled():
+        save_dashboard_products(products)
+        return
+
     save_json(data_file("products"), products)
 
 
@@ -226,6 +239,9 @@ def update_sell_item(product_id, form, files, user):
 
 
 def delete_sell_item(product_id, user):
+    if mysql_products_enabled():
+        return delete_dashboard_product(product_id, user)
+
     products = get_products()
 
     updated_products = [
