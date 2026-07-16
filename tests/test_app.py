@@ -1,12 +1,31 @@
 import json
+from datetime import datetime
 
 import pytest
 
 from backend.app import create_app
+from backend.services import auth_service
+from backend.services import marketplace_service
+from backend.services import notification_service
+from backend.services import report_service
+from backend.services import seller_dashboard_service
+from database.migrations import migrate_messages
+from database.migrations import migrate_purchase_requests
+from database.migrations import migrate_products
+from database.migrations import migrate_wishlists
 
 
 @pytest.fixture()
-def app(tmp_path):
+def app(tmp_path, monkeypatch):
+    monkeypatch.setenv("USE_MYSQL_NOTIFICATIONS", "false")
+    monkeypatch.setenv("USE_MYSQL_REPORTS", "false")
+    monkeypatch.setenv("USE_MYSQL_USERS", "false")
+    monkeypatch.setenv("USE_MYSQL_LOGIN_LOGS", "false")
+    monkeypatch.setenv("USE_MYSQL_PRODUCTS", "false")
+    monkeypatch.setenv("USE_MYSQL_REQUESTS", "false")
+    monkeypatch.setenv("USE_MYSQL_WISHLISTS", "false")
+    monkeypatch.setenv("USE_MYSQL_MESSAGES", "false")
+
     data_dir = tmp_path / "data"
     data_dir.mkdir()
 
@@ -125,7 +144,9 @@ def app(tmp_path):
         ],
         "requests.json": [],
         "notifications.json": [],
+        "reports.json": [],
         "wishlists.json": {},
+        "messages.json": [],
         "success_logins.json": [],
         "failed_logins.json": [],
     }
@@ -166,6 +187,12 @@ def read_requests(app):
 def read_wishlists(app):
     wishlists_path = app.config["DATA_DIR"] + "/wishlists.json"
     with open(wishlists_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def read_messages(app):
+    messages_path = app.config["DATA_DIR"] + "/messages.json"
+    with open(messages_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
@@ -352,6 +379,143 @@ def test_wishlist_add_remove_still_works(client, app):
     assert remove_response.status_code == 302
     assert wishlists["3"] == []
     assert b"Keyboard" not in wishlist_response.data
+
+
+def test_mysql_wishlist_add_remove_does_not_write_json(monkeypatch, app):
+    monkeypatch.setenv("USE_MYSQL_WISHLISTS", "true")
+    calls = []
+    original_wishlists = read_wishlists(app)
+
+    monkeypatch.setattr(
+        marketplace_service,
+        "get_product_by_id",
+        lambda product_id: {"id": product_id, "title": "Keyboard"},
+    )
+    monkeypatch.setattr(
+        marketplace_service,
+        "execute_mysql_query",
+        lambda query, params=None, **kwargs: calls.append((query, params)),
+    )
+
+    user = {"user_id": 3, "username": "student2"}
+
+    with app.app_context():
+        assert marketplace_service.add_to_wishlist(1, user) is True
+        assert marketplace_service.remove_from_wishlist(1, user) is True
+
+    assert "INSERT INTO wishlists" in calls[0][0]
+    assert calls[0][1] == (3, 1)
+    assert "DELETE FROM wishlists" in calls[1][0]
+    assert calls[1][1] == (3, 1)
+    assert read_wishlists(app) == original_wishlists
+
+
+def test_wishlist_migration_reports_missing_products(monkeypatch):
+    monkeypatch.setattr(
+        migrate_wishlists,
+        "load_source_records",
+        lambda: {"3": [1, 99, 1], "999": [1]},
+    )
+    monkeypatch.setattr(
+        migrate_wishlists,
+        "load_json_rows",
+        lambda filename: (
+            [{"id": 3, "username": "student2"}]
+            if filename == "users.json"
+            else [{"id": 1, "title": "Keyboard"}]
+        ),
+    )
+
+    summary, missing_users, missing_products = migrate_wishlists.migrate(
+        dry_run=True
+    )
+
+    assert summary["source"] == 4
+    assert summary["missing_users"] == 1
+    assert summary["missing_products"] == 1
+    assert missing_users == [999]
+    assert missing_products == [99]
+
+
+def test_seller_chat_blocks_non_seller(client):
+    login_user(client, "student2")
+
+    response = client.get("/seller/chat/1/student3")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/seller/chats")
+
+
+def test_mysql_message_send_does_not_write_json(monkeypatch, app):
+    monkeypatch.setenv("USE_MYSQL_MESSAGES", "true")
+    calls = []
+    original_messages = read_messages(app)
+
+    monkeypatch.setattr(
+        marketplace_service,
+        "execute_mysql_query",
+        lambda query, params=None, **kwargs: [],
+    )
+
+    from backend.services import chat_service
+
+    def fake_execute(query, params=None, fetch=False, **kwargs):
+        if fetch:
+            return [{"id": 1}] if "FROM users" in query else []
+        calls.append((query, params))
+        return 1
+
+    monkeypatch.setattr(chat_service, "execute_mysql_query", fake_execute)
+
+    with app.app_context():
+        message = chat_service.send_chat_message(
+            1,
+            {"user_id": 3, "username": "student2"},
+            "student1",
+            "Is this available?",
+        )
+
+    assert message["sender"] == "student2"
+    assert message["receiver"] == "student1"
+    assert "INSERT INTO messages" in calls[0][0]
+    assert calls[0][1][0] == 1
+    assert calls[0][1][1] == 3
+    assert calls[0][1][2] == 1
+    assert read_messages(app) == original_messages
+
+
+def test_message_migration_reports_unresolved_participants(monkeypatch):
+    monkeypatch.setattr(
+        migrate_messages,
+        "load_source_records",
+        lambda: [
+            {
+                "product_id": 1,
+                "sender": "missing_sender",
+                "receiver": "missing_receiver",
+                "text": "Hello",
+                "timestamp": "2026-07-16 10:30:00",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        migrate_messages,
+        "load_json_rows",
+        lambda filename: (
+            [{"id": 1, "title": "Keyboard"}]
+            if filename == "products.json"
+            else [{"id": 2, "username": "student2"}]
+        ),
+    )
+
+    summary, senders, receivers, products = migrate_messages.migrate(dry_run=True)
+
+    assert summary["source"] == 1
+    assert summary["unresolved_senders"] == 1
+    assert summary["unresolved_receivers"] == 1
+    assert senders == ["missing_sender"]
+    assert receivers == ["missing_receiver"]
+    assert products == []
 
 
 def test_duplicate_product_request_is_blocked(client, app):
@@ -650,6 +814,479 @@ def test_forgot_password_logs_reset_request(client, app):
     assert notifications[-1]["status"] == "Info"
 
 
+def test_notifications_can_use_mysql_when_enabled(monkeypatch):
+    calls = []
+
+    def fake_enabled():
+        return True
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        calls.append({
+            "query": " ".join(query.split()),
+            "params": params,
+            "fetch": fetch,
+            "dictionary": dictionary,
+        })
+        if fetch:
+            return [{
+                "id": 7,
+                "title": "MySQL notification",
+                "message": "Stored in MySQL",
+                "status": "Info",
+                "created_at": datetime(2026, 7, 15, 12, 30, 0),
+            }]
+        return 7
+
+    monkeypatch.setattr(
+        notification_service,
+        "mysql_notifications_enabled",
+        fake_enabled,
+    )
+    monkeypatch.setattr(notification_service, "execute_mysql_query", fake_execute)
+
+    notification_service.add_notification("Created", "From test", "Pending")
+    notifications = notification_service.get_notifications()
+
+    assert calls[0]["query"].startswith("INSERT INTO notifications")
+    assert calls[0]["params"] == ("Created", "From test", "Pending")
+    assert calls[1]["query"].startswith("SELECT id, title, message, status")
+    assert calls[1]["fetch"] is True
+    assert notifications == [{
+        "id": 7,
+        "title": "MySQL notification",
+        "message": "Stored in MySQL",
+        "status": "Info",
+        "time": "2026-07-15 12:30:00",
+    }]
+
+
+def test_report_submission_uses_json_fallback(client, app):
+    login_user(client, "student2")
+
+    response = client.post(
+        "/submit_report/1",
+        data={
+            "reason": "Spam",
+            "comments": "Looks suspicious.",
+        },
+    )
+
+    reports_path = app.config["DATA_DIR"] + "/reports.json"
+    with open(reports_path, "r", encoding="utf-8") as file:
+        reports = json.load(file)
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/product/1")
+    assert reports[-1]["product_id"] == 1
+    assert reports[-1]["reported_by"] == "student2"
+    assert reports[-1]["reason"] == "Spam"
+    assert reports[-1]["status"] == "Pending"
+
+
+def test_reports_can_use_mysql_when_enabled(monkeypatch):
+    calls = []
+
+    def fake_enabled():
+        return True
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        calls.append({
+            "query": " ".join(query.split()),
+            "params": params,
+            "fetch": fetch,
+            "dictionary": dictionary,
+        })
+        if fetch:
+            return [{
+                "id": 12,
+                "product_id": 3,
+                "product_title": "Monitor",
+                "seller_identifier": "student1",
+                "reported_by": "student2",
+                "reason": "Spam",
+                "comments": "Looks suspicious.",
+                "status": "Pending",
+                "created_at": datetime(2026, 7, 15, 13, 45, 0),
+            }]
+        return 12
+
+    monkeypatch.setattr(report_service, "mysql_reports_enabled", fake_enabled)
+    monkeypatch.setattr(report_service, "execute_mysql_query", fake_execute)
+
+    created = report_service.submit_report(
+        {"id": 3, "title": "Monitor", "seller": "student1"},
+        {"username": "student2"},
+        "Spam",
+        "Looks suspicious.",
+    )
+    reports = report_service.get_reports()
+
+    assert created is True
+    assert calls[0]["query"].startswith("INSERT INTO reports")
+    assert calls[0]["params"] == (
+        3,
+        "Monitor",
+        "student1",
+        "student2",
+        "Spam",
+        "Looks suspicious.",
+        "Pending",
+    )
+    assert calls[1]["query"].startswith("SELECT id, product_id")
+    assert calls[1]["fetch"] is True
+    assert reports == [{
+        "id": 12,
+        "product_id": 3,
+        "product_title": "Monitor",
+        "seller": "student1",
+        "reported_by": "student2",
+        "reason": "Spam",
+        "comments": "Looks suspicious.",
+        "status": "Pending",
+        "reported_at": "2026-07-15 13:45:00",
+    }]
+
+
+def test_mysql_user_login_verifies_hashed_password(monkeypatch):
+    password_hash = auth_service.generate_password_hash("password123")
+
+    def fake_enabled():
+        return True
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        assert fetch is True
+        return [{
+            "id": 3,
+            "name": "Student Two",
+            "username": "student2",
+            "email": "student2@myrp.edu.sg",
+            "student_id": "S23456",
+            "school": "School of Infocomm",
+            "password_hash": password_hash,
+            "role": "student",
+            "is_blocked": False,
+            "created_at": datetime(2026, 7, 15, 9, 0, 0),
+            "last_login_at": None,
+            "status_updated_at": None,
+        }]
+
+    monkeypatch.setattr(auth_service, "mysql_users_enabled", fake_enabled)
+    monkeypatch.setattr(auth_service, "execute_mysql_query", fake_execute)
+
+    user = auth_service.find_matching_user("student2", "password123")
+
+    assert user["id"] == 3
+    assert user["username"] == "student2"
+    assert "password" not in user
+
+
+def test_mysql_registration_hashes_password(monkeypatch):
+    calls = []
+
+    def fake_enabled():
+        return True
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        calls.append({
+            "query": " ".join(query.split()),
+            "params": params,
+            "fetch": fetch,
+        })
+        if fetch:
+            return []
+        return 9
+
+    monkeypatch.setattr(auth_service, "mysql_users_enabled", fake_enabled)
+    monkeypatch.setattr(auth_service, "execute_mysql_query", fake_execute)
+
+    success, title, message = auth_service.register_user({
+        "name": "New Student",
+        "username": "newstudent",
+        "email": "newstudent@myrp.edu.sg",
+        "student_id": "S99999",
+        "school": "School of Infocomm",
+        "password": "password123",
+    })
+
+    assert success is True
+    assert title is None
+    assert message is None
+    assert calls[0]["query"].startswith("SELECT id FROM users")
+    assert calls[1]["query"].startswith("INSERT INTO users")
+    inserted_password = calls[1]["params"][5]
+    assert inserted_password != "password123"
+    assert auth_service.check_password_hash(inserted_password, "password123")
+
+
+def test_mysql_login_logs_write_attempts(monkeypatch):
+    calls = []
+
+    def fake_logs_enabled():
+        return True
+
+    def fake_users_enabled():
+        return False
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        calls.append({
+            "query": " ".join(query.split()),
+            "params": params,
+            "fetch": fetch,
+        })
+        return []
+
+    monkeypatch.setattr(auth_service, "mysql_login_logs_enabled", fake_logs_enabled)
+    monkeypatch.setattr(auth_service, "mysql_users_enabled", fake_users_enabled)
+    monkeypatch.setattr(auth_service, "execute_mysql_query", fake_execute)
+
+    auth_service.log_success({"id": 3, "username": "student2"})
+    auth_service.log_failed("missing-user", "Account not found")
+
+    assert calls[0]["query"].startswith("INSERT INTO login_attempts")
+    assert calls[0]["params"] == (3, "student2", True, None)
+    assert calls[-1]["query"].startswith("INSERT INTO login_attempts")
+    assert calls[-1]["params"] == (None, "missing-user", False, "Account not found")
+
+
+def test_products_can_load_from_mysql(monkeypatch):
+    def fake_enabled():
+        return True
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        assert fetch is True
+        return [{
+            "id": 1,
+            "seller_id": 3,
+            "seller_identifier": "student1",
+            "legacy_seller_name": "Jane Smith",
+            "seller_name": "Student One",
+            "seller_username": "student1",
+            "title": "Keyboard",
+            "description": "Compact keyboard",
+            "price": 25,
+            "image_url": "",
+            "status": "Available",
+            "category_name": "Electronics",
+        }]
+
+    monkeypatch.setattr(
+        seller_dashboard_service,
+        "mysql_products_enabled",
+        fake_enabled,
+    )
+    monkeypatch.setattr(seller_dashboard_service, "execute_mysql_query", fake_execute)
+
+    products = seller_dashboard_service.load_products()
+
+    assert products == [{
+        "id": 1,
+        "seller_id": 3,
+        "seller": "Jane Smith",
+        "seller_identifier": "student1",
+        "legacy_seller_name": "Jane Smith",
+        "title": "Keyboard",
+        "name": "Keyboard",
+        "description": "Compact keyboard",
+        "price": 25,
+        "image_url": "",
+        "status": "Available",
+        "category": "Electronics",
+    }]
+
+
+def test_product_creation_uses_mysql(monkeypatch):
+    calls = []
+
+    def fake_enabled():
+        return True
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        calls.append({
+            "query": " ".join(query.split()),
+            "params": params,
+            "fetch": fetch,
+        })
+        if fetch:
+            return [{"id": 4}]
+        return 4
+
+    monkeypatch.setattr(
+        seller_dashboard_service,
+        "mysql_products_enabled",
+        fake_enabled,
+    )
+    monkeypatch.setattr(seller_dashboard_service, "execute_mysql_query", fake_execute)
+
+    success, message = seller_dashboard_service.add_product(
+        {
+            "title": "Notebook",
+            "description": "Unused lined notebook",
+            "price": "4.50",
+            "category": "Books",
+        },
+        {"user_id": 3, "username": "student1"},
+    )
+
+    assert success is True
+    assert message is None
+    assert calls[0]["query"].startswith("SELECT p.id")
+    assert calls[1]["query"].startswith("INSERT INTO categories")
+    assert calls[2]["query"].startswith("SELECT id FROM categories")
+    assert calls[3]["query"].startswith("INSERT INTO products")
+    assert calls[3]["params"] == (
+        3,
+        "student1",
+        4,
+        "Notebook",
+        "Unused lined notebook",
+        4.5,
+        "Available",
+    )
+
+
+def test_mysql_product_ownership_uses_seller_id_not_legacy_display():
+    product = {
+        "id": 1,
+        "seller_id": 3,
+        "seller": "Jane Smith",
+        "legacy_seller_name": "Jane Smith",
+    }
+
+    assert seller_dashboard_service.product_belongs_to_seller(
+        product,
+        {"user_id": 3, "username": "student1"},
+    )
+    assert not seller_dashboard_service.product_belongs_to_seller(
+        product,
+        {"user_id": 9, "username": "Jane Smith"},
+    )
+
+
+def test_product_migration_maps_legacy_sellers_to_configured_fallback(monkeypatch):
+    monkeypatch.setenv("LEGACY_PRODUCT_OWNER_USERNAME", "DEMO")
+    monkeypatch.setattr(
+        migrate_products,
+        "load_source_records",
+        lambda: [
+            {
+                "id": 1,
+                "title": "Matched Book",
+                "description": "Matched seller",
+                "price": 5,
+                "seller": "student1",
+                "category": "Books",
+                "status": "Available",
+            },
+            {
+                "id": 2,
+                "title": "Legacy Laptop",
+                "description": "Legacy seller",
+                "price": 50,
+                "seller": "Jane Smith",
+                "category": "Electronics",
+                "status": "Available",
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        migrate_products,
+        "user_rows_from_json",
+        lambda: [
+            {
+                "id": 1,
+                "username": "admin",
+                "name": "Admin",
+                "email": "admin@rp.edu.sg",
+                "student_id": "admin",
+                "role": "admin",
+            },
+            {
+                "id": 2,
+                "username": "demo",
+                "name": "Demo User",
+                "email": "demo@myrp.edu.sg",
+                "student_id": "S22222",
+                "role": "student",
+            },
+            {
+                "id": 3,
+                "username": "student1",
+                "name": "Student One",
+                "email": "student1@myrp.edu.sg",
+                "student_id": "S11111",
+                "role": "student",
+            },
+        ],
+    )
+
+    summary, mappings = migrate_products.migrate(dry_run=True)
+
+    assert summary["source"] == 2
+    assert summary["normal_matches"] == 1
+    assert summary["fallback_mapped"] == 1
+    assert summary["invalid"] == 0
+    assert mappings == {"Jane Smith": "demo"}
+
+
+def test_product_migration_stops_when_fallback_config_missing(monkeypatch):
+    monkeypatch.delenv("LEGACY_PRODUCT_OWNER_USERNAME", raising=False)
+    monkeypatch.setattr(migrate_products, "load_source_records", lambda: [])
+    monkeypatch.setattr(
+        migrate_products,
+        "user_rows_from_json",
+        lambda: [
+            {
+                "id": 2,
+                "username": "jason",
+                "name": "Jason Tan",
+                "email": "25044459@myrp.edu.sg",
+                "student_id": "25044459",
+                "role": "student",
+            }
+        ],
+    )
+
+    with pytest.raises(ValueError) as error:
+        migrate_products.migrate(dry_run=True)
+
+    assert "LEGACY_PRODUCT_OWNER_USERNAME is required" in str(error.value)
+    assert "jason" in str(error.value)
+
+
+def test_product_migration_rejects_admin_fallback(monkeypatch):
+    monkeypatch.setenv("LEGACY_PRODUCT_OWNER_USERNAME", "admin")
+    monkeypatch.setattr(migrate_products, "load_source_records", lambda: [])
+    monkeypatch.setattr(
+        migrate_products,
+        "user_rows_from_json",
+        lambda: [
+            {
+                "id": 1,
+                "username": "admin",
+                "name": "Admin",
+                "email": "admin@rp.edu.sg",
+                "student_id": "admin",
+                "role": "admin",
+            },
+            {
+                "id": 2,
+                "username": "jason",
+                "name": "Jason Tan",
+                "email": "25044459@myrp.edu.sg",
+                "student_id": "25044459",
+                "role": "student",
+            },
+        ],
+    )
+
+    with pytest.raises(ValueError) as error:
+        migrate_products.migrate(dry_run=True)
+
+    assert "admin" in str(error.value)
+    assert "non-admin user" in str(error.value)
+    assert "jason" in str(error.value)
+
+
 def test_product_request_filter_empty_state(client):
     login_student(client)
 
@@ -678,3 +1315,110 @@ def test_product_request_route_still_creates_request(client, app):
     assert requests[-1]["status"] == "Pending"
     assert requests[-1]["buyer"] == "student2"
     assert notifications[-1]["status"] == "Pending"
+
+
+def test_mysql_request_row_keeps_template_shape():
+    row = {
+        "id": 7,
+        "product_id": 3,
+        "product_title": "Monitor",
+        "buyer_id": 4,
+        "buyer_identifier": "legacy_buyer",
+        "buyer_username": "student4",
+        "buyer_name": "Student Four",
+        "seller_id": 9,
+        "seller_identifier": "seller9",
+        "legacy_seller_name": None,
+        "seller_username": "seller_user",
+        "seller_name": "Seller User",
+        "status": "Pending",
+        "rejection_reason": None,
+        "requested_at": datetime(2026, 7, 16, 10, 30, 0),
+        "reviewed_at": None,
+    }
+
+    request_item = marketplace_service.request_from_mysql(row)
+
+    assert request_item["id"] == 7
+    assert request_item["product_title"] == "Monitor"
+    assert request_item["buyer"] == "student4"
+    assert request_item["buyer_id"] == 4
+    assert request_item["seller"] == "seller_user"
+    assert request_item["seller_id"] == 9
+    assert request_item["time"] == "2026-07-16 10:30:00"
+
+
+def test_mysql_request_submission_does_not_write_requests_json(monkeypatch, app):
+    monkeypatch.setenv("USE_MYSQL_REQUESTS", "true")
+    inserted = []
+    notifications = []
+    original_requests = read_requests(app)
+
+    monkeypatch.setattr(marketplace_service, "get_requests", lambda: [])
+    monkeypatch.setattr(
+        marketplace_service,
+        "execute_mysql_query",
+        lambda query, params=None, **kwargs: inserted.append((query, params)),
+    )
+    monkeypatch.setattr(
+        marketplace_service,
+        "add_notification",
+        lambda title, message, status="Info": notifications.append(
+            {"title": title, "message": message, "status": status}
+        ),
+    )
+
+    with app.app_context():
+        success, message = marketplace_service.request_buy(
+            1,
+            {
+                "user_id": 3,
+                "username": "student2",
+                "name": "Student Two",
+                "email": "student2@myrp.edu.sg",
+                "student_id": "S23456",
+            },
+        )
+
+    assert success is True
+    assert message is None
+    assert "INSERT INTO purchase_requests" in inserted[0][0]
+    assert inserted[0][1][0] == 1
+    assert inserted[0][1][1] == 3
+    assert inserted[0][1][2] == "student2"
+    assert notifications[-1]["status"] == "Pending"
+    assert read_requests(app) == original_requests
+
+
+def test_purchase_request_migration_reports_unresolved_buyer(monkeypatch):
+    monkeypatch.setattr(
+        migrate_purchase_requests,
+        "load_source_records",
+        lambda: [
+            {
+                "id": 1,
+                "product_id": 1,
+                "buyer": "missing_buyer",
+                "status": "Pending",
+                "time": "2026-07-16 10:30:00",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        migrate_purchase_requests,
+        "load_json_rows",
+        lambda filename: (
+            [{"id": 1, "title": "Keyboard"}]
+            if filename == "products.json"
+            else [{"id": 2, "username": "student2"}]
+        ),
+    )
+
+    summary, unresolved_buyers, missing_products = (
+        migrate_purchase_requests.migrate(dry_run=True)
+    )
+
+    assert summary["source"] == 1
+    assert summary["unresolved_buyers"] == 1
+    assert unresolved_buyers == ["missing_buyer"]
+    assert missing_products == []

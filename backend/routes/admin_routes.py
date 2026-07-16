@@ -5,13 +5,15 @@ from backend.services.admin_service import (
     delete_logs,
     delete_user_by_id,
     get_user,
+    get_all_users,
+    get_failed_logs,
+    get_success_logs,
     list_users,
     recent_activity,
     toggle_user_block,
     update_user,
 )
 from backend.utils.date_filters import filter_logs_by_date
-from backend.utils.json_storage import data_file, load_json
 
 
 admin_bp = Blueprint("admin", __name__)
@@ -29,9 +31,9 @@ def admin_dashboard():
 
     return render_template(
         "admin/dashboard.html",
-        users=load_json(data_file("users")),
-        success_logs=load_json(data_file("success_logs")),
-        failed_logs=load_json(data_file("failed_logs")),
+        users=get_all_users(),
+        success_logs=get_success_logs(),
+        failed_logs=get_failed_logs(),
         recent_activities=recent_activity(),
     )
 
@@ -72,7 +74,7 @@ def admin_success_logs():
     day = request.args.get("day")
     month = request.args.get("month")
     year = request.args.get("year")
-    success_logs = load_json(data_file("success_logs"))
+    success_logs = get_success_logs()
 
     if day or month or year:
         success_logs = filter_logs_by_date(success_logs, day, month, year)
@@ -94,7 +96,7 @@ def admin_failed_logs():
     day = request.args.get("day")
     month = request.args.get("month")
     year = request.args.get("year")
-    failed_logs = load_json(data_file("failed_logs"))
+    failed_logs = get_failed_logs()
 
     if day or month or year:
         failed_logs = filter_logs_by_date(failed_logs, day, month, year)

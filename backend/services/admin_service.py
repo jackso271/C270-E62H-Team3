@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta
 
+from backend.db import execute_mysql_query, mysql_login_logs_enabled, mysql_users_enabled
+from backend.services.auth_service import get_all_users, get_failed_logs, get_success_logs
+from backend.services.notification_service import get_notifications
 from backend.utils.json_storage import data_file, load_json, save_json
 
 
@@ -16,7 +19,7 @@ def parse_time(value):
 def latest_login_by_user():
     latest_logins = {}
 
-    for log in load_json(data_file("success_logs")):
+    for log in get_success_logs():
         username = log.get("username")
         log_time = parse_time(log.get("time", ""))
 
@@ -53,7 +56,7 @@ def account_is_inactive(user, latest_logins=None):
 
 def list_users(search="", page=1, per_page=10, status_filter="", role_filter=""):
     """Search and paginate users for the admin user table."""
-    users = load_json(data_file("users"))
+    users = get_all_users()
     search = search.lower()
     latest_logins = latest_login_by_user()
 
@@ -93,7 +96,7 @@ def list_users(search="", page=1, per_page=10, status_filter="", role_filter="")
 
 
 def account_summary():
-    users = load_json(data_file("users"))
+    users = get_all_users()
     latest_logins = latest_login_by_user()
     seven_days_ago = datetime.now() - timedelta(days=7)
 
@@ -125,7 +128,7 @@ def recent_activity(limit=8):
     """Build a simple recent activity feed from available JSON data."""
     activities = []
 
-    for user in load_json(data_file("users")):
+    for user in get_all_users():
         created_at = parse_time(user.get("created_at", ""))
         if created_at:
             activities.append({
@@ -143,7 +146,7 @@ def recent_activity(limit=8):
                 "detail": user.get("username") or user.get("email") or "Unknown user",
             })
 
-    for log in load_json(data_file("failed_logs")):
+    for log in get_failed_logs():
         log_time = parse_time(log.get("time", ""))
         if log_time:
             activities.append({
@@ -152,7 +155,9 @@ def recent_activity(limit=8):
                 "detail": log.get("username") or "Unknown login ID",
             })
 
-    for request_item in load_json(data_file("requests")):
+    from backend.services.marketplace_service import get_requests
+
+    for request_item in get_requests():
         request_time = parse_time(request_item.get("time", ""))
         if request_time:
             status = request_item.get("status", "Submitted")
@@ -162,7 +167,7 @@ def recent_activity(limit=8):
                 "detail": request_item.get("product_title") or "Marketplace item",
             })
 
-    for notification in load_json(data_file("notifications")):
+    for notification in get_notifications():
         notification_time = parse_time(notification.get("time", ""))
         if notification_time:
             activities.append({
@@ -180,13 +185,30 @@ def recent_activity(limit=8):
 
 
 def get_user(user_id):
-    for user in load_json(data_file("users")):
+    for user in get_all_users():
         if user.get("id") == user_id:
             return user
     return None
 
 
 def update_user(user_id, form):
+    if mysql_users_enabled():
+        execute_mysql_query(
+            """
+            UPDATE users
+            SET name = %s, username = %s, student_id = %s, role = %s
+            WHERE id = %s
+            """,
+            (
+                form.get("name"),
+                form.get("username"),
+                form.get("student_id"),
+                form.get("role"),
+                user_id,
+            ),
+        )
+        return
+
     users = load_json(data_file("users"))
 
     for user in users:
@@ -201,6 +223,10 @@ def update_user(user_id, form):
 
 
 def delete_user_by_id(user_id):
+    if mysql_users_enabled():
+        execute_mysql_query("DELETE FROM users WHERE id = %s", (user_id,))
+        return
+
     users = [
         user for user in load_json(data_file("users"))
         if user.get("id") != user_id
@@ -209,6 +235,18 @@ def delete_user_by_id(user_id):
 
 
 def toggle_user_block(user_id):
+    if mysql_users_enabled():
+        execute_mysql_query(
+            """
+            UPDATE users
+            SET is_blocked = NOT is_blocked,
+                status_updated_at = %s
+            WHERE id = %s
+            """,
+            (datetime.now().strftime(DATE_FORMAT), user_id),
+        )
+        return
+
     users = load_json(data_file("users"))
 
     for user in users:
@@ -221,6 +259,23 @@ def toggle_user_block(user_id):
 
 
 def delete_logs(log_type, selected_times):
+    if mysql_login_logs_enabled() and log_type in ["success_logs", "failed_logs"]:
+        if not selected_times:
+            return
+
+        was_successful = log_type == "success_logs"
+        placeholders = ", ".join(["%s"] * len(selected_times))
+        execute_mysql_query(
+            f"""
+            DELETE FROM login_attempts
+            WHERE was_successful = %s
+              AND DATE_FORMAT(attempted_at, '%%Y-%%m-%%d %%H:%%i:%%s')
+                  IN ({placeholders})
+            """,
+            tuple([was_successful] + list(selected_times)),
+        )
+        return
+
     logs = [
         log for log in load_json(data_file(log_type))
         if log.get("time") not in selected_times
