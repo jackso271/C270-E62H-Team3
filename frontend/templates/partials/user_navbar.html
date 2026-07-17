@@ -1,0 +1,36 @@
+<header class="app-navbar" data-user-navbar>
+    <a href="/homepage" class="app-brand" aria-label="RP Marketplace home">
+        <span class="brand-dot"></span>
+        <span>
+            <strong>RP Marketplace</strong>
+            <small>Buy and request items from other RP students</small>
+        </span>
+    </a>
+
+    <input class="app-nav-toggle" type="checkbox" id="app-nav-toggle" aria-label="Toggle navigation menu">
+    <label class="app-nav-toggle-button" for="app-nav-toggle" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+    </label>
+
+    <nav class="app-nav-links" aria-label="Primary navigation">
+        <a href="/homepage" class="{% if active_page == 'home' %}active{% endif %}">Home</a>
+        <a href="/marketplace" class="{% if active_page == 'marketplace' %}active{% endif %}">Marketplace</a>
+        <a href="/wishlist" class="{% if active_page == 'wishlist' %}active{% endif %}">Wishlist</a>
+        <a href="/sell-items" class="{% if active_page == 'sell_items' %}active{% endif %}">Sell Items</a>
+        <a href="/seller/dashboard" class="{% if active_page == 'seller_dashboard' %}active{% endif %}">Seller Dashboard</a>
+        <a href="/seller_requests" class="{% if active_page == 'requests' %}active{% endif %}">Requests</a>
+        <a href="/notifications" class="{% if active_page == 'notifications' %}active{% endif %}">Notifications</a>
+
+        <details class="user-menu">
+            <summary>
+                <span class="account-label">Account</span>
+                <strong>{{ session.get("name") or session.get("username") or name or "User" }}</strong>
+            </summary>
+            <a href="/seller/chats" class="{% if active_page == 'seller_chats' %}active{% endif %}">Seller Chats</a>
+            <a href="/notifications" class="{% if active_page == 'notifications' %}active{% endif %}">Notifications</a>
+            <a href="/logout">Logout</a>
+        </details>
+    </nav>
+</header>

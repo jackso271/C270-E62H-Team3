@@ -9,29 +9,8 @@
 </head>
 
 <body class="request-page">
-    <header class="app-navbar">
-        <a href="/homepage" class="app-brand">
-            <span class="brand-dot"></span>
-            <span>
-                <strong>RP Marketplace</strong>
-                <small>Buy and request items from other RP students</small>
-            </span>
-        </a>
-
-        <nav class="app-nav-links">
-            <a href="/homepage">Home</a>
-            <a href="/marketplace">Marketplace</a>
-            <a href="/wishlist">Wishlist</a>
-            <a href="/sell-items">Sell Items</a>
-            <a href="/seller/dashboard">Seller Dashboard</a>
-            <a href="/seller_requests" class="active">Requests</a>
-            <details class="user-menu">
-                <summary>Account</summary>
-                <a href="/notifications">Notifications</a>
-                <a href="/logout">Logout</a>
-            </details>
-        </nav>
-    </header>
+    {% set active_page = "requests" %}
+    {% include "partials/user_navbar.html" %}
 
     <main class="request-container">
         <div class="request-header">
