@@ -4,6 +4,7 @@ import pyotp
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import (
+    MySQLDatabaseError,
     execute_mysql_query,
 )
 from backend.services.notification_service import add_notification
@@ -74,6 +75,7 @@ def format_datetime(value):
 
 
 def mysql_user_from_row(row, include_password=False):
+    two_factor_secret = row.get("two_factor_secret")
     user = {
         "id": row.get("id"),
         "name": row.get("name") or "N/A",
@@ -83,8 +85,8 @@ def mysql_user_from_row(row, include_password=False):
         "school": row.get("school") or "N/A",
         "role": row.get("role") or "student",
         "blocked": bool(row.get("is_blocked")),
-        "two_factor_enabled": bool(row.get("two_factor_enabled")),
-        "two_factor_secret": row.get("two_factor_secret"),
+        "two_factor_enabled": bool(row.get("two_factor_enabled")) or bool(two_factor_secret),
+        "two_factor_secret": two_factor_secret,
         "created_at": format_datetime(row.get("created_at")),
         "last_login": format_datetime(row.get("last_login_at")),
         "status_updated_at": format_datetime(row.get("status_updated_at")),
@@ -93,6 +95,53 @@ def mysql_user_from_row(row, include_password=False):
     if include_password:
         user["password"] = row.get("password_hash") or ""
 
+    return user
+
+
+def is_unknown_2fa_column_error(error):
+    current = error
+
+    while current is not None:
+        message = str(current)
+        if "Unknown column" in message and "two_factor" in message:
+            return True
+        current = current.__cause__ or current.__context__
+
+    return False
+
+
+def load_user_2fa_fields(user):
+    if not user or not user.get("id"):
+        return user
+
+    try:
+        rows = execute_mysql_query(
+            """
+            SELECT two_factor_enabled, two_factor_secret
+            FROM users
+            WHERE id = %s
+            LIMIT 1
+            """,
+            (user.get("id"),),
+            fetch=True,
+        )
+    except MySQLDatabaseError as error:
+        if is_unknown_2fa_column_error(error):
+            user["two_factor_enabled"] = False
+            user["two_factor_secret"] = None
+            return user
+        raise
+
+    if not rows:
+        user["two_factor_enabled"] = False
+        user["two_factor_secret"] = None
+        return user
+
+    two_factor_secret = rows[0].get("two_factor_secret")
+    user["two_factor_enabled"] = (
+        bool(rows[0].get("two_factor_enabled")) or bool(two_factor_secret)
+    )
+    user["two_factor_secret"] = two_factor_secret
     return user
 
 
@@ -122,15 +171,14 @@ def get_all_users(include_password=False):
     rows = execute_mysql_query(
         """
         SELECT id, name, username, email, student_id, school, password_hash,
-               role, is_blocked, two_factor_enabled, two_factor_secret,
-                 created_at, last_login_at, status_updated_at
+               role, is_blocked, created_at, last_login_at, status_updated_at
         FROM users
         ORDER BY id
         """,
         fetch=True,
     )
     return [
-        mysql_user_from_row(row, include_password=include_password)
+        load_user_2fa_fields(mysql_user_from_row(row, include_password=include_password))
         for row in rows
     ]
 
@@ -195,7 +243,7 @@ def find_mysql_user_by_login_id(login_id):
     if not rows:
         return None
 
-    return mysql_user_from_row(rows[0], include_password=True)
+    return load_user_2fa_fields(mysql_user_from_row(rows[0], include_password=True))
 
 
 def insert_login_attempt(login_identifier, was_successful, reason=None, user_id=None):
@@ -293,8 +341,7 @@ def find_user_by_id(user_id):
     rows = execute_mysql_query(
         """
         SELECT id, name, username, email, student_id, school, password_hash,
-               role, is_blocked, two_factor_enabled, two_factor_secret,
-               created_at, last_login_at, status_updated_at
+               role, is_blocked, created_at, last_login_at, status_updated_at
         FROM users
         WHERE id = %s
         LIMIT 1
@@ -306,7 +353,7 @@ def find_user_by_id(user_id):
     if not rows:
         return None
 
-    return mysql_user_from_row(rows[0], include_password=True)
+    return load_user_2fa_fields(mysql_user_from_row(rows[0], include_password=True))
 
 
 def generate_2fa_secret():
@@ -324,15 +371,23 @@ def verify_2fa_code(secret, code):
 
 
 def save_user_2fa_secret(user_id, secret):
-    execute_mysql_query(
-        """
-        UPDATE users
-        SET two_factor_enabled = TRUE,
-            two_factor_secret = %s
-        WHERE id = %s
-        """,
-        (secret, user_id),
-    )
+    try:
+        execute_mysql_query(
+            """
+            UPDATE users
+            SET two_factor_enabled = TRUE,
+                two_factor_secret = %s
+            WHERE id = %s
+            """,
+            (secret, user_id),
+        )
+    except MySQLDatabaseError as error:
+        if is_unknown_2fa_column_error(error):
+            raise MySQLDatabaseError(
+                "Two-factor authentication database columns are missing."
+            ) from error
+        raise
+
     return True
 
 

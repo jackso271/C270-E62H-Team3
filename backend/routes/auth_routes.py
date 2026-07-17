@@ -3,8 +3,9 @@ from io import BytesIO
 
 import pyotp
 import qrcode
-from flask import Blueprint, redirect, render_template, request, session
+from flask import Blueprint, current_app, redirect, render_template, request, session
 
+from backend.db import MySQLDatabaseError
 from backend.services.auth_service import (
     find_user_by_id,
     find_user_by_login_id,
@@ -137,13 +138,26 @@ def login():
 
 @auth_bp.route("/setup-2fa", methods=["GET", "POST"])
 def setup_2fa():
-    user = get_pending_2fa_user()
+    try:
+        user = get_pending_2fa_user()
+    except MySQLDatabaseError as error:
+        current_app.logger.warning(
+            "2FA setup user lookup failed: %s",
+            type(error).__name__,
+        )
+        return redirect(
+            "/error?title=2FA Setup Unavailable"
+            "&message=Two-factor authentication setup is temporarily unavailable."
+            "&back_url=/"
+        )
 
     if not user:
         return redirect("/")
 
     if user_has_2fa_enabled(user):
         return redirect("/verify-2fa")
+
+    setup_error = session.pop("setup_2fa_error", None)
 
     if "pending_2fa_secret" not in session:
         session["pending_2fa_secret"] = generate_2fa_secret()
@@ -155,8 +169,19 @@ def setup_2fa():
         code = request.form.get("code", "").strip()
 
         if verify_2fa_code(secret, code):
-            save_user_2fa_secret(user.get("id"), secret)
-            updated_user = find_user_by_id(user.get("id"))
+            try:
+                save_user_2fa_secret(user.get("id"), secret)
+                updated_user = find_user_by_id(user.get("id"))
+            except MySQLDatabaseError as error:
+                current_app.logger.warning(
+                    "2FA setup save failed: %s",
+                    type(error).__name__,
+                )
+                session.pop("pending_2fa_secret", None)
+                session["setup_2fa_error"] = (
+                    "Two-factor authentication setup is temporarily unavailable."
+                )
+                return redirect("/setup-2fa")
             return complete_login(updated_user)
 
         return render_template(
@@ -170,13 +195,24 @@ def setup_2fa():
         "user/setup_2fa.html",
         secret=secret,
         qr_code=qr_code,
-        error=None,
+        error=setup_error,
     )
 
 
 @auth_bp.route("/verify-2fa", methods=["GET", "POST"])
 def verify_2fa():
-    user = get_pending_2fa_user()
+    try:
+        user = get_pending_2fa_user()
+    except MySQLDatabaseError as error:
+        current_app.logger.warning(
+            "2FA verification user lookup failed: %s",
+            type(error).__name__,
+        )
+        return redirect(
+            "/error?title=2FA Verification Unavailable"
+            "&message=Two-factor authentication verification is temporarily unavailable."
+            "&back_url=/"
+        )
 
     if not user:
         return redirect("/")

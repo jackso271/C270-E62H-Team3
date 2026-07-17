@@ -15,6 +15,7 @@ from database.migrations import (
     migrate_products,
     migrate_purchase_requests,
     migrate_reports,
+    migrate_2fa_columns,
     migrate_users,
     migrate_wishlists,
 )
@@ -110,6 +111,7 @@ MIGRATIONS = [
     ("Notifications", migrate_notifications.migrate),
     ("Reports", migrate_reports.migrate),
     ("Users", migrate_users.migrate),
+    ("2FA Columns", migrate_2fa_columns.migrate),
     ("Login Attempts", migrate_login_attempts.migrate),
     ("Products", migrate_products.migrate),
     ("Purchase Requests", migrate_purchase_requests.migrate),
