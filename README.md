@@ -232,9 +232,53 @@ Warning: `docker compose down -v` deletes compose-managed volumes. This reposito
 docker compose -f docker/docker-compose.yml down
 ```
 
+### Docker-Based Ansible Runner For Windows Teammates
+
+Windows teammates do not need to install Ansible directly on Windows. Use Docker Desktop to run the project playbook inside the repository's Ansible runner container.
+
+Requirements:
+
+- Docker Desktop running
+- Git
+- A local `.env` created from `.env.example`
+- MySQL reachable from Docker, usually with `MYSQL_HOST=host.docker.internal`
+- No native Windows Ansible installation
+
+Create your local environment file and fill in your own MySQL values:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Validate Ansible without deploying:
+
+```powershell
+docker compose --profile tools run --rm ansible-runner `
+  ansible-playbook `
+  -i ansible/hosts `
+  ansible/deploy_staging_playbook.yaml `
+  --syntax-check
+```
+
+Run the staging deployment through Docker:
+
+```powershell
+.\scripts\run-ansible.ps1
+```
+
+The `ansible-runner` service mounts `/var/run/docker.sock` so Ansible can ask Docker Desktop to build and replace only the staging application container. Treat Docker socket access as privileged host access, and run this only from the trusted project repository.
+
+Do not run destructive Docker cleanup commands for this project:
+
+```text
+docker compose down -v
+docker volume prune
+docker system prune
+```
+
 ## Jenkins Implementation
 
-Jenkins has two configured jobs: one for staging and one for production. Both pipeline files use `agent any`, check out the configured branch with `checkout scm`, and then execute Ansible inside the existing `jenkins_server` container.
+Jenkins has two configured jobs: one for staging and one for production. Both pipeline files use `agent any` and check out the configured branch with `checkout scm`. The staging pipeline injects `.env` from the Jenkins Secret File credential `rpmarketplace-staging-env`, validates Ansible, and runs Ansible directly in the Jenkins shell. The production pipeline still executes Ansible inside the existing `jenkins_server` container.
 
 | Environment | Jenkins Job | Branch | Pipeline Script | Ansible Playbook | URL |
 | --- | --- | --- | --- | --- | --- |
@@ -254,7 +298,9 @@ Staging pipeline stages in `Jenkinsfile.staging`:
 | Stage | What It Does |
 | --- | --- |
 | `Checkout Source Code` | Runs `checkout scm` for the staging job's configured SCM branch. |
-| `Deploy to Staging with Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml` inside `jenkins_server` from `/var/jenkins_home/workspace/RPMarketplace-Staging`. |
+| `Prepare Staging Environment` | Copies the Jenkins Secret File credential `rpmarketplace-staging-env` to `$WORKSPACE/.env` without printing its contents. |
+| `Validate Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml --syntax-check`. |
+| `Deploy to Staging with Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml` from the Jenkins workspace. |
 
 Jenkins was recovered using the existing persistent `jenkins-data`. Do not recreate, delete, or overwrite Jenkins data during normal setup or documentation steps.
 

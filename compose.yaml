@@ -1,0 +1,13 @@
+services:
+  ansible-runner:
+    build:
+      context: .
+      dockerfile: ansible/Dockerfile
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles:
+      - tools

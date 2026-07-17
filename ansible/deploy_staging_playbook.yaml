@@ -18,6 +18,28 @@
         msg: "Missing .env file. Create it from .env.example and provide MySQL credentials before deploying."
       when: not staging_env_file.stat.exists
 
+    - name: Read staging environment file for validation
+      slurp:
+        path: "{{ playbook_dir }}/../.env"
+      register: staging_env_file_content
+      no_log: true
+
+    - name: Validate required staging environment variables are present
+      assert:
+        that:
+          - "'MYSQL_HOST=' in staging_env_text"
+          - "'MYSQL_PORT=' in staging_env_text"
+          - "'MYSQL_USER=' in staging_env_text"
+          - "'MYSQL_PASSWORD=' in staging_env_text"
+          - "'MYSQL_DATABASE=' in staging_env_text"
+          - "'SESSION_SECRET=' in staging_env_text"
+          - "'LEGACY_PRODUCT_OWNER_USERNAME=' in staging_env_text"
+        fail_msg: "The staging .env file is missing one or more required keys. Compare it with .env.example without printing secret values."
+        success_msg: "Staging .env contains the required keys."
+      vars:
+        staging_env_text: "{{ staging_env_file_content.content | b64decode }}"
+      no_log: true
+
     - name: Stop existing staging container if it exists
       command: docker stop rpmarketplace-staging
       register: stop_container
