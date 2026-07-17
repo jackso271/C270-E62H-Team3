@@ -1725,9 +1725,10 @@ html {
     box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
     color: #f8fafc;
     display: flex;
-    gap: 24px;
+    gap: 18px;
     justify-content: space-between;
     left: 0;
+    min-height: 78px;
     padding: 16px clamp(18px, 5vw, 72px);
     position: sticky;
     right: 0;
@@ -1741,6 +1742,7 @@ html {
     color: #f8fafc;
     display: flex;
     gap: 12px;
+    flex: 0 1 280px;
     min-width: 240px;
     text-decoration: none;
 }
@@ -1773,9 +1775,11 @@ html {
 .app-nav-links {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
     gap: 8px;
     justify-content: flex-end;
+    min-width: 0;
 }
 
 .app-nav-links a,
@@ -1785,12 +1789,40 @@ html {
     color: #d9e1eb;
     cursor: pointer;
     display: inline-flex;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     line-height: 1;
-    padding: 11px 14px;
+    min-height: 40px;
+    padding: 11px 12px;
     text-decoration: none;
     transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    white-space: nowrap;
+}
+
+.app-nav-toggle,
+.app-nav-toggle-button {
+    display: none;
+}
+
+.app-nav-toggle-button {
+    align-items: center;
+    background: rgba(57, 217, 138, 0.1);
+    border: 1px solid rgba(57, 217, 138, 0.26);
+    border-radius: 12px;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 5px;
+    height: 42px;
+    justify-content: center;
+    width: 46px;
+}
+
+.app-nav-toggle-button span {
+    background: #f8fafc;
+    border-radius: 999px;
+    display: block;
+    height: 2px;
+    width: 20px;
 }
 
 .app-nav-links a:hover,
@@ -1810,11 +1842,35 @@ html {
 }
 
 .user-menu {
+    flex: 0 0 auto;
     position: relative;
 }
 
 .user-menu summary {
+    align-items: center;
+    gap: 6px;
     list-style: none;
+}
+
+.user-menu summary::after {
+    content: "▾";
+    font-size: 10px;
+}
+
+.account-label {
+    color: #8ea0b5;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.user-menu summary strong {
+    color: inherit;
+    font-size: 13px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-menu summary::-webkit-details-marker {
@@ -1832,10 +1888,15 @@ html {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     content: "";
     inset: 42px 0 auto auto;
-    min-height: 92px;
+    min-height: 132px;
     position: absolute;
     width: 190px;
     z-index: -1;
+}
+
+.user-menu a {
+    position: relative;
+    z-index: 1;
 }
 
 .user-menu a {
@@ -2011,26 +2072,56 @@ html {
 
 @media (max-width: 860px) {
     .app-navbar {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 14px;
+        align-items: center;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: minmax(0, 1fr) auto;
         padding: 14px 18px;
     }
 
     .app-brand {
         min-width: 0;
-        width: 100%;
+    }
+
+    .app-brand small {
+        display: none;
+    }
+
+    .app-nav-toggle-button {
+        display: inline-flex;
     }
 
     .app-nav-links {
-        justify-content: flex-start;
+        background: rgba(7, 11, 15, 0.98);
+        border: 1px solid rgba(57, 217, 138, 0.18);
+        border-radius: 16px;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+        display: none;
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 10px;
         width: 100%;
+    }
+
+    .app-nav-toggle:checked ~ .app-nav-links,
+    .app-navbar:focus-within .app-nav-links {
+        display: grid;
     }
 
     .app-nav-links a,
     .user-menu,
     .user-menu summary {
-        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .app-nav-links a,
+    .user-menu summary {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .user-menu {
+        grid-column: 1 / -1;
     }
 
     .user-menu[open]::after {
@@ -2040,20 +2131,22 @@ html {
     .user-menu a {
         background: rgba(7, 11, 15, 0.9);
         border: 1px solid rgba(57, 217, 138, 0.18);
+        justify-content: center;
         min-width: 100%;
+    }
+
+    .user-menu summary strong {
+        max-width: 220px;
     }
 }
 
 @media (max-width: 560px) {
     .app-nav-links {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
 
     .app-nav-links a,
     .user-menu summary {
-        justify-content: center;
-        text-align: center;
         width: 100%;
     }
 

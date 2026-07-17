@@ -13,24 +13,8 @@
 
 <body class="marketplace-body sell-items-page">
 
-    <!-- Shared App Navbar Style -->
-    <nav class="app-navbar">
-        <a href="/homepage" class="app-brand">
-            <span class="brand-dot"></span>
-            <span>
-                <strong>RP Marketplace</strong>
-                <small>Buy and sell items within Republic Polytechnic</small>
-            </span>
-        </a>
-
-        <div class="app-nav-links">
-            <a href="/homepage">Home</a>
-            <a href="/marketplace">Marketplace</a>
-            <a href="/wishlist">Wishlist</a>
-            <a href="/sell-items" class="active">Sell Items</a>
-            <a href="/logout">Logout</a>
-        </div>
-    </nav>
+    {% set active_page = "sell_items" %}
+    {% include "partials/user_navbar.html" %}
 
     <main class="marketplace-shell sell-items-shell">
 

@@ -11,6 +11,9 @@
 
 <body class="marketplace-body">
 
+{% set active_page = "seller_chats" if back_url == "/seller/chats" else "marketplace" %}
+{% include "partials/user_navbar.html" %}
+
 <div class="chat-page">
 
     <div class="chat-header">

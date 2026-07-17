@@ -1,3 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }} | RP Marketplace</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="marketplace-body">
+{% set active_page = "marketplace" %}
+{% include "partials/user_navbar.html" %}
+
+<main class="marketplace-shell product-detail-shell">
+<section class="marketplace-intro">
 <h1>{{ product.title }}</h1>
 
 <p>Price: ${{ product.price }}</p>
@@ -20,3 +34,7 @@
 <br><br>
 
 <a href="/marketplace">Back to Marketplace</a>
+</section>
+</main>
+</body>
+</html>
