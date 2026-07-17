@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
         stage('Checkout Source Code') {
             steps {
@@ -8,13 +12,40 @@ pipeline {
             }
         }
 
-        stage('Deploy to Production') {
+        stage('Prepare Production Environment') {
+            steps {
+                withCredentials([
+                    file(
+                        credentialsId: 'rpmarketplace-production-env',
+                        variable: 'PRODUCTION_ENV_FILE'
+                    )
+                ]) {
+                    sh '''
+                    cp "$PRODUCTION_ENV_FILE" "$WORKSPACE/.env"
+                    chmod 600 "$WORKSPACE/.env"
+                    test -s "$WORKSPACE/.env"
+                    '''
+                }
+            }
+        }
+
+        stage('Validate Ansible') {
             steps {
                 sh '''
-                docker exec -u root jenkins_server bash -c "
-                cd /var/jenkins_home/workspace/RPMarketplace-Production &&
-                ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml
-                "
+                ansible-playbook \
+                    -i ansible/hosts \
+                    ansible/deploy_docker_playbook.yaml \
+                    --syntax-check
+                '''
+            }
+        }
+
+        stage('Deploy to Production with Ansible') {
+            steps {
+                sh '''
+                ansible-playbook \
+                    -i ansible/hosts \
+                    ansible/deploy_docker_playbook.yaml
                 '''
             }
         }
@@ -33,6 +64,12 @@ pipeline {
 
         failure {
             echo 'Production deployment failed.'
+        }
+
+        always {
+            sh '''
+            rm -f "$WORKSPACE/.env"
+            '''
         }
     }
 }
