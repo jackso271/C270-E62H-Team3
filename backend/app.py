@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from flask import Flask
@@ -26,6 +27,7 @@ def create_app(test_config=None):
 
     app.config.from_mapping(
         SECRET_KEY=os.getenv("SESSION_SECRET", "rp_marketplace_secret_key"),
+        PERMANENT_SESSION_LIFETIME=timedelta(minutes=15),
     )
 
     if test_config:
