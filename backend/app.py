@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from backend.extensions import limiter
+
 from flask import Flask
 
 from backend.routes.admin_routes import admin_bp
@@ -27,6 +29,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.getenv("SESSION_SECRET", "rp_marketplace_secret_key"),
     )
+    limiter.init_app(app)
 
     if test_config:
         app.config.update(test_config)

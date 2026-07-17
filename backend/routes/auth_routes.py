@@ -1,6 +1,9 @@
 import base64
 from io import BytesIO
 
+from backend.extensions import limiter
+
+
 import pyotp
 import qrcode
 from flask import Blueprint, current_app, redirect, render_template, request, session
@@ -71,7 +74,7 @@ def generate_2fa_qr_code(username, secret):
 
     return f"data:image/png;base64,{qr_base64}"
 
-@auth_bp.route("/")
+@auth_bp.route("/")             
 def login_page():
     return render_template("user/login.html")
 
@@ -96,6 +99,7 @@ def register():
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     if request.method == "GET":
         return redirect("/")
