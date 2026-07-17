@@ -12,6 +12,15 @@ pipeline {
             }
         }
 
+        stage('Clean Diagnostic Artifacts') {
+            steps {
+                sh '''
+                rm -rf "$WORKSPACE/artifacts"
+                mkdir -p "$WORKSPACE/artifacts/ai-diagnostics"
+                '''
+            }
+        }
+
         stage('Prepare Production Environment') {
             steps {
                 withCredentials([
@@ -71,7 +80,13 @@ pipeline {
                     sh '''
                     mkdir -p artifacts/ai-diagnostics
                     if ls artifacts/*.log >/dev/null 2>&1; then
-                        cat artifacts/*.log > artifacts/production_jenkins_failure.log
+                        rm -f artifacts/production_jenkins_failure.log
+                        for log_file in artifacts/*.log; do
+                            if [ -f "$log_file" ] && [ "$log_file" != "artifacts/production_jenkins_failure.log" ]; then
+                                cat "$log_file"
+                            fi
+                        done > artifacts/production_jenkins_failure.log
+
                         python3 -m devops.ai_agent.analyse_failure \
                             --source jenkins \
                             --input-file artifacts/production_jenkins_failure.log \
