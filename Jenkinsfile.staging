@@ -66,7 +66,7 @@ pipeline {
                     mkdir -p artifacts/ai-diagnostics
                     if ls artifacts/*.log >/dev/null 2>&1; then
                         cat artifacts/*.log > artifacts/staging_jenkins_failure.log
-                        python3 -m devops.ai_agent.analyse_failure \
+                        PYTHONPATH="$WORKSPACE" python3 -m devops.ai_agent.analyse_failure \
                             --source jenkins \
                             --input-file artifacts/staging_jenkins_failure.log \
                             --output-file artifacts/ai-diagnostics/staging_jenkins_report.md || true
@@ -74,7 +74,7 @@ pipeline {
                         for log_file in artifacts/staging_ansible_*.log; do
                             if [ -f "$log_file" ]; then
                                 report_name="$(basename "$log_file" .log)_report.md"
-                                python3 -m devops.ai_agent.analyse_failure \
+                                PYTHONPATH="$WORKSPACE" python3 -m devops.ai_agent.analyse_failure \
                                     --source ansible \
                                     --input-file "$log_file" \
                                     --output-file "artifacts/ai-diagnostics/$report_name" || true
