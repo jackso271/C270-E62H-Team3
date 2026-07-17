@@ -162,10 +162,12 @@ docker build -t rp-marketplace .
 ```
 
 Create Docker runtime configuration from the example and fill in local MySQL
-credentials. Do not commit `.env`.
+credentials. Use separate files for staging and production values, and do not
+commit any real environment file.
 
 ```powershell
-copy .env.example .env
+Copy-Item .env.example .env.staging
+Copy-Item .env.example .env.production
 ```
 
 When MySQL Server runs on the Windows host, Docker must use
@@ -232,9 +234,79 @@ Warning: `docker compose down -v` deletes compose-managed volumes. This reposito
 docker compose -f docker/docker-compose.yml down
 ```
 
+### Docker-Based Ansible Runner For Windows Teammates
+
+Windows teammates do not need to install Ansible directly on Windows. Use Docker Desktop to run the project playbook inside the repository's Ansible runner container.
+
+Requirements:
+
+- Docker Desktop running
+- Git
+- A local `.env.staging` or `.env.production` created from `.env.example`
+- MySQL reachable from Docker, usually with `MYSQL_HOST=host.docker.internal`
+- No native Windows Ansible installation
+
+Create local environment files and fill in separate values:
+
+```powershell
+Copy-Item .env.example .env.staging
+Copy-Item .env.example .env.production
+```
+
+The files `.env`, `.env.staging`, `.env.production`, and any other `.env.*`
+files are ignored by Git. Keep `.env.example` as the committed placeholder
+template only.
+
+Validate Ansible without deploying:
+
+```powershell
+docker compose --profile tools run --rm ansible-runner `
+  ansible-playbook `
+  -i ansible/hosts `
+  ansible/deploy_staging_playbook.yaml `
+  --syntax-check
+```
+
+Run the staging deployment through Docker:
+
+```powershell
+.\scripts\run-ansible.ps1 -Environment staging
+```
+
+Run the production deployment through Docker only when you explicitly intend to
+replace the production application container:
+
+```powershell
+.\scripts\run-ansible.ps1 -Environment production -ConfirmProduction
+```
+
+The wrapper temporarily copies the selected local file to root `.env` because
+the playbooks and Flask application expect that runtime name. It removes the
+temporary root `.env` after the run, and if you already had a root `.env`, it
+restores it without printing its contents.
+
+The `ansible-runner` service mounts `/var/run/docker.sock` so Ansible can ask Docker Desktop to build and replace the selected application container. Treat Docker socket access as privileged host access, and run this only from the trusted project repository.
+
+Do not run destructive Docker cleanup commands for this project:
+
+```text
+docker compose down -v
+docker volume prune
+docker system prune
+```
+
 ## Jenkins Implementation
 
-Jenkins has two configured jobs: one for staging and one for production. Both pipeline files use `agent any`, check out the configured branch with `checkout scm`, and then execute Ansible inside the existing `jenkins_server` container.
+Jenkins has two configured jobs: one for staging and one for production. Both pipeline files use `agent any`, perform one explicit `checkout scm`, inject `.env` from a Jenkins Secret File credential, validate Ansible syntax, and run Ansible directly in the Jenkins shell. Jenkins temporarily copies the credential file to `$WORKSPACE/.env`, applies `chmod 600`, verifies that it is non-empty, and deletes it after the build.
+
+Use separate Secret File credentials for each environment:
+
+| Environment | Credential ID | Deployment Port |
+| --- | --- | --- |
+| Staging | `rpmarketplace-staging-env` | `5002` |
+| Production | `rpmarketplace-production-env` | `5000` |
+
+Staging and production may use different database credentials. Upload `.env.staging` as `rpmarketplace-staging-env` and `.env.production` as `rpmarketplace-production-env`; never upload `.env.example`, never print secret values in build logs, and never commit `.env`, `.env.staging`, `.env.production`, or other real `.env.*` files. Jenkins still copies the selected Secret File credential to `$WORKSPACE/.env` at runtime because the application and Ansible playbooks expect `.env`.
 
 | Environment | Jenkins Job | Branch | Pipeline Script | Ansible Playbook | URL |
 | --- | --- | --- | --- | --- | --- |
@@ -246,7 +318,9 @@ Production pipeline stages in `Jenkinsfile`:
 | Stage | What It Does |
 | --- | --- |
 | `Checkout Source Code` | Runs `checkout scm` for the production job's configured SCM branch. |
-| `Deploy to Production` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml` inside `jenkins_server` from `/var/jenkins_home/workspace/RPMarketplace-Production`. |
+| `Prepare Production Environment` | Copies the Jenkins Secret File credential `rpmarketplace-production-env` to `$WORKSPACE/.env` without printing its contents. |
+| `Validate Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml --syntax-check`. |
+| `Deploy to Production with Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_docker_playbook.yaml` from the Jenkins workspace. |
 | `Confirm Production URL` | Prints `Production is available at: http://localhost:5000`. |
 
 Staging pipeline stages in `Jenkinsfile.staging`:
@@ -254,7 +328,9 @@ Staging pipeline stages in `Jenkinsfile.staging`:
 | Stage | What It Does |
 | --- | --- |
 | `Checkout Source Code` | Runs `checkout scm` for the staging job's configured SCM branch. |
-| `Deploy to Staging with Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml` inside `jenkins_server` from `/var/jenkins_home/workspace/RPMarketplace-Staging`. |
+| `Prepare Staging Environment` | Copies the Jenkins Secret File credential `rpmarketplace-staging-env` to `$WORKSPACE/.env` without printing its contents. |
+| `Validate Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml --syntax-check`. |
+| `Deploy to Staging with Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml` from the Jenkins workspace. |
 
 Jenkins was recovered using the existing persistent `jenkins-data`. Do not recreate, delete, or overwrite Jenkins data during normal setup or documentation steps.
 
@@ -383,7 +459,12 @@ Create local environment configuration:
 copy .env.example .env
 ```
 
-Fill in your local MySQL credentials in `.env`. Do not commit `.env`.
+Fill in your local MySQL credentials in `.env`. Do not commit `.env`. For
+environment-specific Docker/Ansible runs, create `.env.staging` and
+`.env.production` from `.env.example` and keep separate values where possible.
+Staging and production should ideally use different `SESSION_SECRET` values,
+database names or users, and passwords when the project infrastructure supports
+that separation.
 
 Start your local MySQL Server, then initialize and verify the database:
 
