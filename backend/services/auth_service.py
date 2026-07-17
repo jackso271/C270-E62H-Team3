@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pyotp
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.db import (
@@ -82,6 +83,8 @@ def mysql_user_from_row(row, include_password=False):
         "school": row.get("school") or "N/A",
         "role": row.get("role") or "student",
         "blocked": bool(row.get("is_blocked")),
+        "two_factor_enabled": bool(row.get("two_factor_enabled")),
+        "two_factor_secret": row.get("two_factor_secret"),
         "created_at": format_datetime(row.get("created_at")),
         "last_login": format_datetime(row.get("last_login_at")),
         "status_updated_at": format_datetime(row.get("status_updated_at")),
@@ -119,7 +122,8 @@ def get_all_users(include_password=False):
     rows = execute_mysql_query(
         """
         SELECT id, name, username, email, student_id, school, password_hash,
-               role, is_blocked, created_at, last_login_at, status_updated_at
+               role, is_blocked, two_factor_enabled, two_factor_secret,
+                 created_at, last_login_at, status_updated_at
         FROM users
         ORDER BY id
         """,
@@ -285,6 +289,58 @@ def find_matching_user(login_id, password):
 
     return None
 
+def find_user_by_id(user_id):
+    rows = execute_mysql_query(
+        """
+        SELECT id, name, username, email, student_id, school, password_hash,
+               role, is_blocked, two_factor_enabled, two_factor_secret,
+               created_at, last_login_at, status_updated_at
+        FROM users
+        WHERE id = %s
+        LIMIT 1
+        """,
+        (user_id,),
+        fetch=True,
+    )
+
+    if not rows:
+        return None
+
+    return mysql_user_from_row(rows[0], include_password=True)
+
+
+def generate_2fa_secret():
+    return pyotp.random_base32()
+
+
+def verify_2fa_code(secret, code):
+    clean_code = normalize_text(code)
+
+    if not secret or not clean_code.isdigit() or len(clean_code) != 6:
+        return False
+
+    totp = pyotp.TOTP(secret)
+    return totp.verify(clean_code)
+
+
+def save_user_2fa_secret(user_id, secret):
+    execute_mysql_query(
+        """
+        UPDATE users
+        SET two_factor_enabled = TRUE,
+            two_factor_secret = %s
+        WHERE id = %s
+        """,
+        (secret, user_id),
+    )
+    return True
+
+
+def user_has_2fa_enabled(user):
+    return (
+        bool(user.get("two_factor_enabled"))
+        and bool(user.get("two_factor_secret"))
+    )
 
 def register_user(form):
     """Validate and save a new student account using the original rules."""
