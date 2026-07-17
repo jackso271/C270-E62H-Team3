@@ -44,7 +44,7 @@ pipeline {
                 mkdir -p artifacts/ai-diagnostics
                 bash -lc 'set -o pipefail; ansible-playbook \
                     -i ansible/hosts \
-                    ansible/nonexistent-test-playbook.yaml \
+                    ansible/deploy_staging_playbook.yaml \
                     --syntax-check 2>&1 | tee artifacts/staging_ansible_validate.log'
                 '''
             }
