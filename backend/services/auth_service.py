@@ -171,7 +171,8 @@ def get_all_users(include_password=False):
     rows = execute_mysql_query(
         """
         SELECT id, name, username, email, student_id, school, password_hash,
-               role, is_blocked, created_at, last_login_at, status_updated_at
+               role, is_blocked, two_factor_enabled, two_factor_secret,
+                 created_at, last_login_at, status_updated_at
         FROM users
         ORDER BY id
         """,
