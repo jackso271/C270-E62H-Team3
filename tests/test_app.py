@@ -1,10 +1,15 @@
 from datetime import datetime
 from pathlib import Path
+import logging
+import time
 
+import pyotp
 import pytest
 from werkzeug.security import generate_password_hash
 
+from backend.db import MySQLDatabaseError
 from backend.app import create_app
+from backend.routes import auth_routes
 from backend.services import auth_service
 from backend.services import chat_service
 from backend.services import marketplace_service
@@ -141,6 +146,319 @@ def test_registration_hashes_password_before_mysql_insert(monkeypatch):
     assert (ok, title, message) == (True, None, None)
     assert insert_params[5] != "plain-password"
     assert insert_params[5].startswith(("scrypt:", "pbkdf2:"))
+
+
+def test_setup_2fa_redirects_when_unauthenticated(monkeypatch):
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+
+    response = app.test_client().get("/setup-2fa")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/"
+
+
+def test_setup_2fa_renders_for_pending_user_without_existing_2fa(monkeypatch):
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+    monkeypatch.setattr(
+        auth_routes,
+        "find_user_by_id",
+        lambda user_id: {
+            "id": user_id,
+            "name": "Student One",
+            "username": "student1",
+            "email": "student1@myrp.edu.sg",
+            "student_id": "S12345",
+            "role": "student",
+            "two_factor_enabled": False,
+            "two_factor_secret": None,
+        },
+    )
+    monkeypatch.setattr(
+        auth_routes,
+        "generate_2fa_secret",
+        lambda: "JBSWY3DPEHPK3PXP",
+    )
+    monkeypatch.setattr(
+        auth_routes,
+        "generate_2fa_qr_code",
+        lambda username, secret: "data:image/png;base64,test-qr",
+    )
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+    client = app.test_client()
+
+    with client.session_transaction() as flask_session:
+        flask_session["pending_2fa_user_id"] = 2
+
+    response = client.get("/setup-2fa")
+
+    assert response.status_code == 200
+    assert b"Set Up 2FA" in response.data
+    assert b"data:image/png;base64,test-qr" in response.data
+
+
+def test_setup_2fa_generates_secret_when_missing_pending_secret(monkeypatch):
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+    monkeypatch.setattr(
+        auth_routes,
+        "find_user_by_id",
+        lambda user_id: {
+            "id": user_id,
+            "username": "student1",
+            "two_factor_enabled": False,
+            "two_factor_secret": None,
+        },
+    )
+    monkeypatch.setattr(
+        auth_routes,
+        "generate_2fa_secret",
+        lambda: "JBSWY3DPEHPK3PXP",
+    )
+    monkeypatch.setattr(
+        auth_routes,
+        "generate_2fa_qr_code",
+        lambda username, secret: "data:image/png;base64,test-qr",
+    )
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+    client = app.test_client()
+
+    with client.session_transaction() as flask_session:
+        flask_session["pending_2fa_user_id"] = 2
+
+    response = client.get("/setup-2fa")
+
+    assert response.status_code == 200
+    with client.session_transaction() as flask_session:
+        assert flask_session["pending_2fa_secret"] == "JBSWY3DPEHPK3PXP"
+
+
+def test_setup_2fa_redirects_to_verify_for_existing_2fa(monkeypatch):
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+    monkeypatch.setattr(
+        auth_routes,
+        "find_user_by_id",
+        lambda user_id: {
+            "id": user_id,
+            "username": "student1",
+            "two_factor_enabled": True,
+            "two_factor_secret": "JBSWY3DPEHPK3PXP",
+        },
+    )
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+    client = app.test_client()
+
+    with client.session_transaction() as flask_session:
+        flask_session["pending_2fa_user_id"] = 2
+
+    response = client.get("/setup-2fa")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/verify-2fa"
+
+
+def test_setup_2fa_valid_code_persists_and_completes_login(monkeypatch):
+    saved = {}
+    secret = pyotp.random_base32()
+    code = pyotp.TOTP(secret).now()
+
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+    monkeypatch.setattr(auth_routes, "log_success", lambda user: None)
+    monkeypatch.setattr(
+        auth_routes,
+        "find_user_by_id",
+        lambda user_id: {
+            "id": user_id,
+            "name": "Student One",
+            "username": "student1",
+            "email": "student1@myrp.edu.sg",
+            "student_id": "S12345",
+            "role": "student",
+            "two_factor_enabled": False,
+            "two_factor_secret": None,
+        },
+    )
+
+    def fake_save_user_2fa_secret(user_id, stored_secret):
+        saved["user_id"] = user_id
+        saved["secret"] = stored_secret
+        return True
+
+    monkeypatch.setattr(auth_routes, "save_user_2fa_secret", fake_save_user_2fa_secret)
+    monkeypatch.setattr(auth_routes, "generate_2fa_qr_code", lambda username, value: "qr")
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+    client = app.test_client()
+
+    with client.session_transaction() as flask_session:
+        flask_session["pending_2fa_user_id"] = 2
+        flask_session["pending_2fa_secret"] = secret
+
+    response = client.post("/setup-2fa", data={"code": code})
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/homepage"
+    assert saved == {"user_id": 2, "secret": secret}
+    with client.session_transaction() as flask_session:
+        assert "pending_2fa_secret" not in flask_session
+        assert flask_session["user_id"] == 2
+
+
+def test_setup_2fa_invalid_code_does_not_persist(monkeypatch):
+    saved = []
+    secret = pyotp.random_base32()
+
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+    monkeypatch.setattr(
+        auth_routes,
+        "find_user_by_id",
+        lambda user_id: {
+            "id": user_id,
+            "username": "student1",
+            "two_factor_enabled": False,
+            "two_factor_secret": None,
+        },
+    )
+    monkeypatch.setattr(auth_routes, "save_user_2fa_secret", lambda *args: saved.append(args))
+    monkeypatch.setattr(auth_routes, "generate_2fa_qr_code", lambda username, value: "qr")
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+    client = app.test_client()
+
+    with client.session_transaction() as flask_session:
+        flask_session["pending_2fa_user_id"] = 2
+        flask_session["pending_2fa_secret"] = secret
+
+    response = client.post("/setup-2fa", data={"code": "123456"})
+
+    assert response.status_code == 200
+    assert b"Invalid authentication code" in response.data
+    assert saved == []
+
+
+def test_setup_2fa_expired_code_does_not_persist(monkeypatch):
+    saved = []
+    secret = pyotp.random_base32()
+    expired_code = pyotp.TOTP(secret).at(int(time.time()) - 90)
+
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+    monkeypatch.setattr(
+        auth_routes,
+        "find_user_by_id",
+        lambda user_id: {
+            "id": user_id,
+            "username": "student1",
+            "two_factor_enabled": False,
+            "two_factor_secret": None,
+        },
+    )
+    monkeypatch.setattr(auth_routes, "save_user_2fa_secret", lambda *args: saved.append(args))
+    monkeypatch.setattr(auth_routes, "generate_2fa_qr_code", lambda username, value: "qr")
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+    client = app.test_client()
+
+    with client.session_transaction() as flask_session:
+        flask_session["pending_2fa_user_id"] = 2
+        flask_session["pending_2fa_secret"] = secret
+
+    response = client.post("/setup-2fa", data={"code": expired_code})
+
+    assert response.status_code == 200
+    assert b"Invalid authentication code" in response.data
+    assert saved == []
+
+
+def test_setup_2fa_handles_user_lookup_database_error(monkeypatch):
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+
+    def raise_database_error(user_id):
+        raise MySQLDatabaseError("MySQL runtime query failed.")
+
+    monkeypatch.setattr(auth_routes, "find_user_by_id", raise_database_error)
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+    client = app.test_client()
+
+    with client.session_transaction() as flask_session:
+        flask_session["pending_2fa_user_id"] = 2
+
+    response = client.get("/setup-2fa")
+
+    assert response.status_code == 302
+    assert "/error?title=2FA%20Setup%20Unavailable" in response.headers["Location"]
+
+
+def test_setup_2fa_database_update_failure_clears_pending_secret(monkeypatch, caplog):
+    secret = pyotp.random_base32()
+    code = pyotp.TOTP(secret).now()
+
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+    monkeypatch.setattr(
+        auth_routes,
+        "find_user_by_id",
+        lambda user_id: {
+            "id": user_id,
+            "username": "student1",
+            "two_factor_enabled": False,
+            "two_factor_secret": None,
+        },
+    )
+
+    def raise_database_error(user_id, stored_secret):
+        raise MySQLDatabaseError("Two-factor authentication database columns are missing.")
+
+    monkeypatch.setattr(auth_routes, "save_user_2fa_secret", raise_database_error)
+    monkeypatch.setattr(auth_routes, "generate_2fa_qr_code", lambda username, value: "qr")
+    app = create_app({"TESTING": True, "SECRET_KEY": "test-secret"})
+    client = app.test_client()
+
+    with client.session_transaction() as flask_session:
+        flask_session["pending_2fa_user_id"] = 2
+        flask_session["pending_2fa_secret"] = secret
+
+    with caplog.at_level(logging.WARNING):
+        response = client.post("/setup-2fa", data={"code": code})
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/setup-2fa"
+    with client.session_transaction() as flask_session:
+        assert "pending_2fa_secret" not in flask_session
+        assert flask_session["setup_2fa_error"] == (
+            "Two-factor authentication setup is temporarily unavailable."
+        )
+    assert secret not in caplog.text
+    assert code not in caplog.text
+    assert "MySQLDatabaseError" in caplog.text
+
+
+def test_find_user_by_id_tolerates_missing_2fa_columns(monkeypatch):
+    calls = []
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        calls.append(query)
+        if "SELECT two_factor_enabled, two_factor_secret" in query:
+            missing_column = Exception("Unknown column 'two_factor_enabled' in 'field list'")
+            raise MySQLDatabaseError("MySQL runtime query failed.") from missing_column
+        return [
+            {
+                "id": 2,
+                "name": "Student One",
+                "username": "student1",
+                "email": "student1@myrp.edu.sg",
+                "student_id": "S12345",
+                "school": "SOI",
+                "password_hash": "hash",
+                "role": "student",
+                "is_blocked": False,
+                "created_at": datetime(2026, 7, 1, 9, 0, 0),
+                "last_login_at": None,
+                "status_updated_at": None,
+            }
+        ]
+
+    monkeypatch.setattr(auth_service, "execute_mysql_query", fake_execute)
+
+    user = auth_service.find_user_by_id(2)
+
+    assert user["two_factor_enabled"] is False
+    assert user["two_factor_secret"] is None
+    assert len(calls) == 2
 
 
 def test_products_load_from_mysql_preserves_template_shape(monkeypatch):
