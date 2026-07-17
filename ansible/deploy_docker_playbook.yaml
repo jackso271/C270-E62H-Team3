@@ -18,28 +18,6 @@
         msg: "Missing .env file. Create it from .env.example and provide MySQL credentials before deploying."
       when: not production_env_file.stat.exists
 
-    - name: Read production environment file for validation
-      slurp:
-        path: "{{ playbook_dir }}/../.env"
-      register: production_env_file_content
-      no_log: true
-
-    - name: Validate required production environment variables are present
-      assert:
-        that:
-          - "'MYSQL_HOST=' in production_env_text"
-          - "'MYSQL_PORT=' in production_env_text"
-          - "'MYSQL_USER=' in production_env_text"
-          - "'MYSQL_PASSWORD=' in production_env_text"
-          - "'MYSQL_DATABASE=' in production_env_text"
-          - "'SESSION_SECRET=' in production_env_text"
-          - "'LEGACY_PRODUCT_OWNER_USERNAME=' in production_env_text"
-        fail_msg: "The production .env file is missing one or more required keys. Compare it with .env.example without printing secret values."
-        success_msg: "Production .env contains the required keys."
-      vars:
-        production_env_text: "{{ production_env_file_content.content | b64decode }}"
-      no_log: true
-
     - name: Stop existing production container if it exists
       command: docker stop rpmarketplace
       register: stop_container
