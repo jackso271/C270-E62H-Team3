@@ -49,8 +49,6 @@
           - rpmarketplace
           - --env-file
           - "{{ playbook_dir }}/../.env"
-          - -e
-          - MYSQL_HOST=host.docker.internal
           - --add-host
           - host.docker.internal:host-gateway
           - -p

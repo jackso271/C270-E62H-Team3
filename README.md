@@ -13,6 +13,87 @@ RP Marketplace is a Flask web application for Republic Polytechnic students to b
 
 This repository also contains the completed DevOps implementation for the C270 project: Git branch workflow, Docker containerization, Jenkins automation, Ansible deployment, staging deployment, production deployment, and automated tests.
 
+## Local DevOps Stack Setup
+
+Root `compose.yaml` is the main local Docker Compose stack. It reads one central root `.env` file for the Flask backend, Nginx frontend proxy, MySQL, Jenkins, SonarQube, SonarQube PostgreSQL, Nexus, Ansible runner, Docker image settings, registry credentials, GitHub settings, and AI diagnostics settings.
+
+### First-time setup
+
+```bash
+cp .env.example .env
+```
+
+Replace every `CHANGE_ME` value in `.env` before starting services. Keep `.env`, `.env.staging`, `.env.production`, and other real `.env.*` files out of Git.
+
+### Validate configuration
+
+```bash
+docker compose config
+```
+
+### Start only the app
+
+```bash
+docker compose up -d --build mysql backend frontend
+```
+
+RP Marketplace is available at `http://localhost:5000`.
+
+### Start CI tools
+
+```bash
+docker compose --profile ci up -d --build
+```
+
+Jenkins is available at `http://localhost:8080`. SonarQube is available at `http://localhost:9000`.
+
+### Start Nexus
+
+```bash
+docker compose --profile nexus up -d
+```
+
+Nexus is available at `http://localhost:8081`.
+
+### Run the Ansible tool container
+
+```bash
+docker compose --profile tools run --rm ansible-runner
+```
+
+### Check service status
+
+```bash
+docker compose ps
+```
+
+### View logs
+
+```bash
+docker compose logs -f backend
+docker compose logs -f mysql
+docker compose logs -f jenkins
+docker compose logs -f sonarqube
+```
+
+### Stop while preserving data
+
+```bash
+docker compose down
+```
+
+### Full reset warning
+
+```bash
+docker compose down -v
+```
+
+The `-v` option permanently removes local MySQL, Jenkins, SonarQube, SonarQube PostgreSQL, and Nexus data stored in named Docker volumes.
+
+### Jenkins staging and production environment files
+
+The Jenkins pipelines still use Secret File credentials. Upload a filled `.env.staging` as `rpmarketplace-staging-env` and a filled `.env.production` as `rpmarketplace-production-env`. Safe placeholder examples are committed as `.env.staging.example` and `.env.production.example`.
+
 ## Main Application Features
 
 | User Area | Implemented Features |
@@ -35,7 +116,7 @@ The DevOps implementation in this repository is complete and working for the loc
 - Use Jenkins to detect branch changes and run the configured pipeline.
 - Use Ansible from Jenkins to manage Docker deployments.
 - Run staging and production as separate Docker containers on separate host ports.
-- Keep Jenkins state through the existing persistent `jenkins-data`.
+- Keep Jenkins state through the persistent `jenkins_home` Docker volume.
 
 ## Technology Stack
 
