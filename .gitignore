@@ -3,7 +3,35 @@ __pycache__/
 .pytest_cache/
 backend/data/*.json
 .env
-venv/
-.venv/
 .env.*
 !.env.example
+!.env.staging.example
+!.env.production.example
+
+venv/
+.venv/
+
+# Local service state
+jenkins_home/
+jenkins-data/
+sonarqube_data/
+sonarqube-data/
+sonarqube_extensions/
+sonarqube_logs/
+sonar_db_data/
+nexus_data/
+nexus-data/
+mysql_data/
+mysql-dumps/
+database/dumps/
+*.sql.gz
+*.dump
+
+# Build and diagnostic artifacts
+artifacts/
+dist/
+build/
+coverage/
+.coverage
+htmlcov/
+*.log

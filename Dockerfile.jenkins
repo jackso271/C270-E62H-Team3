@@ -2,6 +2,9 @@ FROM jenkins/jenkins:lts
 
 USER root
 
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
+
 RUN apt-get update && \
     apt-get install -y \
     ansible \
@@ -10,5 +13,10 @@ RUN apt-get update && \
     docker.io && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+COPY jenkins/plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+
+COPY jenkins/casc/jenkins.yaml /usr/share/jenkins/ref/casc_configs/jenkins.yaml
 
 USER jenkins

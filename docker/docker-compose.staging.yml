@@ -1,3 +1,7 @@
+# Legacy staging override for docker/docker-compose.yml.
+# Jenkins and Ansible staging deployments are still driven by Jenkinsfile.staging
+# and ansible/deploy_staging_playbook.yaml, so this override is documented rather
+# than removed.
 name: staging
 
 services:
