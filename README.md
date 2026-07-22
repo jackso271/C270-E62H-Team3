@@ -94,6 +94,35 @@ The `-v` option permanently removes local MySQL, Jenkins, SonarQube, SonarQube P
 
 The Jenkins pipelines still use Secret File credentials. Upload a filled `.env.staging` as `rpmarketplace-staging-env` and a filled `.env.production` as `rpmarketplace-production-env`. Safe placeholder examples are committed as `.env.staging.example` and `.env.production.example`.
 
+### Existing Jenkins data volume
+
+The Compose-managed Jenkins service reuses the existing Jenkins home volume through:
+
+```env
+JENKINS_VOLUME_NAME=jenkins-data
+```
+
+Do not run `docker compose down -v`, `docker volume rm`, or Docker volume prune commands unless Jenkins data has already been backed up and intentionally reset.
+
+For this workstation, the previous Jenkins container was renamed to `jenkins_server-backup` after backing up `jenkins-data` to `jenkins-home-backup.tar.gz`. Keep both until the Compose-managed Jenkins has completed a successful staging build.
+
+Rollback:
+
+```powershell
+docker compose --profile ci stop jenkins
+docker start jenkins_server-backup
+```
+
+Docker Desktop may expose `/var/run/docker.sock` with group ID `0`. The Compose service uses:
+
+```env
+DOCKER_SOCKET_GID=0
+```
+
+Adjust that value only if `stat -c '%g' /var/run/docker.sock` inside the Jenkins container shows a different socket group.
+
+Jenkins Configuration as Code files are present under `jenkins/casc/`, but Compose does not auto-apply them over the existing Jenkins home. This avoids overwriting manually configured jobs, users, or credentials during migration.
+
 ## Main Application Features
 
 | User Area | Implemented Features |

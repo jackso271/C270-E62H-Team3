@@ -14,6 +14,8 @@ venv/
 # Local service state
 jenkins_home/
 jenkins-data/
+jenkins-home-backup*/
+jenkins-home-backup*.tar.gz
 sonarqube_data/
 sonarqube-data/
 sonarqube_extensions/
