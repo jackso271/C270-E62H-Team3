@@ -1,0 +1,45 @@
+jenkins:
+  systemMessage: "RP Marketplace Jenkins managed by Configuration as Code."
+  numExecutors: 2
+  mode: NORMAL
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_ID:-admin}"
+          password: "${JENKINS_ADMIN_PASSWORD:-CHANGE_ME_JENKINS_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+    url: "${JENKINS_URL:-http://jenkins:8080}"
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "github-pat"
+              description: "GitHub credentials from environment variables"
+              username: "${GITHUB_USER:-CHANGE_ME_GITHUB_USER}"
+              password: "${GITHUB_PAT:-CHANGE_ME_GITHUB_PAT}"
+          - usernamePassword:
+              scope: GLOBAL
+              id: "dockerhub-token"
+              description: "Docker Hub credentials from environment variables"
+              username: "${DOCKERHUB_USERNAME:-CHANGE_ME_DOCKERHUB_USERNAME}"
+              password: "${DOCKERHUB_TOKEN:-CHANGE_ME_DOCKERHUB_TOKEN}"
+          - string:
+              scope: GLOBAL
+              id: "sonar-token"
+              description: "SonarQube token from environment variables"
+              secret: "${SONAR_TOKEN:-CHANGE_ME_SONAR_TOKEN}"
+          - usernamePassword:
+              scope: GLOBAL
+              id: "nexus-credentials"
+              description: "Nexus credentials from environment variables"
+              username: "${NEXUS_USER:-admin}"
+              password: "${NEXUS_PASSWORD:-CHANGE_ME_NEXUS_PASSWORD}"
