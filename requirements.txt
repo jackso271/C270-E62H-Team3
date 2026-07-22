@@ -3,5 +3,6 @@ pytest
 mysql-connector-python
 python-dotenv
 pyotp
-qrcode[pil]Flask-Limiter
+qrcode[pil]
 Flask-Limiter
+
