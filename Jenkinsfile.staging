@@ -1,3 +1,32 @@
+/*
+ * =====================================================
+ * CI Build Notification Helper
+ * Displays a build summary at the end of the pipeline.
+ * =====================================================
+ */
+def printBuildNotification(String status) {
+
+    echo """
+====================================================
+RP Marketplace CI Build Notification
+====================================================
+
+Project      : ${env.JOB_NAME}
+Build Number : ${env.BUILD_NUMBER}
+Branch       : ${env.BRANCH_NAME ?: 'main'}
+Status       : ${status}
+Build URL    : ${env.BUILD_URL}
+
+Reports
+✔ JUnit Report
+✔ Coverage Report
+✔ HTML Coverage
+✔ AI Diagnostics (if generated)
+
+====================================================
+"""
+}
+
 pipeline {
     agent any
 
@@ -96,10 +125,16 @@ pipeline {
     post {
         success {
             echo 'Staging deployment completed successfully.'
+
+            printBuildNotification("SUCCESS")
         }
 
         failure {
+
             echo 'Staging pipeline failed.'
+
+            printBuildNotification("FAILED")
+
             script {
                 try {
                     sh '''
