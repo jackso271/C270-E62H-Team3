@@ -38,6 +38,37 @@ pipeline {
             }
         }
 
+        /*
+        * =====================================================
+        * Run automated unit tests and generate
+        * coverage and JUnit reports.
+        *
+        * This stage is executed before deployment to ensure
+        * only tested code is deployed.
+        * =====================================================
+        */
+
+        stage('Run Tests & Generate Coverage') {
+            steps {
+                sh '''
+                mkdir -p artifacts
+
+                python3 -m pip install -r requirements.txt
+
+                bash -lc 'set -o pipefail;
+                python3 -m pytest \
+                    --cov=. \
+                    --cov-report=term \
+                    --cov-report=xml:artifacts/coverage.xml \
+                    --cov-report=html:artifacts/htmlcov \
+                    --junitxml=artifacts/pytest-report.xml \
+                    2>&1 | tee artifacts/pytest.log'
+                '''
+
+                echo 'Unit tests completed successfully. Coverage and JUnit reports have been generated.'
+            }
+        }
+
         stage('Validate Ansible') {
             steps {
                 sh '''
@@ -97,7 +128,6 @@ pipeline {
                         done
                     fi
                     '''
-                    archiveArtifacts artifacts: 'artifacts/ai-diagnostics/*.md', allowEmptyArchive: true
                 } catch (diagnosticsError) {
                     echo "AI diagnostics warning: ${diagnosticsError}"
                 }
@@ -105,6 +135,17 @@ pipeline {
         }
 
         always {
+
+            junit(
+                allowEmptyResults: true,
+                testResults: 'artifacts/pytest-report.xml'
+            )
+
+            archiveArtifacts(
+                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/pytest-report.xml,artifacts/pytest.log,artifacts/ai-diagnostics/*.md',
+                allowEmptyArchive: true
+            )
+
             sh '''
             rm -f "$WORKSPACE/.env"
             '''
