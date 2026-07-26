@@ -1,5 +1,6 @@
 Flask
 pytest
+pytest-cov
 mysql-connector-python
 python-dotenv
 pyotp

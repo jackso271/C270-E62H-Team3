@@ -31,7 +31,12 @@ database/dumps/
 artifacts/
 dist/
 build/
+
+# Coverage reports
 coverage/
 .coverage
+coverage.xml
 htmlcov/
+
+# Logs
 *.log
