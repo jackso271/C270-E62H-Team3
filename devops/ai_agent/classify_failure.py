@@ -25,7 +25,18 @@ CATEGORIES = [
 CATEGORY_PATTERNS = [
     ("security-scan", [r"\btrivy\b", r"\bbandit\b", r"\bsafety\b", r"vulnerabilit"]),
     ("git", [r"fatal:.*not a git", r"could not read from remote repository", r"git .* failed"]),
-    ("dependency-installation", [r"pip install", r"npm install", r"could not find a version", r"no matching distribution"]),
+    (
+        "dependency-installation",
+        [
+            r"pip install",
+            r"npm install",
+            r"could not find a version",
+            r"no matching distribution",
+            r"externally-managed-environment",
+            r"externally managed environment",
+            r"pep\s*668",
+        ],
+    ),
     ("testing", [r"pytest", r"test[s]? failed", r"assertionerror", r"failed .* passed"]),
     ("linting", [r"flake8", r"pylint", r"eslint", r"black --check", r"ruff"]),
     ("docker-build", [r"docker build", r"failed to solve", r"dockerfile", r"buildkit"]),

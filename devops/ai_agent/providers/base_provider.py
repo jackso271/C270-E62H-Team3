@@ -81,6 +81,8 @@ def likely_root_cause(category, evidence):
     if category == "health-check":
         return "The deployed service did not pass its HTTP or container health check."
     if category == "dependency-installation":
+        if "externally-managed-environment" in joined or "externally managed environment" in joined or "pep 668" in joined:
+            return "Dependency installation failed because Python is running in an externally managed environment instead of a project virtual environment."
         return "Dependency installation failed due to package resolution or network/index access."
     return "The sanitized log does not contain enough known patterns for a precise root-cause classification."
 
@@ -113,5 +115,6 @@ def suggested_remediation(category):
         "permissions": "Grant the minimum required permission or adjust the file/socket ownership after review.",
         "ssh": "Correct inventory, SSH key, or host key configuration.",
         "health-check": "Inspect application startup errors and fix the service issue before promotion.",
+        "dependency-installation": "Create and use a project virtual environment, then install dependencies through that virtual environment's Python and pip.",
     }
     return remediations.get(category, "Use the evidence above to prepare a human-reviewed remediation plan.")

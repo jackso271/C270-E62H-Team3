@@ -37,8 +37,8 @@ services:
       LEGACY_PRODUCT_OWNER_USERNAME: ${LEGACY_PRODUCT_OWNER_USERNAME:-CHANGE_ME_LEGACY_OWNER}
       APP_ENV: ${APP_ENV:-development}
       APP_PORT: ${APP_PORT:-5000}
-      AI_AGENT_ENABLED: ${AI_AGENT_ENABLED:-true}
-      AI_AGENT_LOG_LEVEL: ${AI_AGENT_LOG_LEVEL:-INFO}
+      AI_DIAGNOSTICS_ENABLED: ${AI_DIAGNOSTICS_ENABLED:-false}
+      AI_PROVIDER: ${AI_PROVIDER:-local}
     expose:
       - "5000"
     depends_on:
@@ -104,11 +104,16 @@ services:
       NEXUS_USER: ${NEXUS_USER:-admin}
       NEXUS_PASSWORD: ${NEXUS_PASSWORD:-CHANGE_ME_NEXUS_PASSWORD}
       NEXUS_URL: ${NEXUS_URL:-http://nexus:8081}
-      AI_AGENT_ENABLED: ${AI_AGENT_ENABLED:-true}
-      AI_AGENT_LOG_LEVEL: ${AI_AGENT_LOG_LEVEL:-INFO}
+      AI_DIAGNOSTICS_ENABLED: ${AI_DIAGNOSTICS_ENABLED:-false}
+      AI_PROVIDER: ${AI_PROVIDER:-local}
+      AI_DIAGNOSTICS_MAX_CHARS: ${AI_DIAGNOSTICS_MAX_CHARS:-12000}
+      AI_DIAGNOSTICS_TIMEOUT: ${AI_DIAGNOSTICS_TIMEOUT:-10}
+      AI_DIAGNOSTICS_OPENAI_MODEL: ${AI_DIAGNOSTICS_OPENAI_MODEL:-gpt-4.1-mini}
     ports:
       - "${JENKINS_HTTP_PORT:-8080}:8080"
       - "${JENKINS_AGENT_PORT:-50000}:50000"
+    group_add:
+      - "${DOCKER_SOCKET_GID:-0}"
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
@@ -191,8 +196,8 @@ services:
     environment:
       ANSIBLE_HOST_KEY_CHECKING: ${ANSIBLE_HOST_KEY_CHECKING:-False}
       APP_ENV: ${APP_ENV:-development}
-      AI_AGENT_ENABLED: ${AI_AGENT_ENABLED:-true}
-      AI_AGENT_LOG_LEVEL: ${AI_AGENT_LOG_LEVEL:-INFO}
+      AI_DIAGNOSTICS_ENABLED: ${AI_DIAGNOSTICS_ENABLED:-false}
+      AI_PROVIDER: ${AI_PROVIDER:-local}
     volumes:
       - ./:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
@@ -209,6 +214,8 @@ networks:
 volumes:
   mysql_data:
   jenkins_home:
+    external: true
+    name: ${JENKINS_VOLUME_NAME:-jenkins-data}
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:

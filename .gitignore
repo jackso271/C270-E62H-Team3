@@ -1,5 +1,5 @@
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
 backend/data/*.json
 .env
@@ -10,10 +10,22 @@ backend/data/*.json
 
 venv/
 .venv/
+.venv-ci/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
+*.swp
+*.swo
 
 # Local service state
 jenkins_home/
 jenkins-data/
+jenkins-home-backup*/
+jenkins-home-backup*.tar.gz
 sonarqube_data/
 sonarqube-data/
 sonarqube_extensions/
@@ -33,5 +45,6 @@ dist/
 build/
 coverage/
 .coverage
+coverage.xml
 htmlcov/
 *.log
