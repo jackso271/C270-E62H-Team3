@@ -62,6 +62,18 @@ def test_jenkins_missing_environment_variable(tmp_path):
     assert "environment-configuration" in report
 
 
+def test_pep668_dependency_installation_recommends_virtualenv(tmp_path):
+    report, _ = run_analysis(
+        tmp_path,
+        "jenkins",
+        "pip install -r requirements.txt\nerror: externally-managed-environment\nPEP 668",
+    )
+
+    assert "## Category\ndependency-installation" in report
+    assert "virtual environment" in report
+    assert "--break-system-packages" not in report
+
+
 def test_ansible_unreachable_host(tmp_path):
     report, _ = run_analysis(
         tmp_path,

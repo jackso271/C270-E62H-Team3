@@ -16,6 +16,8 @@ venv/
 .DS_Store
 Thumbs.db
 desktop.ini
+*.tmp
+*.temp
 *.swp
 *.swo
 
@@ -46,5 +48,3 @@ coverage/
 coverage.xml
 htmlcov/
 *.log
-*.tmp
-*.temp
