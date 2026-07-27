@@ -34,6 +34,14 @@ pipeline {
         skipDefaultCheckout(true)
     }
 
+    parameters {
+        booleanParam(
+            name: 'TEST_AI_DIAGNOSTIC',
+            defaultValue: false,
+            description: 'Safely trigger a simulated pipeline failure to test AI diagnostics.'
+        )
+    }
+
     stages {
         stage('Checkout Source Code') {
             steps {
@@ -100,6 +108,27 @@ pipeline {
                 '''
 
                 echo 'Unit tests completed successfully. Coverage and JUnit reports have been generated.'
+            }
+        }
+
+        stage('AI Diagnostic Self-Test') {
+            when {
+                expression { params.TEST_AI_DIAGNOSTIC == true }
+            }
+            steps {
+                sh '''
+                mkdir -p artifacts
+                cat > artifacts/staging_diagnostic_self_test.log <<'EOF'
+Stage: AI Diagnostic Self-Test
+Status: FAILED
+Error: Simulated dependency installation failure
+error: externally-managed-environment
+Python package installation was blocked by a PEP 668 managed environment.
+Recommended approach: create and use a Python virtual environment.
+This is an intentional diagnostic test. No real deployment error occurred.
+EOF
+                exit 1
+                '''
             }
         }
 
