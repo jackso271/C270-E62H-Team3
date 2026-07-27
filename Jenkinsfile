@@ -1,3 +1,32 @@
+/*
+ * =====================================================
+ * CI Build Notification Helper
+ * Displays a build summary at the end of the pipeline.
+ * =====================================================
+ */
+def printBuildNotification(String status) {
+
+    echo """
+====================================================
+RP Marketplace CI Build Notification
+====================================================
+
+Project      : ${env.JOB_NAME}
+Build Number : ${env.BUILD_NUMBER}
+Branch       : ${env.BRANCH_NAME ?: 'main'}
+Status       : ${status}
+Build URL    : ${env.BUILD_URL}
+
+Reports
+✔ JUnit Report
+✔ Coverage Report
+✔ HTML Coverage
+✔ AI Diagnostics (if generated)
+
+====================================================
+"""
+}
+
 pipeline {
     agent any
 
@@ -6,6 +35,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout Source Code') {
             steps {
                 checkout scm
@@ -69,9 +99,6 @@ pipeline {
     }
 
     post {
-        success {
-            echo 'Production deployment completed successfully.'
-        }
 
         failure {
             echo 'Production deployment failed.'
@@ -110,10 +137,71 @@ pipeline {
             }
         }
 
-        always {
-            sh '''
-            rm -f "$WORKSPACE/.env"
-            '''
+                script {
+
+                    try {
+
+                        sh '''
+                        mkdir -p artifacts/ai-diagnostics
+
+                        if ls artifacts/*.log >/dev/null 2>&1; then
+
+                            rm -f artifacts/production_jenkins_failure.log
+
+                            for log_file in artifacts/*.log; do
+
+                                if [ -f "$log_file" ] && [ "$log_file" != "artifacts/production_jenkins_failure.log" ]; then
+                                    cat "$log_file"
+                                fi
+
+                            done > artifacts/production_jenkins_failure.log
+
+                            python3 -m devops.ai_agent.analyse_failure \
+                                --source jenkins \
+                                --input-file artifacts/production_jenkins_failure.log \
+                                --output-file artifacts/ai-diagnostics/production_jenkins_report.md || true
+
+                            for log_file in artifacts/production_ansible_*.log; do
+
+                                if [ -f "$log_file" ]; then
+
+                                    report_name="$(basename "$log_file" .log)_report.md"
+
+                                    python3 -m devops.ai_agent.analyse_failure \
+                                        --source ansible \
+                                        --input-file "$log_file" \
+                                        --output-file "artifacts/ai-diagnostics/$report_name" || true
+
+                                fi
+
+                            done
+
+                        fi
+                        '''
+
+                    } catch (diagnosticsError) {
+
+                        echo "AI diagnostics warning: ${diagnosticsError}"
+
+                    }
+                }
+            }
+
+            always {
+
+                junit(
+                    allowEmptyResults: true,
+                    testResults: 'artifacts/pytest-report.xml'
+                )
+
+                archiveArtifacts(
+                    artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/pytest-report.xml,artifacts/pytest.log,artifacts/ai-diagnostics/*.md',
+                    allowEmptyArchive: true
+                )
+
+                sh '''
+                rm -f "$WORKSPACE/.env"
+                '''
+            }
         }
-    }
 }
