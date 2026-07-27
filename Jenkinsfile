@@ -68,6 +68,39 @@ pipeline {
             }
         }
 
+        /*
+        * =====================================================
+        * Run automated unit tests and generate
+        * coverage and JUnit reports before production deploy.
+        * =====================================================
+        */
+
+        stage('Run Tests & Generate Coverage') {
+            steps {
+                sh '''
+                mkdir -p artifacts
+                : > artifacts/production_test.log
+
+                bash -lc 'set -e -o pipefail;
+                CI_VENV="$WORKSPACE/.venv-ci";
+                rm -rf "$CI_VENV";
+                python3 -m venv "$CI_VENV" 2>&1 | tee -a artifacts/production_test.log;
+                "$CI_VENV/bin/python" -m pip install --upgrade pip 2>&1 | tee -a artifacts/production_test.log;
+                "$CI_VENV/bin/python" -m pip install -r requirements.txt 2>&1 | tee -a artifacts/production_test.log;
+
+                "$CI_VENV/bin/python" -m pytest \
+                    --cov=. \
+                    --cov-report=term \
+                    --cov-report=xml:artifacts/coverage.xml \
+                    --cov-report=html:artifacts/htmlcov \
+                    --junitxml=artifacts/junit.xml \
+                    2>&1 | tee -a artifacts/production_test.log'
+                '''
+
+                echo 'Unit tests completed successfully. Coverage and JUnit reports have been generated.'
+            }
+        }
+
         stage('Validate Ansible') {
             steps {
                 sh '''
@@ -99,6 +132,27 @@ pipeline {
     }
 
     post {
+        always {
+            junit(
+                allowEmptyResults: true,
+                testResults: 'artifacts/junit.xml'
+            )
+
+            archiveArtifacts(
+                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/junit.xml,artifacts/*.log,artifacts/ai-diagnostics/*.md',
+                allowEmptyArchive: true
+            )
+
+            sh '''
+            rm -f "$WORKSPACE/.env"
+            '''
+        }
+
+        success {
+            echo 'Production deployment completed successfully.'
+
+            printBuildNotification("SUCCESS")
+        }
 
         failure {
             echo 'Production deployment failed.'
@@ -106,29 +160,45 @@ pipeline {
                 try {
                     sh '''
                     mkdir -p artifacts/ai-diagnostics
+                    AI_PYTHON="$WORKSPACE/.venv-ci/bin/python"
+                    if [ ! -x "$AI_PYTHON" ]; then
+                        AI_PYTHON=python3
+                    fi
+
+                    rm -f artifacts/production_jenkins_failure.log artifacts/production_jenkins_failure.raw.log
+
                     if ls artifacts/*.log >/dev/null 2>&1; then
-                        rm -f artifacts/production_jenkins_failure.log
                         for log_file in artifacts/*.log; do
-                            if [ -f "$log_file" ] && [ "$log_file" != "artifacts/production_jenkins_failure.log" ]; then
+                            if [ -f "$log_file" ] && [ "$log_file" != "artifacts/production_jenkins_failure.log" ] && [ "$log_file" != "artifacts/production_jenkins_failure.raw.log" ]; then
                                 cat "$log_file"
                             fi
-                        done > artifacts/production_jenkins_failure.log
-
-                        python3 -m devops.ai_agent.analyse_failure \
-                            --source jenkins \
-                            --input-file artifacts/production_jenkins_failure.log \
-                            --output-file artifacts/ai-diagnostics/production_jenkins_report.md || true
-
-                        for log_file in artifacts/production_ansible_*.log; do
-                            if [ -f "$log_file" ]; then
-                                report_name="$(basename "$log_file" .log)_report.md"
-                                python3 -m devops.ai_agent.analyse_failure \
-                                    --source ansible \
-                                    --input-file "$log_file" \
-                                    --output-file "artifacts/ai-diagnostics/$report_name" || true
-                            fi
-                        done
+                        done > artifacts/production_jenkins_failure.raw.log
+                    else
+                        {
+                            echo "No captured stage log exists."
+                            echo "Job: ${JOB_NAME:-unknown}"
+                            echo "Build number: ${BUILD_NUMBER:-unknown}"
+                            echo "Build URL: ${BUILD_URL:-unknown}"
+                        } > artifacts/production_jenkins_failure.raw.log
                     fi
+
+                    PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -c 'from pathlib import Path; from devops.ai_agent.redact_sensitive_data import redact_sensitive_data; raw = Path("artifacts/production_jenkins_failure.raw.log").read_text(encoding="utf-8", errors="replace"); Path("artifacts/production_jenkins_failure.log").write_text(redact_sensitive_data(raw), encoding="utf-8")' || cp artifacts/production_jenkins_failure.raw.log artifacts/production_jenkins_failure.log
+                    rm -f artifacts/production_jenkins_failure.raw.log
+
+                    PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
+                        --source jenkins \
+                        --input-file artifacts/production_jenkins_failure.log \
+                        --output-file artifacts/ai-diagnostics/production_jenkins_report.md || true
+
+                    for log_file in artifacts/production_ansible_*.log; do
+                        if [ -f "$log_file" ]; then
+                            report_name="$(basename "$log_file" .log)_report.md"
+                            PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
+                                --source ansible \
+                                --input-file "$log_file" \
+                                --output-file "artifacts/ai-diagnostics/$report_name" || true
+                        fi
+                    done
                     '''
                     archiveArtifacts artifacts: 'artifacts/ai-diagnostics/*.md', allowEmptyArchive: true
                 } catch (diagnosticsError) {
@@ -136,72 +206,5 @@ pipeline {
                 }
             }
         }
-
-                script {
-
-                    try {
-
-                        sh '''
-                        mkdir -p artifacts/ai-diagnostics
-
-                        if ls artifacts/*.log >/dev/null 2>&1; then
-
-                            rm -f artifacts/production_jenkins_failure.log
-
-                            for log_file in artifacts/*.log; do
-
-                                if [ -f "$log_file" ] && [ "$log_file" != "artifacts/production_jenkins_failure.log" ]; then
-                                    cat "$log_file"
-                                fi
-
-                            done > artifacts/production_jenkins_failure.log
-
-                            python3 -m devops.ai_agent.analyse_failure \
-                                --source jenkins \
-                                --input-file artifacts/production_jenkins_failure.log \
-                                --output-file artifacts/ai-diagnostics/production_jenkins_report.md || true
-
-                            for log_file in artifacts/production_ansible_*.log; do
-
-                                if [ -f "$log_file" ]; then
-
-                                    report_name="$(basename "$log_file" .log)_report.md"
-
-                                    python3 -m devops.ai_agent.analyse_failure \
-                                        --source ansible \
-                                        --input-file "$log_file" \
-                                        --output-file "artifacts/ai-diagnostics/$report_name" || true
-
-                                fi
-
-                            done
-
-                        fi
-                        '''
-
-                    } catch (diagnosticsError) {
-
-                        echo "AI diagnostics warning: ${diagnosticsError}"
-
-                    }
-                }
-            }
-
-            always {
-
-                junit(
-                    allowEmptyResults: true,
-                    testResults: 'artifacts/pytest-report.xml'
-                )
-
-                archiveArtifacts(
-                    artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/pytest-report.xml,artifacts/pytest.log,artifacts/ai-diagnostics/*.md',
-                    allowEmptyArchive: true
-                )
-
-                sh '''
-                rm -f "$WORKSPACE/.env"
-                '''
-            }
-        }
+    }
 }
