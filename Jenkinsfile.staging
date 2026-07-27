@@ -132,9 +132,6 @@ pipeline {
         failure {
 
             echo 'Staging pipeline failed.'
-
-            printBuildNotification("FAILED")
-
             script {
                 try {
                     sh '''
@@ -163,6 +160,7 @@ pipeline {
                         done
                     fi
                     '''
+                    archiveArtifacts artifacts: 'artifacts/ai-diagnostics/*.md', allowEmptyArchive: true
                 } catch (diagnosticsError) {
                     echo "AI diagnostics warning: ${diagnosticsError}"
                 }
