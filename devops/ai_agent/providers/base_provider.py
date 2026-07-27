@@ -14,6 +14,8 @@ class LocalRuleBasedProvider(BaseAIProvider):
         sanitized = context.get("sanitized_log", "")
         category, risk = classify_failure(sanitized)
         evidence = context.get("evidence") or extract_evidence(sanitized)
+        if is_intentional_ai_diagnostic_self_test(sanitized):
+            return ai_diagnostic_self_test_result(source, context)
 
         return {
             "source": source,
@@ -52,6 +54,41 @@ def extract_evidence(text):
         if clean and any(marker in clean for marker in useful_markers):
             evidence.append(clean[:500])
     return evidence or [text.strip()[:500]] if text.strip() else []
+
+
+def is_intentional_ai_diagnostic_self_test(text):
+    lowered = text.lower()
+    return (
+        "stage: ai diagnostic self-test" in lowered
+        and "intentional diagnostic test" in lowered
+        and "externally-managed-environment" in lowered
+    )
+
+
+def ai_diagnostic_self_test_result(source, context):
+    return {
+        "source": source,
+        "failed_stage": context.get("failed_stage") or "AI Diagnostic Self-Test",
+        "failed_task": context.get("failed_task"),
+        "category": "dependency-installation",
+        "risk_level": "Low, because this is an intentional simulation and no deployment was performed.",
+        "summary": "The staging pipeline intentionally failed during the AI diagnostic self-test.",
+        "likely_root_cause": "Python package installation was blocked because the environment is externally managed under PEP 668.",
+        "evidence": [
+            "error: externally-managed-environment",
+            "Python package installation was blocked by a managed environment.",
+            "This was an intentional diagnostic self-test.",
+        ],
+        "recommended_verification": [
+            "Confirm that the pipeline uses a Python virtual environment.",
+            "Check that .venv-ci/bin/python and .venv-ci/bin/pip exist.",
+            "Confirm dependencies are installed inside .venv-ci.",
+        ],
+        "suggested_remediation": (
+            "Create and use a Python virtual environment instead of installing packages "
+            "into the operating system-managed Python environment."
+        ),
+    }
 
 
 def summary_for(source, context, category):

@@ -36,6 +36,8 @@ def detect_failed_stage(text):
     stage = None
     for line in text.splitlines():
         stripped = line.strip()
+        if stripped.lower().startswith("stage:"):
+            stage = stripped.split(":", 1)[1].strip()
         if "Entering stage" in stripped:
             stage = stripped.rsplit("Entering stage", 1)[-1].strip(" :'\"")
         if stripped.startswith("[Pipeline] { (") and stripped.endswith(")"):

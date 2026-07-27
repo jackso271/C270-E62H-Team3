@@ -200,6 +200,13 @@ EOF
                         --input-file artifacts/staging_jenkins_failure.log \
                         --output-file artifacts/ai-diagnostics/staging_jenkins_report.md || true
 
+                    if [ -f artifacts/staging_diagnostic_self_test.log ]; then
+                        PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
+                            --source jenkins \
+                            --input-file artifacts/staging_diagnostic_self_test.log \
+                            --output-file artifacts/ai-diagnostics/staging_diagnostic_self_test_report.md || true
+                    fi
+
                     for log_file in artifacts/staging_ansible_*.log; do
                         if [ -f "$log_file" ]; then
                             report_name="$(basename "$log_file" .log)_report.md"
