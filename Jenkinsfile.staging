@@ -81,17 +81,22 @@ pipeline {
             steps {
                 sh '''
                 mkdir -p artifacts
+                : > artifacts/pytest.log
 
-                python3 -m pip install -r requirements.txt
+                bash -lc 'set -e -o pipefail;
+                CI_VENV="$WORKSPACE/.venv-ci";
+                rm -rf "$CI_VENV";
+                python3 -m venv "$CI_VENV" 2>&1 | tee -a artifacts/pytest.log;
+                "$CI_VENV/bin/python" -m pip install --upgrade pip 2>&1 | tee -a artifacts/pytest.log;
+                "$CI_VENV/bin/python" -m pip install -r requirements.txt 2>&1 | tee -a artifacts/pytest.log;
 
-                bash -lc 'set -o pipefail;
-                python3 -m pytest \
+                "$CI_VENV/bin/python" -m pytest \
                     --cov=. \
                     --cov-report=term \
                     --cov-report=xml:artifacts/coverage.xml \
                     --cov-report=html:artifacts/htmlcov \
                     --junitxml=artifacts/pytest-report.xml \
-                    2>&1 | tee artifacts/pytest.log'
+                    2>&1 | tee -a artifacts/pytest.log'
                 '''
 
                 echo 'Unit tests completed successfully. Coverage and JUnit reports have been generated.'
@@ -137,6 +142,11 @@ pipeline {
                     sh '''
                     mkdir -p artifacts/ai-diagnostics
                     if ls artifacts/*.log >/dev/null 2>&1; then
+                        AI_PYTHON="$WORKSPACE/.venv-ci/bin/python"
+                        if [ ! -x "$AI_PYTHON" ]; then
+                            AI_PYTHON=python3
+                        fi
+
                         rm -f artifacts/staging_jenkins_failure.log
                         for log_file in artifacts/*.log; do
                             if [ -f "$log_file" ] && [ "$log_file" != "artifacts/staging_jenkins_failure.log" ]; then
@@ -144,7 +154,7 @@ pipeline {
                             fi
                         done > artifacts/staging_jenkins_failure.log
 
-                        PYTHONPATH="$WORKSPACE" python3 -m devops.ai_agent.analyse_failure \
+                        PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
                             --source jenkins \
                             --input-file artifacts/staging_jenkins_failure.log \
                             --output-file artifacts/ai-diagnostics/staging_jenkins_report.md || true
@@ -152,7 +162,7 @@ pipeline {
                         for log_file in artifacts/staging_ansible_*.log; do
                             if [ -f "$log_file" ]; then
                                 report_name="$(basename "$log_file" .log)_report.md"
-                                PYTHONPATH="$WORKSPACE" python3 -m devops.ai_agent.analyse_failure \
+                                PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
                                     --source ansible \
                                     --input-file "$log_file" \
                                     --output-file "artifacts/ai-diagnostics/$report_name" || true
