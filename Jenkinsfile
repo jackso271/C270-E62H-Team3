@@ -116,8 +116,7 @@ pipeline {
                 mkdir -p artifacts/ai-diagnostics
                 bash -lc 'set -o pipefail; ansible-playbook \
                     -i ansible/hosts \
-                    ansible/deploy_docker_playbook.yaml \
-                    2>&1 | tee artifacts/production_ansible_deploy.log'
+                    ansible/deploy_docker_playbook.yaml 2>&1 | tee artifacts/production_ansible_deploy.log'
                 '''
             }
         }
