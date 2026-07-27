@@ -1,5 +1,5 @@
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
 backend/data/*.json
 .env
@@ -10,6 +10,14 @@ backend/data/*.json
 
 venv/
 .venv/
+.venv-ci/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
 
 # Local service state
 jenkins_home/
@@ -35,5 +43,8 @@ dist/
 build/
 coverage/
 .coverage
+coverage.xml
 htmlcov/
 *.log
+*.tmp
+*.temp
