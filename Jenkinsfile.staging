@@ -48,12 +48,22 @@ pipeline {
             }
         }
 
+        stage('Lint') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                pip install bandit
+                bandit -r backend/ -ll
+                '''
+            }
+        }
+
         stage('Run Tests') {
             steps {
                 sh '''
                 mkdir -p artifacts/ai-diagnostics
                 . venv/bin/activate
-                bash -lc 'set -o pipefail; PYTHONPATH="$WORKSPACE" python3 -m pytest tests/ 2>&1 | tee artifacts/production_pytest.log'
+                bash -lc 'set -o pipefail; PYTHONPATH="$WORKSPACE" python3 -m pytest tests/ 2>&1 | tee artifacts/staging_pytest.log'
                 '''
             }
         }
