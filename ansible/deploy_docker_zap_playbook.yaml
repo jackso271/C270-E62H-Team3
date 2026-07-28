@@ -1,0 +1,70 @@
+---
+- name: Deploy RP Marketplace container for OWASP ZAP testing
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Verify Docker is installed
+      command: docker --version
+      changed_when: false
+
+    - name: Verify production environment file exists
+      stat:
+        path: "{{ playbook_dir }}/../.env"
+      register: production_env_file
+
+    - name: Stop deployment when production environment file is missing
+      fail:
+        msg: "Missing .env file. Create it from .env.example and provide MySQL credentials before deploying."
+      when: not production_env_file.stat.exists
+
+    - name: Stop existing ZAP testing container if it exists
+      command: docker stop rpmarketplace-zap
+      register: stop_container
+      failed_when: false
+      changed_when: stop_container.rc == 0
+
+    - name: Remove existing ZAP testing container if it exists
+      command: docker rm rpmarketplace-zap
+      register: remove_container
+      failed_when: false
+      changed_when: remove_container.rc == 0
+
+    - name: Build Docker image for ZAP testing
+      command:
+        argv:
+          - docker
+          - build
+          - -t
+          - rp-marketplace-zap
+          - "{{ playbook_dir }}/.."
+
+    - name: Run ZAP testing container on port 5001
+      command:
+        argv:
+          - docker
+          - run
+          - -d
+          - --name
+          - rpmarketplace-zap
+          - --env-file
+          - "{{ playbook_dir }}/../.env"
+          - --add-host
+          - host.docker.internal:host-gateway
+          - -p
+          - "5001:5000"
+          - rp-marketplace-zap
+
+    - name: Verify ZAP testing container is running
+      command:
+        argv:
+          - docker
+          - inspect
+          - -f
+          - "{{ '{{' }}.State.Running{{ '}}' }}"
+          - rpmarketplace-zap
+      register: container_status
+      retries: 10
+      delay: 3
+      until: container_status.stdout == "true"
+      changed_when: false

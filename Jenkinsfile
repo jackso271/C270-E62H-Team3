@@ -124,6 +124,33 @@ pipeline {
             }
         }
 
+        stage('Validate ZAP Ansible Playbook') {
+            steps {
+                sh '''
+                mkdir -p artifacts/ai-diagnostics
+
+                bash -lc 'set -o pipefail; ansible-playbook \
+                    -i ansible/hosts \
+                    ansible/deploy_docker_zap_playbook.yaml \
+                    --syntax-check \
+                    2>&1 | tee artifacts/zap_ansible_validate.log'
+                '''
+            }
+        }
+
+        stage('Deploy ZAP Test Environment') {
+            steps {
+                sh '''
+                mkdir -p artifacts/ai-diagnostics
+
+            bash -lc 'set -o pipefail; ansible-playbook \
+                -i ansible/hosts \
+                ansible/deploy_docker_zap_playbook.yaml \
+                2>&1 | tee artifacts/zap_ansible_deploy.log'
+            '''
+            }
+        }
+        
         stage('OWASP ZAP Security Scan') {
             steps {
                 sh '''
@@ -145,9 +172,9 @@ pipeline {
             }
         }
 
-        stage('Confirm Production URL') {
+        stage('Confirm ZAP Test URL') {
             steps {
-                echo 'Production is available at: http://localhost:5001'
+                echo 'ZAP test environment is available at: http://localhost:5001'
             }
         }
     }
@@ -212,6 +239,17 @@ pipeline {
                         --output-file artifacts/ai-diagnostics/production_jenkins_report.md || true
 
                     for log_file in artifacts/production_ansible_*.log; do
+                        if [ -f "$log_file" ]; then
+                            report_name="$(basename "$log_file" .log)_report.md"
+                            PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
+                                --source ansible \
+                                --input-file "$log_file" \
+                                --output-file "artifacts/ai-diagnostics/$report_name" || true
+                        fi
+                    done
+
+                    # OWASP ZAP Ansible diagnostics
+                    for log_file in artifacts/zap_ansible_*.log; do
                         if [ -f "$log_file" ]; then
                             report_name="$(basename "$log_file" .log)_report.md"
                             PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
