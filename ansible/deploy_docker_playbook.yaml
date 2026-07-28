@@ -57,7 +57,7 @@
 
     - name: Verify production app is reachable
       uri:
-        url: http://host.docker.internal:5002/
+        url: http://127.0.0:5002/
         status_code: 200
       register: app_check
       retries: 10
