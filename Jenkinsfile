@@ -124,6 +124,27 @@ pipeline {
             }
         }
 
+        stage('OWASP ZAP Security Scan') {
+            steps {
+                sh '''
+                    echo "Starting OWASP ZAP baseline scan"
+                    
+                    mkdir -p artifacts
+
+                    docker run --rm \
+                        --add-host=host.docker.internal:host-gateway \
+                        -v "$(pwd)/artifacts:/zap/wrk/:rw" \
+                        ghcr.io/zaproxy/zaproxy:stable \
+                        zap-baseline.py \
+                        -t http://host.docker.internal:5000 \
+                        -r zap-report.html \
+                        -I
+                    
+                    echo "OWASP ZAP scan completed."
+                '''
+            }
+        }
+
         stage('Confirm Production URL') {
             steps {
                 echo 'Production is available at: http://localhost:5000'
@@ -139,7 +160,7 @@ pipeline {
             )
 
             archiveArtifacts(
-                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/junit.xml,artifacts/*.log,artifacts/ai-diagnostics/*.md',
+                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/junit.xml,artifacts/*.log,artifacts/ai-diagnostics/*.md,artifacts/zap-report.html',
                 allowEmptyArchive: true
             )
 
