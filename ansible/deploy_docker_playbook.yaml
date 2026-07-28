@@ -39,7 +39,7 @@
           - rp-marketplace
           - "{{ playbook_dir }}/.."
 
-    - name: Run production container on port 5000
+    - name: Run production container on port 5001
       command:
         argv:
           - docker
@@ -52,12 +52,12 @@
           - --add-host
           - host.docker.internal:host-gateway
           - -p
-          - "5000:5000"
+          - "5001:5000"
           - rp-marketplace
 
     - name: Verify production app is reachable
       uri:
-        url: http://host.docker.internal:5000/
+        url: http://host.docker.internal:5001/
         status_code: 200
       register: app_check
       retries: 10
