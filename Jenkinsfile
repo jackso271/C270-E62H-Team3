@@ -136,7 +136,7 @@ pipeline {
                         -v "$(pwd)/artifacts:/zap/wrk/:rw" \
                         ghcr.io/zaproxy/zaproxy:stable \
                         zap-baseline.py \
-                        -t http://host.docker.internal:5000 \
+                        -t http://host.docker.internal:5001 \
                         -r zap-report.html \
                         -I
                     
@@ -147,7 +147,7 @@ pipeline {
 
         stage('Confirm Production URL') {
             steps {
-                echo 'Production is available at: http://localhost:5000'
+                echo 'Production is available at: http://localhost:5001'
             }
         }
     }
