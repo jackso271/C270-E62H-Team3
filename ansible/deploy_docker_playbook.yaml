@@ -64,8 +64,8 @@
           - python
           - -c
           - "import urllib.request; response = urllib.request.urlopen('http://127.0.0.1:5000/'); assert response.status == 200"
-        register: app_check
-        retries: 10
-        delay: 3
-        until: app_check.rc == 0
-        changed_when: false
+      register: app_check
+      retries: 10
+      delay: 3
+      until: app_check.rc == 0
+      changed_when: false
