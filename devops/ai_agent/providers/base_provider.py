@@ -12,10 +12,12 @@ class LocalRuleBasedProvider(BaseAIProvider):
     def analyse(self, context):
         source = context.get("source", "unknown")
         sanitized = context.get("sanitized_log", "")
-        category, risk = classify_failure(sanitized)
-        evidence = context.get("evidence") or extract_evidence(sanitized)
         if is_intentional_ai_diagnostic_self_test(sanitized):
             return ai_diagnostic_self_test_result(source, context)
+        if is_sonarqube_credential_failure(sanitized):
+            return sonarqube_credential_failure_result(source, context, sanitized)
+        category, risk = classify_failure(sanitized)
+        evidence = context.get("evidence") or extract_evidence(sanitized)
 
         return {
             "source": source,
@@ -32,6 +34,10 @@ class LocalRuleBasedProvider(BaseAIProvider):
 
 
 def extract_evidence(text):
+    credential_evidence = extract_sonarqube_credential_evidence(text)
+    if credential_evidence:
+        return credential_evidence
+
     useful_markers = [
         "ERROR",
         "Error",
@@ -54,6 +60,70 @@ def extract_evidence(text):
         if clean and any(marker in clean for marker in useful_markers):
             evidence.append(clean[:500])
     return evidence or [text.strip()[:500]] if text.strip() else []
+
+
+def is_sonarqube_credential_failure(text):
+    lowered = text.lower()
+    return (
+        "sonarqube analysis & quality gate" in lowered
+        or "sonar-token" in lowered
+        or "sonarqube credential" in lowered
+    ) and (
+        "could not find credentials entry with id" in lowered
+        or "required jenkins sonarqube credential was not found" in lowered
+        or "missing jenkins credential" in lowered
+        or "credential not found" in lowered
+    )
+
+
+def extract_sonarqube_credential_evidence(text):
+    markers = [
+        "Could not find credentials entry with ID",
+        "Required Jenkins SonarQube credential was not found",
+        "Expected credential ID: sonar-token",
+        "Stage: SonarQube Analysis & Quality Gate",
+        "Category: credentials-configuration",
+        "credential not found",
+        "missing Jenkins credential",
+        "sonar-token",
+    ]
+    evidence = []
+    seen = set()
+    for line in text.splitlines():
+        clean = line.strip()
+        if not clean:
+            continue
+        lowered = clean.lower()
+        if any(marker.lower() in lowered for marker in markers):
+            clipped = clean[:500]
+            if clipped not in seen:
+                evidence.append(clipped)
+                seen.add(clipped)
+    return evidence
+
+
+def sonarqube_credential_failure_result(source, context, text):
+    return {
+        "source": source,
+        "failed_stage": context.get("failed_stage") or "SonarQube Analysis & Quality Gate",
+        "failed_task": context.get("failed_task"),
+        "category": "credentials-configuration",
+        "risk_level": "Medium",
+        "summary": "Jenkins failed during SonarQube analysis because the configured Secret Text credential was unavailable.",
+        "likely_root_cause": "Jenkins could not locate the configured SonarQube Secret Text credential.",
+        "evidence": extract_sonarqube_credential_evidence(text)[:8],
+        "recommended_verification": [
+            "Open Jenkins credential management.",
+            "Confirm a Secret Text credential exists.",
+            "Confirm its ID exactly matches sonar-token.",
+            "Confirm the credential is available within the job's credential scope.",
+            "Confirm the configured SonarQube server and scanner names match the Jenkinsfile.",
+        ],
+        "suggested_remediation": (
+            "Create the missing Jenkins Secret Text credential using ID sonar-token, "
+            "or update the Jenkinsfile to reference the correct existing credential ID."
+        ),
+    }
 
 
 def is_intentional_ai_diagnostic_self_test(text):
@@ -105,6 +175,8 @@ def likely_root_cause(category, evidence):
         return "The application or deployment expected database state that is not present or reachable."
     if category == "environment-configuration":
         return "A required environment file, variable, or credential appears to be missing or invalid."
+    if category == "credentials-configuration":
+        return "Jenkins could not locate a required credential configured for this pipeline stage."
     if category == "docker-build":
         return "Docker image build failed, likely due to Dockerfile, context, dependency, or registry issues."
     if category == "docker-runtime":
@@ -132,6 +204,7 @@ def recommended_verification(category, source):
     category_steps = {
         "database": ["Verify required tables and columns using non-destructive schema inspection.", "Run any required migration in dry-run mode first."],
         "environment-configuration": ["Confirm the expected Jenkins credential or .env file exists.", "Verify required variable names without printing values."],
+        "credentials-configuration": ["Open Jenkins credential management.", "Confirm the credential ID and scope match the Jenkinsfile."],
         "docker-build": ["Build the image locally or in staging with the same Dockerfile.", "Check Docker build context and dependency availability."],
         "docker-runtime": ["Inspect the target container logs.", "Check container name, image, port binding, and environment file."],
         "testing": ["Run the targeted failing tests locally.", "Inspect the first assertion or traceback."],
@@ -146,6 +219,7 @@ def suggested_remediation(category):
     remediations = {
         "database": "Apply the missing idempotent migration after human review, then redeploy to staging first.",
         "environment-configuration": "Create or correct the missing Jenkins credential or environment value without committing secrets.",
+        "credentials-configuration": "Create or correct the missing Jenkins credential without committing secrets.",
         "docker-build": "Fix the Dockerfile, build context, or dependency source, then rebuild in staging.",
         "docker-runtime": "Correct container runtime configuration and retry only after review.",
         "testing": "Fix the failing test or application code path, then rerun the targeted suite.",

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from devops.ai_agent.providers.base_provider import LocalRuleBasedProvider
 from devops.ai_agent.providers.openai_provider import OpenAIProvider
-from devops.ai_agent.redact_sensitive_data import redact_sensitive_data
+from devops.ai_agent.redact_sensitive_data import safe_redact_sensitive_data
 from devops.ai_agent.report_generator import generate_report
 
 
@@ -21,9 +21,20 @@ def read_text(path):
 def relevant_section(text, max_chars=DEFAULT_MAX_CHARS):
     if not text:
         return ""
-    markers = ["ERROR", "FAILED", "fatal:", "UNREACHABLE", "Traceback", "Exception", "script returned exit code"]
+    priority_markers = [
+        "Could not find credentials entry with ID",
+        "Required Jenkins SonarQube credential was not found",
+        "credential not found",
+        "missing Jenkins credential",
+    ]
+    markers = priority_markers + ["ERROR", "FAILED", "fatal:", "UNREACHABLE", "Traceback", "Exception", "script returned exit code"]
     lines = text.splitlines()
     first = 0
+    for index, line in enumerate(lines):
+        if any(marker.lower() in line.lower() for marker in priority_markers):
+            first = max(index - 20, 0)
+            section = "\n".join(lines[first:])
+            return section[-max_chars:]
     for index, line in enumerate(lines):
         if any(marker in line for marker in markers):
             first = max(index - 20, 0)
@@ -33,6 +44,15 @@ def relevant_section(text, max_chars=DEFAULT_MAX_CHARS):
 
 
 def detect_failed_stage(text):
+    if (
+        "SonarQube Analysis & Quality Gate" in text
+        and (
+            "sonar-token" in text
+            or "Required Jenkins SonarQube credential was not found" in text
+            or "Could not find credentials entry with ID" in text
+        )
+    ):
+        return "SonarQube Analysis & Quality Gate"
     stage = None
     for line in text.splitlines():
         stripped = line.strip()
@@ -71,7 +91,7 @@ def provider_from_env():
 def analyse(source, input_file, output_file, provider=None):
     max_chars = int(os.getenv("AI_DIAGNOSTICS_MAX_CHARS", str(DEFAULT_MAX_CHARS)))
     raw_text = read_text(input_file)
-    sanitized = redact_sensitive_data(relevant_section(raw_text, max_chars=max_chars))
+    sanitized = safe_redact_sensitive_data(relevant_section(raw_text, max_chars=max_chars))
 
     context = {
         "source": source,
@@ -87,7 +107,7 @@ def analyse(source, input_file, output_file, provider=None):
     result.setdefault("failed_stage", context.get("failed_stage"))
     result.setdefault("failed_task", context.get("failed_task"))
 
-    report = redact_sensitive_data(generate_report(result))
+    report = safe_redact_sensitive_data(generate_report(result))
     output_path = Path(output_file)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(report, encoding="utf-8")

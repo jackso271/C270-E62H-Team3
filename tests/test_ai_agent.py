@@ -3,7 +3,12 @@
 from devops.ai_agent.analyse_failure import analyse
 from devops.ai_agent.providers.base_provider import LocalRuleBasedProvider
 from devops.ai_agent.providers.openai_provider import OpenAIProvider
-from devops.ai_agent.redact_sensitive_data import redact_sensitive_data
+from devops.ai_agent import redact_sensitive_data as redaction_module
+from devops.ai_agent.redact_sensitive_data import (
+    SAFE_REDACTION_FAILURE_MESSAGE,
+    redact_sensitive_data,
+    write_redacted_file,
+)
 
 
 def run_analysis(tmp_path, source, content):
@@ -72,6 +77,85 @@ def test_pep668_dependency_installation_recommends_virtualenv(tmp_path):
     assert "## Category\ndependency-installation" in report
     assert "virtual environment" in report
     assert "--break-system-packages" not in report
+
+
+def test_sonarqube_missing_token_classified_as_credentials_configuration(tmp_path):
+    report, _ = run_analysis(
+        tmp_path,
+        "jenkins",
+        "\n".join(
+            [
+                "[Pipeline] { (SonarQube Analysis & Quality Gate)",
+                "ERROR: Could not find credentials entry with ID 'sonar-token'",
+                "Finished: FAILURE",
+            ]
+        ),
+    )
+
+    assert "## Failed Stage\nSonarQube Analysis & Quality Gate" in report
+    assert "## Category\ncredentials-configuration" in report
+    assert "Jenkins could not locate the configured SonarQube Secret Text credential." in report
+    assert "Could not find credentials entry with ID" in report
+
+
+def test_successful_tests_then_sonarqube_credential_failure_is_not_testing(tmp_path):
+    report, _ = run_analysis(
+        tmp_path,
+        "jenkins",
+        "\n".join(
+            [
+                "[Pipeline] { (Run Tests & Generate Coverage)",
+                "40 passed in 12.34s",
+                "Unit tests completed successfully. Coverage and JUnit reports have been generated.",
+                "[Pipeline] { (SonarQube Analysis & Quality Gate)",
+                "Stage: SonarQube Analysis & Quality Gate",
+                "Status: FAILED",
+                "Category: credentials-configuration",
+                "Error: Required Jenkins SonarQube credential was not found",
+                "Expected credential ID: sonar-token",
+            ]
+        ),
+    )
+
+    assert "## Failed Stage\nSonarQube Analysis & Quality Gate" in report
+    assert "## Category\ncredentials-configuration" in report
+    assert "Required Jenkins SonarQube credential was not found" in report
+    assert "## Category\ntesting" not in report
+
+
+def test_sonarqube_evidence_does_not_include_secret_values(tmp_path):
+    report, _ = run_analysis(
+        tmp_path,
+        "jenkins",
+        "\n".join(
+            [
+                "Stage: SonarQube Analysis & Quality Gate",
+                "Error: Required Jenkins SonarQube credential was not found",
+                "Expected credential ID: sonar-token",
+                "password: example-sensitive-value",
+            ]
+        ),
+    )
+
+    assert "Required Jenkins SonarQube credential was not found" in report
+    assert "example-sensitive-value" not in report
+
+
+def test_redaction_failure_does_not_archive_raw_log_as_sanitized_log(tmp_path, monkeypatch):
+    raw_log = tmp_path / "raw.log"
+    sanitized_log = tmp_path / "sanitized.log"
+    raw_log.write_text("MYSQL_PASSWORD=example-sensitive-value", encoding="utf-8")
+
+    def broken_redactor(_text):
+        raise RuntimeError("redactor failed")
+
+    monkeypatch.setattr(redaction_module, "redact_sensitive_data", broken_redactor)
+
+    write_redacted_file(raw_log, sanitized_log)
+
+    sanitized = sanitized_log.read_text(encoding="utf-8")
+    assert sanitized == SAFE_REDACTION_FAILURE_MESSAGE
+    assert "example-sensitive-value" not in sanitized
 
 
 def test_ai_diagnostic_self_test_report_shape_and_filename(tmp_path):

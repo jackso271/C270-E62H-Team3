@@ -182,7 +182,7 @@ pipeline {
                         } > artifacts/production_jenkins_failure.raw.log
                     fi
 
-                    PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -c 'from pathlib import Path; from devops.ai_agent.redact_sensitive_data import redact_sensitive_data; raw = Path("artifacts/production_jenkins_failure.raw.log").read_text(encoding="utf-8", errors="replace"); Path("artifacts/production_jenkins_failure.log").write_text(redact_sensitive_data(raw), encoding="utf-8")' || cp artifacts/production_jenkins_failure.raw.log artifacts/production_jenkins_failure.log
+                    PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -c 'from devops.ai_agent.redact_sensitive_data import write_redacted_file; write_redacted_file("artifacts/production_jenkins_failure.raw.log", "artifacts/production_jenkins_failure.log")' || printf '%s\n' 'Sanitized diagnostic log unavailable because redaction failed. Raw log was not archived.' > artifacts/production_jenkins_failure.log
                     rm -f artifacts/production_jenkins_failure.raw.log
 
                     PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \

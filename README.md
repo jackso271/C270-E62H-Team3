@@ -94,6 +94,20 @@ The `-v` option permanently removes local MySQL, Jenkins, SonarQube, SonarQube P
 
 The Jenkins pipelines still use Secret File credentials. Upload a filled `.env.staging` as `rpmarketplace-staging-env` and a filled `.env.production` as `rpmarketplace-production-env`. Safe placeholder examples are committed as `.env.staging.example` and `.env.production.example`.
 
+### Jenkins SonarQube credential
+
+The staging pipeline also requires a Jenkins Secret Text credential for SonarQube analysis. The credential ID is case-sensitive and must be exactly `sonar-token`. The token value must never be committed to this repository.
+
+For a fresh Compose-managed Jenkins home, `jenkins/casc/jenkins.yaml` defines `sonar-token` from the runtime `SONAR_TOKEN` environment variable. Existing Jenkins home volumes may not be overwritten by Configuration as Code, so create or confirm the credential manually:
+
+1. Open Jenkins.
+2. Go to Manage Jenkins -> Credentials -> System -> Global credentials -> Add Credentials.
+3. Set Kind to `Secret text`.
+4. Set Secret to the SonarQube token value.
+5. Set ID to `sonar-token`.
+6. Set Description to `SonarQube token for staging pipeline`.
+7. Save the credential without printing or storing the token in source control.
+
 ### Existing Jenkins data volume
 
 The Compose-managed Jenkins service reuses the existing Jenkins home volume through:
@@ -462,6 +476,7 @@ Staging pipeline stages in `Jenkinsfile.staging`:
 | `Clean Diagnostic Artifacts` | Recreates `artifacts/` and `artifacts/ai-diagnostics/` for the current build. |
 | `Prepare Staging Environment` | Copies the Jenkins Secret File credential `rpmarketplace-staging-env` to `$WORKSPACE/.env` without printing its contents. |
 | `Run Tests & Generate Coverage` | Creates `$WORKSPACE/.venv-ci`, installs dependencies inside it, runs pytest, and writes `artifacts/staging_test.log`, `artifacts/junit.xml`, `artifacts/coverage.xml`, and `artifacts/htmlcov/`. |
+| `SonarQube Analysis & Quality Gate` | Runs SonarQube scanner with Jenkins Secret Text credential `sonar-token`, writes `artifacts/staging_sonarqube.log`, and stops the pipeline before deployment if credential configuration or the quality gate fails. |
 | `Validate Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml --syntax-check` and writes `artifacts/staging_ansible_validate.log`. |
 | `Deploy to Staging with Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml` from the Jenkins workspace and writes `artifacts/staging_ansible_deploy.log`. |
 
