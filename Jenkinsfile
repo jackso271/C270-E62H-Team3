@@ -139,6 +139,14 @@ pipeline {
         }
 
         stage('Deploy ZAP Test Environment') {
+
+            when {
+                expression {
+                    env.BRANCH_NAME == 'staging-environment' ||
+                    env.GIT_BRANCH == 'origin/staging-environment'
+                }
+            }
+
             steps {
                 sh '''
                 mkdir -p artifacts/ai-diagnostics
@@ -152,6 +160,14 @@ pipeline {
         }
         
         stage('OWASP ZAP Security Scan') {
+
+            when {
+                expression {
+                    env.BRANCH_NAME == 'staging-environment' ||
+                    env.GIT_BRANCH == 'origin/staging-environment'
+                }
+            }
+
             steps {
                 sh '''
                     set -e -o pipefail
@@ -199,6 +215,14 @@ pipeline {
         }
 
         stage('Confirm ZAP Test URL') {
+
+            when {
+                expression {
+                    env.BRANCH_NAME == 'staging-environment' ||
+                    env.GIT_BRANCH == 'origin/staging-environment'
+                }
+            }
+
             steps {
                 echo 'ZAP test environment is available at: http://localhost:5005'
             }
