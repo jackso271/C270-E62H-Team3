@@ -154,7 +154,7 @@ pipeline {
         stage('OWASP ZAP Security Scan') {
             steps {
                 sh '''
-                    set -o pipefail
+                    set -e -o pipefail
 
                     echo "Starting OWASP ZAP baseline scan"
                     
@@ -163,7 +163,7 @@ pipeline {
 
                     docker run --rm \
                         --network rpmarketplace-network \
-                        -v "$(pwd)/artifacts:/zap/wrk/:rw" \
+                        -v "$(pwd)/artifacts/zap:/zap/wrk/:rw" \
                         ghcr.io/zaproxy/zaproxy:stable \
                         zap-baseline.py \
                         -t http://rpmarketplace-zap:5000 \
