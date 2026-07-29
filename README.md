@@ -94,6 +94,70 @@ The `-v` option permanently removes local MySQL, Jenkins, SonarQube, SonarQube P
 
 The Jenkins pipelines still use Secret File credentials. Upload a filled `.env.staging` as `rpmarketplace-staging-env` and a filled `.env.production` as `rpmarketplace-production-env`. Safe placeholder examples are committed as `.env.staging.example` and `.env.production.example`.
 
+### Jenkins SonarQube credential
+
+The staging pipeline also requires a Jenkins Secret Text credential for SonarQube analysis. The credential ID is case-sensitive and must be exactly `sonar-token`. The token value must never be committed to this repository.
+
+For a fresh Compose-managed Jenkins home, `jenkins/casc/jenkins.yaml` defines `sonar-token` from the runtime `SONAR_TOKEN` environment variable. Existing Jenkins home volumes may not be overwritten by Configuration as Code, so create or confirm the credential manually:
+
+1. Open Jenkins.
+2. Go to Manage Jenkins -> Credentials -> System -> Global credentials -> Add Credentials.
+3. Set Kind to `Secret text`.
+4. Set Secret to the SonarQube token value.
+5. Set ID to `sonar-token`.
+6. Set Description to `SonarQube token for staging pipeline`.
+7. Save the credential without printing or storing the token in source control.
+
+### Existing Jenkins data volume
+
+The Compose-managed Jenkins service reuses the existing Jenkins home volume through:
+
+```env
+JENKINS_VOLUME_NAME=jenkins-data
+```
+
+Do not run `docker compose down -v`, `docker volume rm`, or Docker volume prune commands unless Jenkins data has already been backed up and intentionally reset.
+
+For this workstation, the previous Jenkins container was renamed to `jenkins_server-backup` after backing up `jenkins-data` to `jenkins-home-backup.tar.gz`. Keep both until the Compose-managed Jenkins has completed a successful staging build.
+
+Rollback:
+
+```powershell
+docker compose --profile ci stop jenkins
+docker start jenkins_server-backup
+```
+
+Docker Desktop may expose `/var/run/docker.sock` with group ID `0`. The Compose service uses:
+
+```env
+DOCKER_SOCKET_GID=0
+```
+
+Adjust that value only if `stat -c '%g' /var/run/docker.sock` inside the Jenkins container shows a different socket group.
+
+Jenkins Configuration as Code files are present under `jenkins/casc/`, but Compose does not auto-apply them over the existing Jenkins home. This avoids overwriting manually configured jobs, users, or credentials during migration.
+
+The Jenkins image includes Ansible, Git, Docker CLI support through the Docker package, Python 3, `python3-pip`, and `python3-venv`. Rebuild the Jenkins image after changes to `Dockerfile.jenkins`, `jenkins/plugins.txt`, or `jenkins/casc/`:
+
+```bash
+docker compose --profile ci build jenkins
+docker compose --profile ci up -d jenkins
+```
+
+### AI diagnostics configuration
+
+The read-only AI diagnostic agent is disabled for external AI by default and uses the local rule-based provider unless configured otherwise:
+
+```env
+AI_DIAGNOSTICS_ENABLED=false
+AI_PROVIDER=local
+AI_DIAGNOSTICS_MAX_CHARS=12000
+AI_DIAGNOSTICS_TIMEOUT=10
+AI_DIAGNOSTICS_OPENAI_MODEL=gpt-4.1-mini
+```
+
+Only set `AI_PROVIDER=openai` when `OPENAI_API_KEY` is supplied securely at runtime through Jenkins Credentials or another secret store. Do not commit external AI keys, database passwords, session secrets, 2FA secrets, Jenkins credentials, or filled environment files. Diagnostic reports are advisory and read-only; they do not run remediation commands, retry deployments, or convert failed builds into successful builds.
+
 ## Main Application Features
 
 | User Area | Implemented Features |
@@ -409,9 +473,16 @@ Staging pipeline stages in `Jenkinsfile.staging`:
 | Stage | What It Does |
 | --- | --- |
 | `Checkout Source Code` | Runs `checkout scm` for the staging job's configured SCM branch. |
+| `Clean Diagnostic Artifacts` | Recreates `artifacts/` and `artifacts/ai-diagnostics/` for the current build. |
 | `Prepare Staging Environment` | Copies the Jenkins Secret File credential `rpmarketplace-staging-env` to `$WORKSPACE/.env` without printing its contents. |
-| `Validate Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml --syntax-check`. |
-| `Deploy to Staging with Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml` from the Jenkins workspace. |
+| `Run Tests & Generate Coverage` | Creates `$WORKSPACE/.venv-ci`, installs dependencies inside it, runs pytest, and writes `artifacts/staging_test.log`, `artifacts/junit.xml`, `artifacts/coverage.xml`, and `artifacts/htmlcov/`. |
+| `SonarQube Analysis & Quality Gate` | Runs SonarQube scanner with Jenkins Secret Text credential `sonar-token`, writes `artifacts/staging_sonarqube.log`, and stops the pipeline before deployment if credential configuration or the quality gate fails. |
+| `Validate Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml --syntax-check` and writes `artifacts/staging_ansible_validate.log`. |
+| `Deploy to Staging with Ansible` | Runs `ansible-playbook -i ansible/hosts ansible/deploy_staging_playbook.yaml` from the Jenkins workspace and writes `artifacts/staging_ansible_deploy.log`. |
+
+On failure, the staging pipeline collects available `artifacts/*.log` files into a redacted `artifacts/staging_jenkins_failure.log`, creates `artifacts/ai-diagnostics/staging_jenkins_report.md`, and creates separate Ansible reports when Ansible logs exist. If no stage log exists, the diagnostic input contains only non-secret build metadata and a message that no captured stage log exists. Diagnostic generation is non-blocking and Jenkins still reports the original failure.
+
+Jenkins publishes JUnit from `artifacts/junit.xml`, archives coverage from `artifacts/coverage.xml` and `artifacts/htmlcov/`, archives diagnostic Markdown reports, and removes the temporary workspace `.env` during post actions.
 
 Jenkins was recovered using the existing persistent `jenkins-data`. Do not recreate, delete, or overwrite Jenkins data during normal setup or documentation steps.
 
