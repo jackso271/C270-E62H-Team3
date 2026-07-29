@@ -154,18 +154,22 @@ pipeline {
         stage('OWASP ZAP Security Scan') {
             steps {
                 sh '''
+                    set -o pipefail
+
                     echo "Starting OWASP ZAP baseline scan"
                     
-                    mkdir -p artifacts
+                    mkdir -p artifacts/zap
+                    chmod 777 artifacts/zap
 
                     docker run --rm \
-                        --add-host=host.docker.internal:host-gateway \
+                        --network rpmarketplace-network \
                         -v "$(pwd)/artifacts:/zap/wrk/:rw" \
                         ghcr.io/zaproxy/zaproxy:stable \
                         zap-baseline.py \
-                        -t http://host.docker.internal:5001 \
+                        -t http://rpmarketplace-zap:5000 \
                         -r zap-report.html \
                         -I
+                        2>&1 | tee artifacts/zap/zap_scan.log
                     
                     echo "OWASP ZAP scan completed."
                 '''

@@ -49,8 +49,8 @@
           - rpmarketplace-zap
           - --env-file
           - "{{ playbook_dir }}/../.env"
-          - --add-host
-          - host.docker.internal:host-gateway
+          - --network
+          - rpmarketplace-network
           - -p
           - "5001:5000"
           - rp-marketplace-zap
