@@ -161,17 +161,33 @@ pipeline {
                     mkdir -p artifacts/zap
                     chmod 777 artifacts/zap
 
-                    docker run --rm \
+                    docker rm -f zap-scanner 2>/dev/null || true
+                    docker volume rm zap-work 2>/dev/null ||true
+                    docker volume create zap-work
+
+                    docker run \
+                        --name zap-scanner \
+                        --user root \
                         --network rpmarketplace-network \
-                        -v "$(pwd)/artifacts/zap:/zap/wrk/:rw" \
+                        -v zap-work:/zap/wrk \
                         ghcr.io/zaproxy/zaproxy:stable \
                         zap-baseline.py \
                         -t http://rpmarketplace-zap:5000 \
                         -r zap-report.html \
-                        -I
+                        -I \
+                        --autooff \
+                        -T 5 \
                         2>&1 | tee artifacts/zap/zap_scan.log
                     
-                    echo "OWASP ZAP scan completed."
+                    docker cp zap-scanner:/zap/wrk/zap-report.html \
+                        artifacts/zap/zap-report.html
+                    
+                    test -s artifacts/zap/zap-report.html
+
+                    docker rm -f zap-scanner
+                    docker volume rm zap-work
+
+                    echo "OWASP ZAP scan and report generation completed."
                 '''
             }
         }
