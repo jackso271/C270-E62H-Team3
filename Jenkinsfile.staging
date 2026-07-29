@@ -272,20 +272,18 @@ EOF
 
                     cleanup(){
                         docker rm -f zap-scanner-staging 2>/dev/null || true
-                        docker volume rm zap-work-staging 2>/dev/null || true
                     }
 
                     trap cleanup EXIT
 
                     cleanup
-                    docker volume create zap-work-staging
 
                     docker run \
+                        --rm \
                         --name zap-scanner-staging \
-                        --user root \
                         --network rpmarketplace-network \
                         --add-host host.docker.internal:host-gateway \
-                        -v zap-work-staging:/zap/wrk \
+                        -v "$WORKSPACE/artifacts/zap:/zap/wrk" \
                         ghcr.io/zaproxy/zaproxy:stable \
                         zap-baseline.py \
                         -t http://host.docker.internal:5002/ \
@@ -295,13 +293,7 @@ EOF
                         -T 10 \
                         2>&1 | tee artifacts/zap/staging-zap-scan.log
 
-                    docker cp zap-scanner-staging:/zap/wrk/staging-zap-report.html \
-                        artifacts/zap/staging-zap-report.html
-
                     test -s artifacts/zap/staging-zap-report.html
-
-                    docker rm -f zap-scanner-staging
-                    docker volume rm zap-work-staging
 
                     echo "OWASP ZAP staging scan and report generation completed."
                 '''
