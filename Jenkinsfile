@@ -207,7 +207,7 @@ pipeline {
             )
 
             archiveArtifacts(
-                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/junit.xml,artifacts/*.log,artifacts/ai-diagnostics/*.md,artifacts/zap-report.html',
+                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/junit.xml,artifacts/*.log,artifacts/ai-diagnostics/*.md,artifacts/zap/zap-report.html,artifacts/zap/zap_scan.log',
                 allowEmptyArchive: true
             )
 
