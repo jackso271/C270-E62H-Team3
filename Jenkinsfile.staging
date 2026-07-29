@@ -277,18 +277,16 @@ EOF
                     trap cleanup EXIT
 
                     cleanup
-                    ZAP_WORKSPACE="${WORKSPACE#/var/jenkins_home/}"
-
                     docker run \
                         --rm \
                         --name zap-scanner-staging \
                         --network rpmarketplace-network \
                         --add-host host.docker.internal:host-gateway \
-                        -v jenkins-data:/zap/wrk \
+                        --mount type=volume,src=jenkins-data,dst=/zap/wrk,volume-subpath=workspace/RPMarketplace-Staging/artifacts/zap \
                         ghcr.io/zaproxy/zaproxy:stable \
                         zap-baseline.py \
                         -t http://host.docker.internal:5002/ \
-                        -r "$ZAP_WORKSPACE/artifacts/zap/staging-zap-report.html" \
+                        -r staging-zap-report.html \
                         -I \
                         --autooff \
                         -T 10 \
