@@ -8,6 +8,7 @@ CATEGORIES = [
     "testing",
     "linting",
     "security-scan",
+    "credentials-configuration",
     "docker-build",
     "docker-runtime",
     "database",
@@ -23,6 +24,16 @@ CATEGORIES = [
 
 
 CATEGORY_PATTERNS = [
+    (
+        "credentials-configuration",
+        [
+            r"could not find credentials entry with id",
+            r"\bsonar-token\b",
+            r"missing jenkins credential",
+            r"credential not found",
+            r"required jenkins sonarqube credential was not found",
+        ],
+    ),
     ("security-scan", [r"\btrivy\b", r"\bbandit\b", r"\bsafety\b", r"vulnerabilit"]),
     ("git", [r"fatal:.*not a git", r"could not read from remote repository", r"git .* failed"]),
     (
@@ -66,6 +77,7 @@ RISK_BY_CATEGORY = {
     "permissions": "High",
     "ssh": "High",
     "security-scan": "High",
+    "credentials-configuration": "Medium",
     "deployment": "High",
     "ansible": "High",
     "git": "Medium",
