@@ -161,8 +161,14 @@ pipeline {
                     mkdir -p artifacts/zap
                     chmod 777 artifacts/zap
 
-                    docker rm -f zap-scanner 2>/dev/null || true
-                    docker volume rm zap-work 2>/dev/null ||true
+                    cleanup(){
+                        docker rm -f zap-scanner 2>/dev/null || true
+                        docker volume rm zap-work 2>/dev/null || true
+                    }
+                    
+                    trap cleanup EXIT
+
+                    cleanup
                     docker volume create zap-work
 
                     docker run \
@@ -176,7 +182,7 @@ pipeline {
                         -r zap-report.html \
                         -I \
                         --autooff \
-                        -T 5 \
+                        -T 10 \
                         2>&1 | tee artifacts/zap/zap_scan.log
                     
                     docker cp zap-scanner:/zap/wrk/zap-report.html \
