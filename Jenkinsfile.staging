@@ -228,6 +228,91 @@ EOF
                 '''
             }
         }
+
+        stage('Validate ZAP Ansible Playbook') {
+            steps {
+                sh '''
+                mkdir -p artifacts/ai-diagnostics
+
+                bash -lc 'set -o pipefail; ansible-playbook \
+                    -i ansible/hosts \
+                    ansible/deploy_docker_zap_playbook.yaml \
+                    --syntax-check \
+                    2>&1 | tee artifacts/staging_zap_ansible_validate.log'
+                '''
+            }
+        }
+
+        stage('Deploy ZAP Test Environment') {
+            steps {
+                sh '''
+                mkdir -p artifacts/ai-diagnostics
+
+                bash -lc 'set -o pipefail; ansible-playbook \
+                    -i ansible/hosts \
+                    ansible/deploy_docker_zap_playbook.yaml \
+                    -e zap_environment_label=staging \
+                    -e zap_container_name=rpmarketplace-zap-staging \
+                    -e zap_image_name=rp-marketplace-zap-staging \
+                    -e zap_host_port=5006 \
+                    2>&1 | tee artifacts/staging_zap_ansible_deploy.log'
+                '''
+            }
+        }
+
+        stage('OWASP ZAP Security Scan') {
+            steps {
+                sh '''
+                    set -e -o pipefail
+
+                    echo "Starting OWASP ZAP baseline scan against staging"
+
+                    mkdir -p artifacts/zap
+                    chmod 777 artifacts/zap
+
+                    cleanup(){
+                        docker rm -f zap-scanner-staging 2>/dev/null || true
+                        docker volume rm zap-work-staging 2>/dev/null || true
+                    }
+
+                    trap cleanup EXIT
+
+                    cleanup
+                    docker volume create zap-work-staging
+
+                    docker run \
+                        --name zap-scanner-staging \
+                        --user root \
+                        --network rpmarketplace-network \
+                        --add-host host.docker.internal:host-gateway \
+                        -v zap-work-staging:/zap/wrk \
+                        ghcr.io/zaproxy/zaproxy:stable \
+                        zap-baseline.py \
+                        -t http://host.docker.internal:5002/ \
+                        -r staging-zap-report.html \
+                        -I \
+                        --autooff \
+                        -T 10 \
+                        2>&1 | tee artifacts/zap/staging-zap-scan.log
+
+                    docker cp zap-scanner-staging:/zap/wrk/staging-zap-report.html \
+                        artifacts/zap/staging-zap-report.html
+
+                    test -s artifacts/zap/staging-zap-report.html
+
+                    docker rm -f zap-scanner-staging
+                    docker volume rm zap-work-staging
+
+                    echo "OWASP ZAP staging scan and report generation completed."
+                '''
+            }
+        }
+
+        stage('Confirm ZAP Test URL') {
+            steps {
+                echo 'ZAP staging target is available at: http://host.docker.internal:5002/'
+            }
+        }
     }
 
     post {
@@ -288,7 +373,7 @@ EOF
                             --output-file artifacts/ai-diagnostics/staging_diagnostic_self_test_report.md || true
                     fi
 
-                    for log_file in artifacts/staging_ansible_*.log; do
+                    for log_file in artifacts/staging_ansible_*.log artifacts/staging_zap_ansible_*.log artifacts/zap/*.log; do
                         if [ -f "$log_file" ]; then
                             report_name="$(basename "$log_file" .log)_report.md"
                             PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
@@ -313,7 +398,7 @@ EOF
             )
 
             archiveArtifacts(
-                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/junit.xml,artifacts/*.log,artifacts/ai-diagnostics/*.md',
+                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/junit.xml,artifacts/*.log,artifacts/ai-diagnostics/*.md,artifacts/zap/staging-zap-report.html,artifacts/zap/staging-zap-scan.log',
                 allowEmptyArchive: true
             )
 
