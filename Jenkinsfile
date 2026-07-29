@@ -200,7 +200,7 @@ pipeline {
 
         stage('Confirm ZAP Test URL') {
             steps {
-                echo 'ZAP test environment is available at: http://localhost:5001'
+                echo 'ZAP test environment is available at: http://localhost:5005'
             }
         }
     }

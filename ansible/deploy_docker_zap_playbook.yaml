@@ -39,7 +39,7 @@
           - rp-marketplace-zap
           - "{{ playbook_dir }}/.."
 
-    - name: Run ZAP testing container on port 5001
+    - name: Run ZAP testing container on port 5005
       command:
         argv:
           - docker
@@ -52,7 +52,7 @@
           - --network
           - rpmarketplace-network
           - -p
-          - "5001:5000"
+          - "5005:5000"
           - rp-marketplace-zap
 
     - name: Verify ZAP testing container is running
