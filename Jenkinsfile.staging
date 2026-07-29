@@ -21,6 +21,7 @@ Reports
 - JUnit Report
 - Coverage Report
 - HTML Coverage
+- SonarQube Quality Gate
 - AI Diagnostics (if generated)
 
 ====================================================
@@ -108,6 +109,45 @@ pipeline {
                 '''
 
                 echo 'Unit tests completed successfully. Coverage and JUnit reports have been generated.'
+            }
+        }
+
+        /*
+        * =====================================================
+        * Run SonarQube static code analysis after the tests.
+        * The pipeline stops before deployment if the
+        * SonarQube Quality Gate fails.
+        * =====================================================
+        */
+
+        stage('SonarQube Analysis & Quality Gate') {
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'sonar-token',
+                        variable: 'SONAR_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                    mkdir -p artifacts
+                    : > artifacts/staging_sonarqube.log
+
+                    bash -lc 'set -e -o pipefail;
+                    docker run --rm \
+                        --network rpmarketplace-network \
+                        --volume jenkins-data:/var/jenkins_home \
+                        --workdir "$WORKSPACE" \
+                        --user "$(id -u):$(id -g)" \
+                        --env SONAR_HOST_URL \
+                        --env SONAR_TOKEN \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.qualitygate.wait=true \
+                        -Dsonar.qualitygate.timeout=300 \
+                        2>&1 | tee artifacts/staging_sonarqube.log'
+                    '''
+
+                    echo 'SonarQube analysis completed and the Quality Gate passed.'
+                }
             }
         }
 
