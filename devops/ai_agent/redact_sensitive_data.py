@@ -1,7 +1,11 @@
 ﻿import re
+from pathlib import Path
 
 
 SECRET_VALUE = "[REDACTED]"
+SAFE_REDACTION_FAILURE_MESSAGE = (
+    "Sanitized diagnostic log unavailable because redaction failed. Raw log was not archived."
+)
 
 
 SECRET_NAME_PATTERN = (
@@ -37,3 +41,15 @@ def redact_sensitive_data(text):
     redacted = REDACTION_PATTERNS[6].sub(lambda m: f"{m.group(1)}={SECRET_VALUE}", redacted)
     redacted = REDACTION_PATTERNS[7].sub(lambda m: f"{m.group(1)}={SECRET_VALUE}", redacted)
     return redacted
+
+
+def safe_redact_sensitive_data(text):
+    try:
+        return redact_sensitive_data(text)
+    except Exception:
+        return SAFE_REDACTION_FAILURE_MESSAGE
+
+
+def write_redacted_file(input_file, output_file):
+    raw = Path(input_file).read_text(encoding="utf-8", errors="replace")
+    Path(output_file).write_text(safe_redact_sensitive_data(raw), encoding="utf-8")
