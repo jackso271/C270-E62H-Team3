@@ -2,13 +2,6 @@
 - name: Deploy RP Marketplace container for OWASP ZAP testing
   hosts: all
   gather_facts: false
-  vars:
-    zap_environment_label: ZAP
-    zap_container_name: rpmarketplace-zap
-    zap_image_name: rp-marketplace-zap
-    zap_host_port: "5005"
-    zap_container_port: "5000"
-    zap_network_name: rpmarketplace-network
 
   tasks:
     - name: Verify Docker is installed
@@ -26,58 +19,50 @@
       when: not production_env_file.stat.exists
 
     - name: Stop existing ZAP testing container if it exists
-      command:
-        argv:
-          - docker
-          - stop
-          - "{{ zap_container_name }}"
+      command: docker stop rpmarketplace-zap
       register: stop_container
       failed_when: false
       changed_when: stop_container.rc == 0
 
     - name: Remove existing ZAP testing container if it exists
-      command:
-        argv:
-          - docker
-          - rm
-          - "{{ zap_container_name }}"
+      command: docker rm rpmarketplace-zap
       register: remove_container
       failed_when: false
       changed_when: remove_container.rc == 0
 
-    - name: Build Docker image for {{ zap_environment_label }} testing
+    - name: Build Docker image for ZAP testing
       command:
         argv:
           - docker
           - build
           - -t
-          - "{{ zap_image_name }}"
+          - rp-marketplace-zap
           - "{{ playbook_dir }}/.."
 
-    - name: Run {{ zap_environment_label }} testing container on port {{ zap_host_port }}
+    - name: Run ZAP testing container on port 5005
       command:
         argv:
           - docker
           - run
           - -d
           - --name
-          - "{{ zap_container_name }}"
+          - rpmarketplace-zap
           - --env-file
           - "{{ playbook_dir }}/../.env"
           - --network
-          - "{{ zap_network_name }}"
+          - rpmarketplace-network
           - -p
-          - "{{ zap_host_port }}:{{ zap_container_port }}"
-          - "{{ zap_image_name }}"
+          - "5005:5000"
+          - rp-marketplace-zap
 
-    - name: Verify {{ zap_environment_label }} testing container is running
+    - name: Verify ZAP testing container is running
       command:
         argv:
           - docker
           - inspect
           - -f
           - "{{ '{{' }}.State.Running{{ '}}' }}"
-          - "{{ zap_container_name }}"
+          - rpmarketplace-zap
       register: container_status
       retries: 10
       delay: 3
