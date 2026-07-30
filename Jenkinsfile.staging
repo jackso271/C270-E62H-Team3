@@ -1,8 +1,46 @@
+/*
+ * =====================================================
+ * CI Build Notification Helper
+ * Displays a build summary at the end of the pipeline.
+ * =====================================================
+ */
+def printBuildNotification(String status) {
+
+    echo """
+====================================================
+RP Marketplace CI Build Notification
+====================================================
+
+Project      : ${env.JOB_NAME}
+Build Number : ${env.BUILD_NUMBER}
+Branch       : ${env.BRANCH_NAME ?: 'main'}
+Status       : ${status}
+Build URL    : ${env.BUILD_URL}
+
+Reports
+- JUnit Report
+- Coverage Report
+- HTML Coverage
+- SonarQube Quality Gate
+- AI Diagnostics (if generated)
+
+====================================================
+"""
+}
+
 pipeline {
     agent any
 
     options {
         skipDefaultCheckout(true)
+    }
+
+    parameters {
+        booleanParam(
+            name: 'TEST_AI_DIAGNOSTIC',
+            defaultValue: false,
+            description: 'Safely trigger a simulated pipeline failure to test AI diagnostics.'
+        )
     }
 
     stages {
@@ -68,6 +106,136 @@ pipeline {
             }
         }
         
+        /*
+        * =====================================================
+        * Run automated unit tests and generate
+        * coverage and JUnit reports.
+        *
+        * This stage is executed before deployment to ensure
+        * only tested code is deployed.
+        * =====================================================
+        */
+
+        stage('Run Tests & Generate Coverage') {
+            steps {
+                sh '''
+                mkdir -p artifacts
+                : > artifacts/staging_test.log
+
+                bash -lc 'set -e -o pipefail;
+                CI_VENV="$WORKSPACE/.venv-ci";
+                rm -rf "$CI_VENV";
+                python3 -m venv "$CI_VENV" 2>&1 | tee -a artifacts/staging_test.log;
+                "$CI_VENV/bin/python" -m pip install --upgrade pip 2>&1 | tee -a artifacts/staging_test.log;
+                "$CI_VENV/bin/python" -m pip install -r requirements.txt 2>&1 | tee -a artifacts/staging_test.log;
+
+                "$CI_VENV/bin/python" -m pytest \
+                    --cov=. \
+                    --cov-report=term \
+                    --cov-report=xml:artifacts/coverage.xml \
+                    --cov-report=html:artifacts/htmlcov \
+                    --junitxml=artifacts/junit.xml \
+                    2>&1 | tee -a artifacts/staging_test.log'
+                '''
+
+                echo 'Unit tests completed successfully. Coverage and JUnit reports have been generated.'
+            }
+        }
+
+        /*
+        * =====================================================
+        * Run SonarQube static code analysis after the tests.
+        * The pipeline stops before deployment if the
+        * SonarQube Quality Gate fails.
+        * =====================================================
+        */
+
+        stage('SonarQube Analysis & Quality Gate') {
+            steps {
+                script {
+                    try {
+                        withCredentials([
+                            string(
+                                credentialsId: 'sonar-token',
+                                variable: 'SONAR_TOKEN'
+                            )
+                        ]) {
+                            sh '''
+                            mkdir -p artifacts
+                            : > artifacts/staging_sonarqube.log
+
+                            bash -lc 'set -e -o pipefail;
+                            docker run --rm \
+                                --network rpmarketplace-network \
+                                --volume jenkins-data:/var/jenkins_home \
+                                --workdir "$WORKSPACE" \
+                                --user "$(id -u):$(id -g)" \
+                                --env SONAR_HOST_URL \
+                                --env SONAR_TOKEN \
+                                sonarsource/sonar-scanner-cli \
+                                -Dsonar.qualitygate.wait=true \
+                                -Dsonar.qualitygate.timeout=300 \
+                                2>&1 | tee artifacts/staging_sonarqube.log'
+                            '''
+
+                            echo 'SonarQube analysis completed and the Quality Gate passed.'
+                        }
+                    } catch (sonarError) {
+                        def sonarErrorMessage = sonarError.toString()
+                        if (
+                            sonarErrorMessage.contains('Could not find credentials entry with ID')
+                            && sonarErrorMessage.contains('sonar-token')
+                        ) {
+                            sh '''
+                            mkdir -p artifacts
+                            cat > artifacts/staging_sonarqube.log <<'EOF'
+Stage: SonarQube Analysis & Quality Gate
+Status: FAILED
+Category: credentials-configuration
+Error: Required Jenkins SonarQube credential was not found
+Expected credential ID: sonar-token
+EOF
+                            '''
+                        } else {
+                            sh '''
+                            mkdir -p artifacts
+                            if [ ! -s artifacts/staging_sonarqube.log ]; then
+                                cat > artifacts/staging_sonarqube.log <<'EOF'
+Stage: SonarQube Analysis & Quality Gate
+Status: FAILED
+Category: sonarqube-analysis
+Error: SonarQube scanner or quality gate failed. Review the sanitized Jenkins console output and scanner log.
+EOF
+                            fi
+                            '''
+                        }
+                        throw sonarError
+                    }
+                }
+            }
+        }
+
+        stage('AI Diagnostic Self-Test') {
+            when {
+                expression { params.TEST_AI_DIAGNOSTIC == true }
+            }
+            steps {
+                sh '''
+                mkdir -p artifacts
+                cat > artifacts/staging_diagnostic_self_test.log <<'EOF'
+Stage: AI Diagnostic Self-Test
+Status: FAILED
+Error: Simulated dependency installation failure
+error: externally-managed-environment
+Python package installation was blocked by a PEP 668 managed environment.
+Recommended approach: create and use a Python virtual environment.
+This is an intentional diagnostic test. No real deployment error occurred.
+EOF
+                exit 1
+                '''
+            }
+        }
+
         stage('Validate Ansible') {
             steps {
                 sh '''
@@ -90,42 +258,76 @@ pipeline {
                 '''
             }
         }
+
     }
 
     post {
         success {
             echo 'Staging deployment completed successfully.'
+
+            printBuildNotification("SUCCESS")
         }
 
         failure {
+
             echo 'Staging pipeline failed.'
             script {
                 try {
                     sh '''
                     mkdir -p artifacts/ai-diagnostics
+                    AI_PYTHON="$WORKSPACE/.venv-ci/bin/python"
+                    if [ ! -x "$AI_PYTHON" ]; then
+                        AI_PYTHON=python3
+                    fi
+
+                    rm -f artifacts/staging_jenkins_failure.log artifacts/staging_jenkins_failure.raw.log
+
                     if ls artifacts/*.log >/dev/null 2>&1; then
-                        rm -f artifacts/staging_jenkins_failure.log
                         for log_file in artifacts/*.log; do
-                            if [ -f "$log_file" ] && [ "$log_file" != "artifacts/staging_jenkins_failure.log" ]; then
+                            if [ -f "$log_file" ] && [ "$log_file" != "artifacts/staging_jenkins_failure.log" ] && [ "$log_file" != "artifacts/staging_jenkins_failure.raw.log" ]; then
                                 cat "$log_file"
                             fi
-                        done > artifacts/staging_jenkins_failure.log
-
-                        PYTHONPATH="$WORKSPACE" python3 -m devops.ai_agent.analyse_failure \
-                            --source jenkins \
-                            --input-file artifacts/staging_jenkins_failure.log \
-                            --output-file artifacts/ai-diagnostics/staging_jenkins_report.md || true
-
-                        for log_file in artifacts/staging_ansible_*.log; do
-                            if [ -f "$log_file" ]; then
-                                report_name="$(basename "$log_file" .log)_report.md"
-                                PYTHONPATH="$WORKSPACE" python3 -m devops.ai_agent.analyse_failure \
-                                    --source ansible \
-                                    --input-file "$log_file" \
-                                    --output-file "artifacts/ai-diagnostics/$report_name" || true
-                            fi
-                        done
+                        done > artifacts/staging_jenkins_failure.raw.log
+                    else
+                        {
+                            echo "No captured stage log exists."
+                            echo "Job: ${JOB_NAME:-unknown}"
+                            echo "Build number: ${BUILD_NUMBER:-unknown}"
+                            echo "Build URL: ${BUILD_URL:-unknown}"
+                        } > artifacts/staging_jenkins_failure.raw.log
                     fi
+
+                    PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -c 'from devops.ai_agent.redact_sensitive_data import write_redacted_file; write_redacted_file("artifacts/staging_jenkins_failure.raw.log", "artifacts/staging_jenkins_failure.log")' || printf '%s\n' 'Sanitized diagnostic log unavailable because redaction failed. Raw log was not archived.' > artifacts/staging_jenkins_failure.log
+                    rm -f artifacts/staging_jenkins_failure.raw.log
+
+                    PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
+                        --source jenkins \
+                        --input-file artifacts/staging_jenkins_failure.log \
+                        --output-file artifacts/ai-diagnostics/staging_jenkins_report.md || true
+
+                    if [ -f artifacts/staging_sonarqube.log ]; then
+                        PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
+                            --source jenkins \
+                            --input-file artifacts/staging_sonarqube.log \
+                            --output-file artifacts/ai-diagnostics/staging_sonarqube_report.md || true
+                    fi
+
+                    if [ -f artifacts/staging_diagnostic_self_test.log ]; then
+                        PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
+                            --source jenkins \
+                            --input-file artifacts/staging_diagnostic_self_test.log \
+                            --output-file artifacts/ai-diagnostics/staging_diagnostic_self_test_report.md || true
+                    fi
+
+                    for log_file in artifacts/staging_ansible_*.log; do
+                        if [ -f "$log_file" ]; then
+                            report_name="$(basename "$log_file" .log)_report.md"
+                            PYTHONPATH="$WORKSPACE" "$AI_PYTHON" -m devops.ai_agent.analyse_failure \
+                                --source ansible \
+                                --input-file "$log_file" \
+                                --output-file "artifacts/ai-diagnostics/$report_name" || true
+                        fi
+                    done
                     '''
                     archiveArtifacts artifacts: 'artifacts/ai-diagnostics/*.md', allowEmptyArchive: true
                 } catch (diagnosticsError) {
@@ -135,6 +337,17 @@ pipeline {
         }
 
         always {
+
+            junit(
+                allowEmptyResults: true,
+                testResults: 'artifacts/junit.xml'
+            )
+
+            archiveArtifacts(
+                artifacts: 'artifacts/coverage.xml,artifacts/htmlcov/**,artifacts/junit.xml,artifacts/*.log,artifacts/ai-diagnostics/*.md',
+                allowEmptyArchive: true
+            )
+
             sh '''
             rm -f "$WORKSPACE/.env"
             '''

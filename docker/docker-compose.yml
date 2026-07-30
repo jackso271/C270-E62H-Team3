@@ -1,3 +1,6 @@
+# Legacy backend/frontend-only Compose file.
+# Root ../compose.yaml is the main local DevOps stack. This file is kept for
+# the documented older workflow that proxies Nginx to the Flask backend.
 services:
   backend:
     container_name: rpmarketplace-compose-backend

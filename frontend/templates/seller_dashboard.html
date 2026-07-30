@@ -228,6 +228,37 @@
             transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
         }
 
+        .seller-chat-button {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding-right: 30px;
+        }
+
+        .unread-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+
+            min-width: 20px;
+            height: 20px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 6px;
+
+            background: #b91c1c;
+            color: white;
+
+            border-radius: 999px;
+
+            font-size: 11px;
+            font-weight: bold;
+        }
+
         .seller-dashboard-nav a:hover,
         .seller-dashboard-button:hover {
             background: linear-gradient(135deg, #39d98a, #00a85a);
@@ -296,6 +327,15 @@
     {% include "partials/user_navbar.html" %}
 
     <main class="seller-dashboard-shell">
+        <div class="seller-toolbar" style="margin-bottom:20px;">
+            <a href="/seller/chats" class="seller-dashboard-button seller-chat-button">
+                Seller Chats
+                {% if unread_count > 0 %}
+                    <span class="unread-badge">{{ unread_count }}</span>
+                {% endif %}
+            </a>
+        </div>
+
         <section class="seller-stats">
             <div class="seller-stat">
                 <strong>{{ stats.total }}</strong>
