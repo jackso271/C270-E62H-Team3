@@ -39,7 +39,7 @@
           - rp-marketplace
           - "{{ playbook_dir }}/.."
 
-    - name: Run production container on port 5002
+    - name: Run production container on port 5000
       command:
         argv:
           - docker
@@ -52,7 +52,7 @@
           - --network
           - rpmarketplace-network
           - -p
-          - "5002:5000"
+          - "5000:5000"
           - rp-marketplace
 
     - name: Verify production app is reachable
