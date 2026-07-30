@@ -48,3 +48,7 @@ coverage/
 coverage.xml
 htmlcov/
 *.log
+
+# SonarQube scanner working files
+.scannerwork/
+.sonar/

@@ -1,6 +1,9 @@
 from datetime import datetime
+import ast
+import importlib
 from pathlib import Path
 import logging
+import sys
 import time
 
 import pyotp
@@ -10,6 +13,7 @@ from werkzeug.security import generate_password_hash
 from backend.db import MySQLDatabaseError
 from backend.app import create_app
 from backend.routes import auth_routes
+from backend.services import admin_service
 from backend.services import auth_service
 from backend.services import chat_service
 from backend.services import marketplace_service
@@ -36,6 +40,114 @@ def test_application_startup_uses_mysql_admin_setup(monkeypatch):
 
     assert app.name == "backend.app"
     assert any("INSERT INTO users" in query for query, _, _ in calls)
+
+
+def test_flask_entry_points_default_debug_disabled(monkeypatch):
+    monkeypatch.setattr("backend.app.create_admin", lambda: None)
+
+    backend_app = create_app({"SECRET_KEY": "test-secret"})
+    assert backend_app.debug is False
+
+    sys.modules.pop("app", None)
+    root_app = importlib.import_module("app")
+    assert root_app.app.debug is False
+
+
+def test_backend_server_run_configuration_keeps_debug_disabled_and_port_5000():
+    source = Path("backend/server.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    run_calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "run"
+    ]
+
+    assert len(run_calls) == 1
+
+    keywords = {keyword.arg: keyword.value for keyword in run_calls[0].keywords}
+    assert ast.literal_eval(keywords["debug"]) is False
+    assert ast.literal_eval(keywords["port"]) == 5000
+
+
+def test_delete_logs_parameterizes_multiple_selected_timestamps(monkeypatch):
+    calls = []
+
+    def fake_execute(query, params=None, fetch=False, dictionary=True):
+        calls.append((query, params, fetch, dictionary))
+
+    monkeypatch.setattr(admin_service, "execute_mysql_query", fake_execute)
+
+    admin_service.delete_logs(
+        "success_logs",
+        ["2026-07-30 09:00:00", "2026-07-30 09:05:00"],
+    )
+
+    assert len(calls) == 2
+    first_query, first_params, first_fetch, first_dictionary = calls[0]
+    second_query, second_params, second_fetch, second_dictionary = calls[1]
+    assert "DATE_FORMAT" in first_query
+    assert " = %s" in first_query
+    assert first_params == (
+        True,
+        "2026-07-30 09:00:00",
+    )
+    assert second_params == (
+        True,
+        "2026-07-30 09:05:00",
+    )
+    assert first_fetch is False
+    assert second_fetch is False
+    assert first_dictionary is True
+    assert second_dictionary is True
+
+
+def test_delete_logs_parameterizes_single_selected_timestamp(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        admin_service,
+        "execute_mysql_query",
+        lambda query, params=None, fetch=False, dictionary=True: calls.append((query, params)),
+    )
+
+    admin_service.delete_logs("failed_logs", ["2026-07-30 10:00:00"])
+
+    query, params = calls[0]
+    assert "DATE_FORMAT" in query
+    assert " = %s" in query
+    assert params == (False, "2026-07-30 10:00:00")
+
+
+def test_delete_logs_ignores_empty_or_unknown_log_type(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        admin_service,
+        "execute_mysql_query",
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+
+    admin_service.delete_logs("success_logs", [])
+    admin_service.delete_logs("other_logs", ["2026-07-30 10:00:00"])
+
+    assert calls == []
+
+
+def test_delete_logs_keeps_special_characters_out_of_sql_text(monkeypatch):
+    calls = []
+    malicious_time = "2026-07-30 10:00:00'); DROP TABLE users; --"
+    monkeypatch.setattr(
+        admin_service,
+        "execute_mysql_query",
+        lambda query, params=None, fetch=False, dictionary=True: calls.append((query, params)),
+    )
+
+    admin_service.delete_logs("failed_logs", [malicious_time])
+
+    query, params = calls[0]
+    assert malicious_time not in query
+    assert params == (False, malicious_time)
+    assert "DROP TABLE" not in query
 
 
 def test_notifications_use_mysql(monkeypatch):

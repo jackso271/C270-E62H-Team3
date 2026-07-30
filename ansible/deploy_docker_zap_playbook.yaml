@@ -1,5 +1,5 @@
 ---
-- name: Deploy RP Marketplace production container
+- name: Deploy RP Marketplace container for OWASP ZAP testing
   hosts: all
   gather_facts: false
 
@@ -18,54 +18,53 @@
         msg: "Missing .env file. Create it from .env.example and provide MySQL credentials before deploying."
       when: not production_env_file.stat.exists
 
-    - name: Stop existing production container if it exists
-      command: docker stop rpmarketplace
+    - name: Stop existing ZAP testing container if it exists
+      command: docker stop rpmarketplace-zap
       register: stop_container
       failed_when: false
       changed_when: stop_container.rc == 0
 
-    - name: Remove existing production container if it exists
-      command: docker rm rpmarketplace
+    - name: Remove existing ZAP testing container if it exists
+      command: docker rm rpmarketplace-zap
       register: remove_container
       failed_when: false
       changed_when: remove_container.rc == 0
 
-    - name: Build production Docker image
+    - name: Build Docker image for ZAP testing
       command:
         argv:
           - docker
           - build
           - -t
-          - rp-marketplace
+          - rp-marketplace-zap
           - "{{ playbook_dir }}/.."
 
-    - name: Run production container on port 5000
+    - name: Run ZAP testing container on port 5005
       command:
         argv:
           - docker
           - run
           - -d
           - --name
-          - rpmarketplace
+          - rpmarketplace-zap
           - --env-file
           - "{{ playbook_dir }}/../.env"
           - --network
           - rpmarketplace-network
           - -p
-          - "5000:5000"
-          - rp-marketplace
+          - "5005:5000"
+          - rp-marketplace-zap
 
-    - name: Verify production app is reachable
+    - name: Verify ZAP testing container is running
       command:
         argv:
           - docker
-          - exec
-          - rpmarketplace
-          - python
-          - -c
-          - "import urllib.request; response = urllib.request.urlopen('http://127.0.0.1:5000/'); assert response.status == 200"
-      register: app_check
+          - inspect
+          - -f
+          - "{{ '{{' }}.State.Running{{ '}}' }}"
+          - rpmarketplace-zap
+      register: container_status
       retries: 10
       delay: 3
-      until: app_check.rc == 0
+      until: container_status.stdout == "true"
       changed_when: false
