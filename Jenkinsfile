@@ -144,6 +144,17 @@ pipeline {
             }
         }
 
+        stage('Trivy Security Scan') {
+            steps {
+                sh '''
+                mkdir -p artifacts/ai-diagnostics
+                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                    aquasec/trivy image --severity HIGH,CRITICAL rp-marketplace \
+                    | tee artifacts/production_trivy_scan.log
+                '''
+            }
+        }
+
         stage('Validate ZAP Ansible Playbook') {
             steps {
                 sh '''
