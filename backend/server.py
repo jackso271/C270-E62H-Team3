@@ -14,4 +14,4 @@ app.register_blueprint(products_bp)
 
 if __name__ == '__main__':
     init_db()           # Create tables + seed data on first run
-    app.run(port=5000, debug=True)
+    app.run(port=5000, debug=False)

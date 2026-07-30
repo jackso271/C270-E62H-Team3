@@ -228,13 +228,12 @@ def delete_logs(log_type, selected_times):
         return
 
     was_successful = log_type == "success_logs"
-    placeholders = ", ".join(["%s"] * len(selected_times))
-    execute_mysql_query(
-        f"""
-        DELETE FROM login_attempts
-        WHERE was_successful = %s
-          AND DATE_FORMAT(attempted_at, '%%Y-%%m-%%d %%H:%%i:%%s')
-              IN ({placeholders})
-        """,
-        tuple([was_successful] + list(selected_times)),
-    )
+    for selected_time in selected_times:
+        execute_mysql_query(
+            """
+            DELETE FROM login_attempts
+            WHERE was_successful = %s
+              AND DATE_FORMAT(attempted_at, '%%Y-%%m-%%d %%H:%%i:%%s') = %s
+            """,
+            (was_successful, selected_time),
+        )
