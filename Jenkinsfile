@@ -68,6 +68,23 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh '''
+                mkdir -p artifacts/ai-diagnostics
+                . venv/bin/activate
+                bash -lc 'set -o pipefail; PYTHONPATH="$WORKSPACE" python3 -m pytest tests/ 2>&1 | tee artifacts/production_pytest.log'
+                '''
         /*
         * =====================================================
         * Run automated unit tests and generate
