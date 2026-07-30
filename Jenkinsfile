@@ -88,6 +88,8 @@ pipeline {
             }
         }
 
+                bash -lc 'set -o pipefail; PYTHONPATH="$WORKSPACE" python3 -m pytest tests/ 2>&1 | tee artifacts/production_pytest.log'
+                '''
         /*
         * =====================================================
         * Run automated unit tests and generate
@@ -144,7 +146,6 @@ pipeline {
             }
         }
 
-<<<<<<< HEAD
         /*
         * =====================================================
         * Scan the built production image for known
@@ -164,9 +165,7 @@ pipeline {
         }
 
         stage('Confirm Production URL') {
-=======
         stage('Validate ZAP Ansible Playbook') {
->>>>>>> origin/main
             steps {
                 sh '''
                 mkdir -p artifacts/ai-diagnostics
