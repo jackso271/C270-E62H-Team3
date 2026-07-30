@@ -83,6 +83,11 @@ pipeline {
                 sh '''
                 mkdir -p artifacts/ai-diagnostics
                 . venv/bin/activate
+                bash -lc 'set -o pipefail; PYTHONPATH="$WORKSPACE" "$WORKSPACE/venv/bin/python" -m pytest tests/ 2>&1 | tee artifacts/production_pytest.log'
+                '''
+            }
+        }
+
                 bash -lc 'set -o pipefail; PYTHONPATH="$WORKSPACE" python3 -m pytest tests/ 2>&1 | tee artifacts/production_pytest.log'
                 '''
         /*
@@ -141,6 +146,25 @@ pipeline {
             }
         }
 
+        /*
+        * =====================================================
+        * Scan the built production image for known
+        * HIGH/CRITICAL vulnerabilities using Trivy.
+        * =====================================================
+        */
+
+        stage('Security Scan') {
+            steps {
+                sh '''
+                mkdir -p artifacts/ai-diagnostics
+                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                    aquasec/trivy image --severity HIGH,CRITICAL rp-marketplace \
+                    | tee artifacts/production_trivy_scan.log
+                '''
+            }
+        }
+
+        stage('Confirm Production URL') {
         stage('Validate ZAP Ansible Playbook') {
             steps {
                 sh '''
@@ -200,6 +224,7 @@ pipeline {
                         -I \
                         --autooff \
                         -T 10 \
+                        -z "-silent" \
                         2>&1 | tee artifacts/zap/zap_scan.log
                     
                     docker cp zap-scanner:/zap/wrk/zap-report.html \
