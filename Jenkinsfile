@@ -164,7 +164,6 @@ pipeline {
             }
         }
 
-        stage('Confirm Production URL') {
         stage('Validate ZAP Ansible Playbook') {
             steps {
                 sh '''
