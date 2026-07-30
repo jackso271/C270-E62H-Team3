@@ -259,6 +259,17 @@ EOF
             }
         }
 
+        stage('Trivy Security Scan') {
+            steps {
+                sh '''
+                mkdir -p artifacts/ai-diagnostics
+                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                    aquasec/trivy image --severity HIGH,CRITICAL rp-marketplace-staging \
+                    | tee artifacts/staging_trivy_scan.log
+                '''
+            }
+        }
+
     }
 
     post {
