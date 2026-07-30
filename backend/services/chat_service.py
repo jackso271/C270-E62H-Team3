@@ -96,17 +96,18 @@ def get_messages():
 
 
 def save_messages(messages):
+    # Legacy JSON function retained for compatibility.
+    # Messages are now written directly to MySQL.
     return None
 
 
 def get_product(product_id):
-    products = load_products()
+    products = {
+        product["id"]: product
+        for product in load_products()
+    }
 
-    for product in products:
-        if product["id"] == product_id:
-            return product
-
-    return None
+    return products.get(product_id)
 
 
 def mysql_user_for_identifier(identifier):
@@ -132,10 +133,12 @@ def mysql_user_for_identifier(identifier):
 
 
 def send_chat_message(product_id, sender_user, receiver_identifier, text):
+    text = clean_text(text)
+
     if not text:
         return None
 
-    timestamp = datetime.now().strftime(DATE_FORMAT)
+    timestamp = datetime.now()
 
     execute_mysql_query(
         """
@@ -207,7 +210,11 @@ def get_chat_messages(product_id, user, other_identifier):
         message for message in get_messages()
         if message_in_conversation(message, product_id, user, other_identifier)
     ]
-    return sorted(messages, key=lambda item: item.get("timestamp", ""))
+
+    return sorted(
+        messages,
+        key=lambda msg: msg["timestamp"],
+    )    
 
 
 def get_conversation(user1, user2, product_id):
@@ -224,7 +231,10 @@ def get_conversation(user1, user2, product_id):
         ):
             conversation.append(msg)
 
-    return sorted(conversation, key=lambda item: item.get("timestamp", ""))
+    return sorted(
+        conversation,
+        key=lambda msg: msg["timestamp"],
+    )
 
 
 def get_seller_conversations(user):
@@ -233,11 +243,16 @@ def get_seller_conversations(user):
 
     conversations = []
     seen = set()
-    products = load_products()
+    
+    products = {
+        product["id"]: product
+        for product in load_products()
+    }
 
     for message in get_messages():
         receiver_matches = identifier_matches_user(message.get("receiver"), user)
         user_id = user.get("user_id") or user.get("id")
+
         if (
             user_id is not None
             and message.get("receiver_id") is not None
@@ -249,15 +264,19 @@ def get_seller_conversations(user):
             continue
 
         key = (message.get("product_id"), message.get("sender"))
+
         if key in seen:
             continue
+
         seen.add(key)
 
-        product_name = "Unknown Product"
-        for product in products:
-            if product["id"] == message.get("product_id"):
-                product_name = product["title"]
-                break
+        product = products.get(message.get("product_id"))
+
+        product_name = (
+            product["title"]
+            if product
+            else "Unknown Product"
+        )
 
         conversations.append({
             "product_id": message.get("product_id"),
@@ -267,26 +286,32 @@ def get_seller_conversations(user):
             "timestamp": message.get("timestamp", ""),
         })
 
+    conversations.sort(
+        key=lambda c: c["timestamp"],
+        reverse=True,
+    )
+
     return conversations
 
 
 def get_unread_count(username):
     user_id = mysql_user_for_identifier(username)
 
-    count = 0
-    for message in get_messages():
-        receiver_matches = clean_key(message.get("receiver")) == clean_key(username)
-        if (
-            user_id is not None
-            and message.get("receiver_id") is not None
-            and str(message.get("receiver_id")) == str(user_id)
-        ):
-            receiver_matches = True
+    if user_id is None:
+        return 0
 
-        if receiver_matches and not message.get("read", False):
-            count += 1
+    rows = execute_mysql_query(
+        """
+        SELECT COUNT(*) AS unread
+        FROM messages
+        WHERE receiver_id = %s
+          AND read_at IS NULL
+        """,
+        (user_id,),
+        fetch=True,
+    )
 
-    return count
+    return rows[0]["unread"] if rows else 0
 
 
 def mark_conversation_read(product_id, user, other_identifier):
@@ -302,7 +327,7 @@ def mark_conversation_read(product_id, user, other_identifier):
           )
         """,
         (
-            datetime.now().strftime(DATE_FORMAT),
+            datetime.now(),
             product_id,
             user.get("user_id"),
             clean_key(other_identifier),
