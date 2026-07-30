@@ -101,7 +101,7 @@ pipeline {
                 sh '''
                 mkdir -p artifacts/ai-diagnostics
                 . venv/bin/activate
-                bash -lc 'set -o pipefail; PYTHONPATH="$WORKSPACE" python3 -m pytest tests/ 2>&1 | tee artifacts/staging_pytest.log'
+                bash -lc 'set -o pipefail; PYTHONPATH="$WORKSPACE" "$WORKSPACE/venv/bin/python" -m pytest tests/ 2>&1 | tee artifacts/staging_pytest.log'
                 '''
             }
         }
