@@ -183,6 +183,7 @@ pipeline {
                         -I \
                         --autooff \
                         -T 10 \
+                        -z "-silent" \
                         2>&1 | tee artifacts/zap/zap_scan.log
                     
                     docker cp zap-scanner:/zap/wrk/zap-report.html \
