@@ -5,3 +5,5 @@ mysql-connector-python
 python-dotenv
 pyotp
 qrcode[pil]
+Flask-Limiter
+
