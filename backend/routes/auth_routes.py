@@ -41,6 +41,7 @@ def complete_login(user):
     session.pop("pending_2fa_user_id", None)
     session.pop("pending_2fa_secret", None)
 
+    session.permanent = True
     session["user_id"] = user.get("id")
     session["name"] = user.get("name")
     session["username"] = user.get("username")
